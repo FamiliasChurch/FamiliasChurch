@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Eventos | Famílias Church</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Raleway:wght@400;500;700&family=Smooch+Sans:wght@100..900&display=swap" rel="stylesheet">
+</head>
+<body>
+    <header id="header">
+        <div class="container">
+            <a href="index.html" class="logo"><img src="./assets/img/logo.jpg" alt="Famílias Church"></a>
+            <nav>
+                <ul class="nav-menu">
+                    <li><a href="index.html" class="nav-link">Início</a></li>
+                    <li><a href="eventos.html" class="nav-link active">Eventos</a></li>
+                    <li><a href="doacoes.html" class="nav-link">Semeie</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <div class="hero-page">
+        <div class="hero-content-page">
+            <h1>EVENTOS</h1>
+            <p>"Tudo tem o seu tempo determinado"</p>
+        </div>
+    </div>
+
+    <section class="container" style="padding: 50px 20px;">
+        <h2 class="titulo-secao">Próximos Eventos</h2>
+        <div id="lista-proximos" class="grid-eventos">
+            </div>
+
+        <h2 class="titulo-secao" style="margin-top: 80px; opacity: 0.7;">Eventos que marcaram história</h2>
+        <div id="lista-passados" class="grid-eventos past-events">
+            </div>
+    </section>
+
+    <script>
+        // Lógica para carregar e organizar os eventos
+        async function renderizarEventos() {
+            const listaProximos = document.getElementById('lista-proximos');
+            const listaPassados = document.getElementById('lista-passados');
+            const agora = new Date();
+
+            try {
+                // Aqui o script busca os arquivos na pasta content/eventos do seu GitHub
+                // Nota: Em um site real, você precisará de uma API ou carregar um JSON gerado
+                // Para este exemplo, simularemos a lógica de ordenação que você pediu:
+                
+                const eventos = []; // Aqui entrarão os dados vindos do CMS
+
+                const proximos = eventos.filter(e => new Date(e.date) >= agora);
+                const passados = eventos.filter(e => new Date(e.date) < agora);
+
+                // REGRA ESPECIAL: Encontro com Deus primeiro, depois data mais próxima
+                proximos.sort((a, b) => {
+                    if (a.is_special && !b.is_special) return -1;
+                    if (!a.is_special && b.is_special) return 1;
+                    return new Date(a.date) - new Date(b.date);
+                });
+
+                // PASSADOS: Mais recente para o mais antigo
+                passados.sort((a, b) => new Date(b.date) - new Date(a.date));
+
+                // Função para criar o HTML do card de evento
+                const criarCard = (evento) => `
+                    <div class="card-evento ${evento.is_special ? 'destaque-especial' : ''}">
+                        <img src="${evento.image}" alt="${evento.title}">
+                        <div class="card-info">
+                            <span>${new Date(evento.date).toLocaleDateString('pt-BR')}</span>
+                            <h3>${evento.title}</h3>
+                            <p>${evento.body.substring(0, 100)}...</p>
+                        </div>
+                    </div>
+                `;
+
+                listaProximos.innerHTML = proximos.map(criarCard).join('');
+                listaPassados.innerHTML = passados.map(criarCard).join('');
+
+            } catch (error) {
+                console.error("Erro ao carregar eventos:", error);
+            }
+        }
+        renderizarEventos();
+    </script>
+</body>
+</html>
