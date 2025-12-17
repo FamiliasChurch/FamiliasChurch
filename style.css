@@ -237,3 +237,51 @@ section { padding: 100px 20px; scroll-margin-top: 90px; }
     .footer-nav { display: none !important; }
     .footer-social { display: flex !important; flex-direction: row; flex-wrap: wrap; width: 100%; justify-content: center; }
 }
+
+/* --- ESTILO DOS CARDS DE EVENTO --- */
+.grid-eventos {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 30px;
+    margin-top: 30px;
+}
+
+.card-evento {
+    background: #fff;
+    border-radius: 15px;
+    overflow: hidden;
+    box-shadow: var(--sombra-suave);
+    transition: transform 0.3s ease;
+    border: 1px solid #eee;
+    display: flex;
+    flex-direction: column;
+}
+
+.card-evento:hover { transform: translateY(-10px); box-shadow: var(--sombra-hover); }
+
+.card-evento img { width: 100%; height: 220px; object-fit: cover; }
+
+.card-info { padding: 25px; flex-grow: 1; }
+
+.card-info span { color: var(--cor-primaria); font-weight: 700; font-size: 0.85rem; text-transform: uppercase; display: block; margin-bottom: 10px; }
+
+.card-info h3 { font-family: 'Raleway', sans-serif; color: var(--cor-primaria); margin-bottom: 12px; font-size: 1.5rem; }
+
+.card-texto { font-size: 0.95rem; color: #666; line-height: 1.5; }
+
+/* REGRA ESPECIAL: Destaque Encontro com Deus */
+.destaque-especial { border: 3px solid #d4a373; background: #fffdfa; }
+.destaque-especial::before {
+    content: "⭐ ENCONTRO COM DEUS";
+    display: block; background: #d4a373; color: white;
+    text-align: center; font-size: 0.7rem; font-weight: 800; padding: 6px;
+}
+
+.past-events { opacity: 0.7; filter: grayscale(0.3); }
+
+/* Ajuste do Título da Seção */
+.titulo-secao {
+    font-family: 'Smooch Sans', sans-serif; font-size: 3.5rem;
+    color: var(--cor-primaria); margin-bottom: 10px; border-left: 5px solid var(--cor-primaria);
+    padding-left: 20px; text-align: left;
+}
