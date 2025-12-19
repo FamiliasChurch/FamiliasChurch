@@ -40,6 +40,11 @@
     </main>
 
     <div id="modalLeitura" class="modal">
+<div class="controles-audio">
+    <button onclick="iniciarLeitura()" id="btnOuvir" class="btn-audio">🔊 Ouvir Mensagem</button>
+    <button onclick="pararLeitura()" id="btnParar" class="btn-audio hidden">⏹️ Parar</button>
+</div>
+
         <div class="modal-content">
             <span class="close-modal" onclick="fecharLeitura()">&times;</span>
             <div id="conteudo-completo-leitura">
