@@ -376,3 +376,69 @@ async function carregarPublicacoes(tipo, containerId) {
         container.innerHTML = "<p>Nenhuma mensagem disponível no momento.</p>";
     }
 }
+
+let todasAsPublicacoes = []; // Cache para evitar múltiplos fetchs
+
+async function carregarFeed() {
+    const container = document.getElementById('lista-publicacoes');
+    if (!container) return;
+
+    try {
+        // Busca os índices das duas pastas
+        const caminhos = [
+            './content/publicacoes/devocionais/index.json',
+            './content/publicacoes/estudos/index.json'
+        ];
+
+        const respostasIndices = await Promise.all(caminhos.map(c => fetch(c).then(r => r.json())));
+        
+        // Coleta todos os arquivos e busca o conteúdo
+        let promessasConteudo = [];
+        respostasIndices[0].forEach(f => promessasConteudo.push(fetch(`./content/publicacoes/devocionais/${f}`).then(r => r.json())));
+        respostasIndices[1].forEach(f => promessasConteudo.push(fetch(`./content/publicacoes/estudos/${f}`).then(r => r.json())));
+
+        todasAsPublicacoes = await Promise.all(promessasConteudo);
+        renderizarPublicacoes(todasAsPublicacoes);
+
+    } catch (err) {
+        console.error("Erro no feed:", err);
+    }
+}
+
+function renderizarPublicacoes(lista) {
+    const container = document.getElementById('lista-publicacoes');
+    container.innerHTML = lista.map(item => `
+        <div class="card-publicacao">
+            <span class="autor">${item.autor}</span>
+            <h3>${item.title}</h3>
+            <p class="data">${new Date(item.date).toLocaleDateString('pt-BR')}</p>
+            <div class="texto-previo">${item.body.substring(0, 250)}...</div>
+            <button class="btn-card" onclick="abrirLeitura('${item.title}')">Ler na íntegra</button>
+        </div>
+    `).join('');
+}
+
+function abrirLeitura(titulo) {
+    const pub = todasAsPublicacoes.find(p => p.title === titulo);
+    const modal = document.getElementById('modalLeitura');
+    const display = document.getElementById('conteudo-completo-leitura');
+
+    display.innerHTML = `
+        <small>${pub.tipo.toUpperCase()}</small>
+        <h1 style="font-size: 3rem; margin: 20px 0">${pub.title}</h1>
+        <p><strong>Por: ${pub.autor}</strong> - ${new Date(pub.date).toLocaleDateString('pt-BR')}</p>
+        <hr>
+        <div class="texto-completo" style="font-size: 1.2rem; white-space: pre-wrap;">
+            ${pub.body}
+        </div>
+    `;
+    modal.style.display = "block";
+    document.body.style.overflow = "hidden"; // Trava o scroll do fundo
+}
+
+function fecharLeitura() {
+    document.getElementById('modalLeitura').style.display = "none";
+    document.body.style.overflow = "auto";
+}
+
+// Chame carregarFeed() no seu DOMContentLoaded
