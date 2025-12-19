@@ -1,23 +1,26 @@
 import os
 import json
 
-def gerar_indice_eventos():
-    # Caminho da pasta de eventos
-    caminho_eventos = os.path.join('content', 'eventos')
+def gerar_indice_pasta(pasta_relativa):
+    caminho = os.path.join(pasta_relativa)
+    if not os.path.exists(caminho):
+        return
     
-    # Lista todos os arquivos .json na pasta, ignorando o próprio index.json e .gitkeep
-    arquivos = [
-        f for f in os.listdir(caminho_eventos) 
-        if f.endswith('.json') and f != 'index.json'
-    ]
+    # Lista arquivos .json ignorando o próprio index.json
+    arquivos = [f for f in os.listdir(caminho) if f.endswith('.json') and f != 'index.json']
     
-    # Salva a lista em um arquivo chamado index.json dentro da pasta eventos
-    caminho_saida = os.path.join(caminho_eventos, 'index.json')
-    
-    with open(caminho_saida, 'w', encoding='utf-8') as f:
+    with open(os.path.join(caminho, 'index.json'), 'w', encoding='utf-8') as f:
         json.dump(arquivos, f, ensure_ascii=False, indent=4)
-    
-    print(f"Sucesso! Índice gerado com {len(arquivos)} eventos em: {caminho_saida}")
+    print(f"✅ Índice atualizado: {pasta_relativa}")
+
+def executar_todos():
+    pastas = [
+        'content/eventos',
+        'content/publicacoes/devocionais',
+        'content/publicacoes/estudos'
+    ]
+    for p in pastas:
+        gerar_indice_pasta(p)
 
 if __name__ == "__main__":
-    gerar_indice_eventos()
+    executar_todos()
