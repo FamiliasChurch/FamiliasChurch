@@ -6,7 +6,7 @@ def gerar_indice_pasta(pasta_relativa):
     if not os.path.exists(caminho):
         return
     
-    # Lista arquivos .json ignorando o próprio index.json
+    # Busca arquivos .json válidos
     arquivos = [f for f in os.listdir(caminho) if f.endswith('.json') and f != 'index.json']
     
     with open(os.path.join(caminho, 'index.json'), 'w', encoding='utf-8') as f:
