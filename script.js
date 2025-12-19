@@ -294,3 +294,48 @@ function compartilharWhatsapp(titulo, data) {
     );
     window.open(`https://api.whatsapp.com/send?text=${mensagem}`, '_blank');
 }
+/* No DOMContentLoaded, adicione estes gatilhos: */
+document.addEventListener('DOMContentLoaded', function() {
+    // ... (mantenha o que já existe)
+
+    if (document.getElementById('lista-devocionais')) {
+        carregarPublicacoes('devocionais', 'lista-devocionais');
+    }
+    if (document.getElementById('lista-estudos')) {
+        carregarPublicacoes('estudos', 'lista-estudos');
+    }
+});
+
+/* Nova função para carregar publicações */
+async function carregarPublicacoes(tipo, containerId) {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+
+    try {
+        const caminhoBase = `./content/publicacoes/${tipo}/`;
+        const respostaIndice = await fetch(`${caminhoBase}index.json`);
+        const arquivos = await respostaIndice.json();
+
+        const promessas = arquivos.map(file => fetch(`${caminhoBase}${file}`).then(res => res.json()));
+        const publicacoes = await Promise.all(promessas);
+
+        // Ordenar por data (mais recente primeiro)
+        publicacoes.sort((a, b) => new Date(b.date) - new Date(a.date));
+
+        container.innerHTML = publicacoes.map(pub => `
+            <article class="card-publicacao">
+                <div class="pub-info">
+                    <span class="autor">${pub.autor}</span>
+                    <h3>${pub.title}</h3>
+                    <p class="data">${new Date(pub.date).toLocaleDateString('pt-BR')}</p>
+                    <p class="resumo">${pub.body.substring(0, 150)}...</p>
+                    <a href="#" class="btn-ler">Ler mensagem completa</a>
+                </div>
+            </article>
+        `).join('');
+
+    } catch (erro) {
+        console.error(`Erro ao carregar ${tipo}:`, erro);
+        container.innerHTML = "<p>Nenhuma publicação encontrada.</p>";
+    }
+}
