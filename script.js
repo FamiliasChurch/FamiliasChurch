@@ -64,62 +64,56 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // --- DISPARAR CARREGAMENTO DE CONTEÚDO DINÂMICO ---
     if (document.getElementById('lista-proximos')) {
-        carregarEventos(); // Carrega página de eventos.html
+        carregarEventos(); // Página de eventos.html
     }
     
     if (document.getElementById('evento-principal')) {
-        carregarDestaquesHome(); // Carrega destaques da index.html
+        carregarDestaquesHome(); // Página index.html
     }
 });
 
 /* ==========================================================
-   2. LÓGICA DO BLOG/EVENTOS (PÁGINA EVENTOS.HTML)
+   2. LÓGICA DE EVENTOS (PÁGINA EVENTOS.HTML)
 ========================================================== */
 async function carregarEventos() {
-    // Lista dos arquivos JSON na pasta content/eventos
-    // IMPORTANTE: Adicione o nome dos novos arquivos aqui sempre que criá-los
-    const arquivos = [
-        '2025-12-18-encontro-com-deus.json',
-        // 'outro-evento.json', 
-    ];
-
     const listaProximos = document.getElementById('lista-proximos');
     const listaPassados = document.getElementById('lista-passados');
     const agora = new Date();
 
     try {
-        // 1. Buscar todos os arquivos JSON
-        const promessas = arquivos.map(file => fetch(`./content/eventos/${file}`).then(res => res.json()));
-        const eventos = await promessas;
+        // 1. Busca o índice gerado pelo Python
+        const respostaIndice = await fetch('./content/eventos/index.json');
+        const arquivos = await respostaIndice.json();
 
-        // 2. Separar e Ordenar
-        const proximos = eventos.filter(ev => new Date(ev.data) >= agora);
-        const passados = eventos.filter(ev => new Date(ev.data) < agora);
+        // 2. Busca os dados de cada arquivo
+        const promessas = arquivos.map(file => fetch(`./content/eventos/${file}`).then(res => res.json()));
+        const eventos = await Promise.all(promessas);
 
         const ordenador = (a, b) => {
-            // Regra 1: "Encontro com Deus" sempre no topo
             if (a.isEncontroComDeus !== b.isEncontroComDeus) {
                 return a.isEncontroComDeus ? -1 : 1;
             }
-            // Regra 2: Ordenar por data (mais próximos primeiro)
             return new Date(a.data) - new Date(b.data);
         };
 
-        // 3. Renderizar
-        renderizar(proximos.sort(ordenador), listaProximos);
-        renderizar(passados.sort(ordenador), listaPassados, true);
+        const proximos = eventos.filter(ev => new Date(ev.data) >= agora).sort(ordenador);
+        const passados = eventos.filter(ev => new Date(ev.data) < agora).sort(ordenador);
+
+        renderizar(proximos, listaProximos);
+        renderizar(passados, listaPassados, true);
 
     } catch (erro) {
         console.error("Erro ao carregar eventos:", erro);
-        listaProximos.innerHTML = "<p>Erro ao carregar eventos.</p>";
+        if(listaProximos) listaProximos.innerHTML = "<p>Erro ao carregar eventos.</p>";
     }
 }
 
 function renderizar(lista, container, isPast = false) {
-    container.innerHTML = ""; // Limpa os skeletons
+    if (!container) return;
+    container.innerHTML = ""; 
 
     if (lista.length === 0) {
-        container.innerHTML = "<p>Nenhum evento agendado no momento.</p>";
+        container.innerHTML = "<p>Nenhum evento encontrado.</p>";
         return;
     }
 
@@ -138,7 +132,7 @@ function renderizar(lista, container, isPast = false) {
                     <h3>${evento.titulo}</h3>
                     <p class="data">${dataFormatada}</p>
                     <p class="descricao">${evento.descricao ? evento.descricao.substring(0, 100) + '...' : ''}</p>
-                    ${!isPast ? `<a href="#" class="btn-card">Saber mais</a>` : ''}
+                    ${!isPast ? `<a href="eventos.html" class="btn-card">Saber mais</a>` : ''}
                 </div>
             </div>
         `;
@@ -146,86 +140,76 @@ function renderizar(lista, container, isPast = false) {
     });
 }
 
-// Inicia a função
-carregarEventos();
-
 /* ==========================================================
    3. DESTAQUES DA HOME (PÁGINA INDEX.HTML)
 ========================================================== */
 async function carregarDestaquesHome() {
-    const repoPath = "FamiliasChurch/FamiliasChurch";
-    const folderPath = "content/eventos";
     const agora = new Date();
     const containerPrincipal = document.getElementById('evento-principal');
     const containerSecundarios = document.getElementById('eventos-secundarios');
 
     try {
-        const response = await fetch(`https://api.github.com/repos/${repoPath}/contents/${folderPath}`);
-        if (!response.ok) throw new Error("Erro API");
+        // Busca do índice local (mesma lógica da página de eventos)
+        const respostaIndice = await fetch('./content/eventos/index.json');
+        const arquivos = await respostaIndice.json();
         
-        const arquivos = await response.json();
-        const promessas = arquivos.filter(arq => arq.name.endsWith('.json'))
-                                  .map(arq => fetch(arq.download_url).then(res => res.json()));
+        const promessas = arquivos.map(file => fetch(`./content/eventos/${file}`).then(res => res.json()));
         const eventos = await Promise.all(promessas);
 
-        const proximos = eventos.filter(e => new Date(e.date) >= agora);
+        const proximos = eventos.filter(e => new Date(e.data) >= agora);
 
         if (proximos.length === 0) {
-            // No trecho de Render Principal da index:
-        containerPrincipal.innerHTML = `
-            <div class="card-principal">
-                <img src="${principal.image}" alt="${principal.title}">
-                <div class="info-overlay">
-                    <span>PRÓXIMO DESTAQUE</span>
-                    <h3>${principal.title}</h3>
-                    <div style="display: flex; gap: 10px; align-items: center;">
-                        <a href="eventos.html" class="btn-copy" style="width: fit-content; margin-top:15px">Saiba Mais</a>
-                        <button class="btn-share-whatsapp" style="margin-top:15px" onclick="compartilharWhatsapp('${principal.title}', '${new Date(principal.date).toLocaleDateString('pt-BR')}')">
-                            📲
-                        </button>
-                    </div>
-                </div>
-            </div>`
-        ;
-            containerSecundarios.innerHTML = "";
+            containerPrincipal.innerHTML = "<p>Fique atento às nossas redes para os próximos eventos!</p>";
             return;
         }
 
-        const principal = proximos.find(e => e.is_special) || proximos[0];
-        const secundarios = proximos.filter(e => e !== principal).slice(0, 2);
+        // Ordena: Especiais primeiro, depois por data
+        proximos.sort((a, b) => {
+            if (a.isEncontroComDeus !== b.isEncontroComDeus) return a.isEncontroComDeus ? -1 : 1;
+            return new Date(a.data) - new Date(b.data);
+        });
+
+        const principal = proximos[0];
+        const secundarios = proximos.slice(1, 3);
 
         // Render Principal
         containerPrincipal.innerHTML = `
             <div class="card-principal">
-                <img src="${principal.image}" alt="${principal.title}">
+                <img src="${principal.imagem}" alt="${principal.titulo}">
                 <div class="info-overlay">
-                    <span>PRÓXIMO DESTAQUE</span>
-                    <h3>${principal.title}</h3>
-                    <a href="eventos.html" class="btn-copy" style="width: fit-content; margin-top:15px">Saiba Mais</a>
+                    <span>${principal.isEncontroComDeus ? 'DESTAQUE ESPECIAL' : 'PRÓXIMO DESTAQUE'}</span>
+                    <h3>${principal.titulo}</h3>
+                    <div style="display: flex; gap: 10px; align-items: center;">
+                        <a href="eventos.html" class="btn-copy" style="width: fit-content; margin-top:15px">Saiba Mais</a>
+                        <button class="btn-share-whatsapp" style="margin-top:15px; border:none; background:none; cursor:pointer; font-size:1.5rem;" 
+                                onclick="compartilharWhatsapp('${principal.titulo}', '${new Date(principal.data).toLocaleDateString('pt-BR')}')">
+                            📲
+                        </button>
+                    </div>
                 </div>
-            </div>
-        `;
+            </div>`;
 
         // Render Secundários
-        containerSecundarios.innerHTML = secundarios.map(ev => `
-            <div class="card-secundario">
-                <img src="${ev.image}">
-                <div class="info-pequena">
-                    <h4 style="color: var(--cor-primaria)">${ev.title}</h4>
-                    <p style="font-size: 0.8rem; color: #666">${new Date(ev.date).toLocaleDateString('pt-BR')}</p>
-                    <a href="eventos.html" style="color: var(--cor-destaque); font-weight: bold; font-size: 0.8rem">SAIBA MAIS →</a>
+        if (containerSecundarios) {
+            containerSecundarios.innerHTML = secundarios.map(ev => `
+                <div class="card-secundario">
+                    <img src="${ev.imagem}">
+                    <div class="info-pequena">
+                        <h4 style="color: var(--cor-primaria)">${ev.titulo}</h4>
+                        <p style="font-size: 0.8rem; color: #666">${new Date(ev.data).toLocaleDateString('pt-BR')}</p>
+                        <a href="eventos.html" style="color: var(--cor-destaque); font-weight: bold; font-size: 0.8rem">SAIBA MAIS →</a>
+                    </div>
                 </div>
-            </div>
-        `).join('');
+            `).join('');
+        }
 
     } catch (err) { 
         console.error("Erro nos destaques:", err);
-        containerPrincipal.innerHTML = "";
     }
 }
 
 /* ==========================================================
-   4. FUNÇÕES GLOBAIS (CHAMADAS VIA ONCLICK NO HTML)
+   4. FUNÇÕES GLOBAIS (AUXILIARES)
 ========================================================== */
 
 function trocarUnidade(estado) {    
@@ -235,34 +219,35 @@ function trocarUnidade(estado) {
     const btnSC = document.getElementById('btn-sc');
     
     if (estado === 'pr') {
-        contentPR.classList.remove('hidden');
-        contentSC.classList.add('hidden');
-        btnPR.classList.add('active');
-        btnSC.classList.remove('active');
+        contentPR?.classList.remove('hidden');
+        contentSC?.classList.add('hidden');
+        btnPR?.classList.add('active');
+        btnSC?.classList.remove('active');
     } else {
-        contentPR.classList.add('hidden');
-        contentSC.classList.remove('hidden');
-        btnSC.classList.add('active');
-        btnPR.classList.remove('active');
+        contentPR?.classList.add('hidden');
+        contentSC?.classList.remove('hidden');
+        btnSC?.classList.add('active');
+        btnPR?.classList.remove('active');
     }
 }
 
 function ativarAba(elemento) {
-    const botoes = document.querySelectorAll('.tab-btn');
-    botoes.forEach(btn => btn.classList.remove('active'));
+    document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
     elemento.classList.add('active');
 
     const displayImg = document.getElementById('tabImg');
     const displayTitulo = document.getElementById('tabTitulo');
     const displayDesc = document.getElementById('tabDesc');
 
-    displayImg.style.opacity = '0';
-    setTimeout(() => {
-        displayImg.src = elemento.getAttribute('data-img');
-        displayTitulo.textContent = elemento.getAttribute('data-titulo');
-        displayDesc.textContent = elemento.getAttribute('data-desc');
-        displayImg.style.opacity = '1';
-    }, 200);
+    if (displayImg) {
+        displayImg.style.opacity = '0';
+        setTimeout(() => {
+            displayImg.src = elemento.getAttribute('data-img');
+            displayTitulo.textContent = elemento.getAttribute('data-titulo');
+            displayDesc.textContent = elemento.getAttribute('data-desc');
+            displayImg.style.opacity = '1';
+        }, 200);
+    }
 }
 
 function mostrarOpcao(tipo) {
@@ -272,13 +257,13 @@ function mostrarOpcao(tipo) {
     botoes.forEach(btn => btn.classList.remove('active'));
 
     if (tipo === 'oferta') {
-        if(boxOferta) boxOferta.classList.remove('hidden');
-        if(boxDizimo) boxDizimo.classList.add('hidden');
-        if(botoes[0]) botoes[0].classList.add('active');
+        boxOferta?.classList.remove('hidden');
+        boxDizimo?.classList.add('hidden');
+        botoes[0]?.classList.add('active');
     } else {
-        if(boxOferta) boxOferta.classList.add('hidden');
-        if(boxDizimo) boxDizimo.classList.remove('hidden');
-        if(botoes[1]) botoes[1].classList.add('active');
+        boxOferta?.classList.add('hidden');
+        boxDizimo?.classList.remove('hidden');
+        botoes[1]?.classList.add('active');
     }
 }
 
@@ -296,16 +281,13 @@ function formatarMoeda(i) {
     i.value = v;
 }
 
-// --- FUNÇÃO PARA PARTILHAR NO WHATSAPP ---
 function compartilharWhatsapp(titulo, data) {
-    const urlSite = window.location.href; // Pega o link da página atual
+    const urlSite = window.location.href;
     const mensagem = encodeURIComponent(
         `Olá! Veja este evento na Famílias Church:\n\n` +
         `📌 *${titulo}*\n` +
         `📅 ${data}\n\n` +
         `Confira os detalhes no site: ${urlSite}`
     );
-    
-    // Abre o WhatsApp com a mensagem pronta
     window.open(`https://api.whatsapp.com/send?text=${mensagem}`, '_blank');
 }
