@@ -81,23 +81,23 @@ async function carregarEventos() {
     const agora = new Date();
 
     try {
-        // 1. Busca o índice gerado pelo Python
         const respostaIndice = await fetch('./content/eventos/index.json');
         const arquivos = await respostaIndice.json();
 
-        // 2. Busca os dados de cada arquivo
         const promessas = arquivos.map(file => fetch(`./content/eventos/${file}`).then(res => res.json()));
         const eventos = await Promise.all(promessas);
 
+        // Ajustado para 'is_special' e 'date'
         const ordenador = (a, b) => {
-            if (a.isEncontroComDeus !== b.isEncontroComDeus) {
-                return a.isEncontroComDeus ? -1 : 1;
+            if (a.is_special !== b.is_special) {
+                return a.is_special ? -1 : 1;
             }
-            return new Date(a.data) - new Date(b.data);
+            return new Date(a.date) - new Date(b.date);
         };
 
-        const proximos = eventos.filter(ev => new Date(ev.data) >= agora).sort(ordenador);
-        const passados = eventos.filter(ev => new Date(ev.data) < agora).sort(ordenador);
+        // Ajustado para 'date'
+        const proximos = eventos.filter(ev => new Date(ev.date) >= agora).sort(ordenador);
+        const passados = eventos.filter(ev => new Date(ev.date) < agora).sort(ordenador);
 
         renderizar(proximos, listaProximos);
         renderizar(passados, listaPassados, true);
@@ -118,20 +118,22 @@ function renderizar(lista, container, isPast = false) {
     }
 
     lista.forEach(evento => {
-        const dataFormatada = new Date(evento.data).toLocaleString('pt-BR', {
+        // Ajustado para 'evento.date'
+        const dataFormatada = new Date(evento.date).toLocaleString('pt-BR', {
             day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit'
         });
 
+        // Mapeamento: is_special -> destaque, image -> img, title -> h3, body -> descricao
         const card = `
-            <div class="card-evento ${evento.isEncontroComDeus ? 'destaque-encontro' : ''} ${isPast ? 'evento-passado' : ''}">
+            <div class="card-evento ${evento.is_special ? 'destaque-encontro' : ''} ${isPast ? 'evento-passado' : ''}">
                 <div class="card-img">
-                    <img src="${evento.imagem}" alt="${evento.titulo}">
+                    <img src="${evento.image}" alt="${evento.title}">
                 </div>
                 <div class="card-info">
-                    ${evento.isEncontroComDeus ? '<span class="badge">Destaque</span>' : ''}
-                    <h3>${evento.titulo}</h3>
+                    ${evento.is_special ? '<span class="badge">Destaque</span>' : ''}
+                    <h3>${evento.title}</h3>
                     <p class="data">${dataFormatada}</p>
-                    <p class="descricao">${evento.descricao ? evento.descricao.substring(0, 100) + '...' : ''}</p>
+                    <p class="descricao">${evento.body ? evento.body.substring(0, 100) + '...' : ''}</p>
                     ${!isPast ? `<a href="eventos.html" class="btn-card">Saber mais</a>` : ''}
                 </div>
             </div>
@@ -149,54 +151,54 @@ async function carregarDestaquesHome() {
     const containerSecundarios = document.getElementById('eventos-secundarios');
 
     try {
-        // Busca do índice local (mesma lógica da página de eventos)
         const respostaIndice = await fetch('./content/eventos/index.json');
         const arquivos = await respostaIndice.json();
         
         const promessas = arquivos.map(file => fetch(`./content/eventos/${file}`).then(res => res.json()));
         const eventos = await Promise.all(promessas);
 
-        const proximos = eventos.filter(e => new Date(e.data) >= agora);
+        // Ajustado para 'date'
+        const proximos = eventos.filter(e => new Date(e.date) >= agora);
 
         if (proximos.length === 0) {
             containerPrincipal.innerHTML = "<p>Fique atento às nossas redes para os próximos eventos!</p>";
             return;
         }
 
-        // Ordena: Especiais primeiro, depois por data
+        // Ajustado para 'is_special' e 'date'
         proximos.sort((a, b) => {
-            if (a.isEncontroComDeus !== b.isEncontroComDeus) return a.isEncontroComDeus ? -1 : 1;
-            return new Date(a.data) - new Date(b.data);
+            if (a.is_special !== b.is_special) return a.is_special ? -1 : 1;
+            return new Date(a.date) - new Date(b.date);
         });
 
         const principal = proximos[0];
         const secundarios = proximos.slice(1, 3);
 
-        // Render Principal
+        // Render Principal (Ajustado para image, title, date)
         containerPrincipal.innerHTML = `
             <div class="card-principal">
-                <img src="${principal.imagem}" alt="${principal.titulo}">
+                <img src="${principal.image}" alt="${principal.title}">
                 <div class="info-overlay">
-                    <span>${principal.isEncontroComDeus ? 'DESTAQUE ESPECIAL' : 'PRÓXIMO DESTAQUE'}</span>
-                    <h3>${principal.titulo}</h3>
+                    <span>${principal.is_special ? 'DESTAQUE ESPECIAL' : 'PRÓXIMO DESTAQUE'}</span>
+                    <h3>${principal.title}</h3>
                     <div style="display: flex; gap: 10px; align-items: center;">
                         <a href="eventos.html" class="btn-copy" style="width: fit-content; margin-top:15px">Saiba Mais</a>
                         <button class="btn-share-whatsapp" style="margin-top:15px; border:none; background:none; cursor:pointer; font-size:1.5rem;" 
-                                onclick="compartilharWhatsapp('${principal.titulo}', '${new Date(principal.data).toLocaleDateString('pt-BR')}')">
+                                onclick="compartilharWhatsapp('${principal.title}', '${new Date(principal.date).toLocaleDateString('pt-BR')}')">
                             📲
                         </button>
                     </div>
                 </div>
             </div>`;
 
-        // Render Secundários
+        // Render Secundários (Ajustado para image, title, date)
         if (containerSecundarios) {
             containerSecundarios.innerHTML = secundarios.map(ev => `
                 <div class="card-secundario">
-                    <img src="${ev.imagem}">
+                    <img src="${ev.image}">
                     <div class="info-pequena">
-                        <h4 style="color: var(--cor-primaria)">${ev.titulo}</h4>
-                        <p style="font-size: 0.8rem; color: #666">${new Date(ev.data).toLocaleDateString('pt-BR')}</p>
+                        <h4 style="color: var(--cor-primaria)">${ev.title}</h4>
+                        <p style="font-size: 0.8rem; color: #666">${new Date(ev.date).toLocaleDateString('pt-BR')}</p>
                         <a href="eventos.html" style="color: var(--cor-destaque); font-weight: bold; font-size: 0.8rem">SAIBA MAIS →</a>
                     </div>
                 </div>
@@ -207,6 +209,7 @@ async function carregarDestaquesHome() {
         console.error("Erro nos destaques:", err);
     }
 }
+
 
 /* ==========================================================
    4. FUNÇÕES GLOBAIS (AUXILIARES)
