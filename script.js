@@ -339,3 +339,40 @@ async function carregarPublicacoes(tipo, containerId) {
         container.innerHTML = "<p>Nenhuma publicação encontrada.</p>";
     }
 }
+
+/* No seu DOMContentLoaded existente, adicione: */
+if (document.getElementById('lista-devocionais')) {
+    carregarPublicacoes('devocionais', 'lista-devocionais');
+}
+
+/* Nova função genérica para publicações */
+async function carregarPublicacoes(tipo, containerId) {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+
+    try {
+        const caminhoBase = `./content/publicacoes/${tipo}/`;
+        const respostaIndice = await fetch(`${caminhoBase}index.json`);
+        const arquivos = await respostaIndice.json();
+
+        const promessas = arquivos.map(file => fetch(`${caminhoBase}${file}`).then(res => res.json()));
+        const lista = await Promise.all(promessas);
+
+        // Ordenar por data mais recente
+        lista.sort((a, b) => new Date(b.date) - new Date(a.date));
+
+        container.innerHTML = lista.map(item => `
+            <div class="card-publicacao">
+                <h3>${item.title}</h3>
+                <span class="autor">Por: ${item.autor}</span>
+                <p class="data">${new Date(item.date).toLocaleDateString('pt-BR')}</p>
+                <div class="texto-previo">${item.body.substring(0, 200)}...</div>
+                <button onclick="abrirLeituraCompleta('${item.title}')">Ler mais</button>
+            </div>
+        `).join('');
+
+    } catch (err) {
+        console.error("Erro ao carregar publicações:", err);
+        container.innerHTML = "<p>Nenhuma mensagem disponível no momento.</p>";
+    }
+}
