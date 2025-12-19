@@ -1,38 +1,79 @@
-// Substitua sua função de salvar por esta:
-async function publicarNoGithub(payload) {
-    const STATUS = document.getElementById('status');
-    STATUS.innerText = "🚀 Enviando para o céu... digo, para o servidor...";
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>Portal do Obreiro | Famílias Church</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .form-publicar { max-width: 600px; margin: 50px auto; padding: 20px; border: 1px solid #ddd; border-radius: 10px; }
+        .hidden { display: none; }
+    </style>
+</head>
+<body>
+    <div id="login-section" class="form-publicar">
+        <h2>Acesso do Obreiro</h2>
+        <input type="password" id="passkey" placeholder="Digite sua chave de acesso">
+        <button onclick="verificarAcesso()">Entrar</button>
+    </div>
 
-    // CONFIGURAÇÃO DO REPOSITÓRIO
-    const GITHUB_TOKEN = "SEU_TOKEN_AQUI"; // ⚠️ Em produção, use um backend. Para estudo, serve aqui.
-    const REPO = "FamiliasChurch/FamiliasChurch"; 
-    const PATH = `content/publicacoes/${payload.tipo}/${Date.now()}-${payload.title.toLowerCase().replace(/ /g, '-')}.json`;
+    <div id="admin-section" class="form-publicar hidden">
+        <h2 id="boas-vindas">Bem-vindo</h2>
+        <form id="formConteudo">
+            <select id="tipo" required>
+                <option value="devocional">Devocional</option>
+                <option value="estudo">Estudo Bíblico</option>
+            </select>
+            <input type="text" id="titulo" placeholder="Título da Mensagem" required>
+            <textarea id="texto" placeholder="Escreva aqui sua mensagem..." rows="10" required></textarea>
+            <button type="submit">Gerar Arquivo de Publicação</button>
+        </form>
+        <p id="status"></p>
+    </div>
 
-    // A API do GitHub exige conteúdo em Base64
-    const contentBase64 = btoa(unescape(encodeURIComponent(JSON.stringify(payload, null, 2))));
+    <script>
+        // Mapeamento Simples (Em Engenharia, isso evoluiria para uma API)
+        const OBREIROS = {
+            "apostolo123": "Apóstolo João",
+            "pastor456": "Pastor Marcos",
+            "pastora789": "Pastora Maria"
+        };
 
-    try {
-        const response = await fetch(`https://api.github.com/repos/${REPO}/contents/${PATH}`, {
-            method: 'PUT',
-            headers: {
-                'Authorization': `token ${GITHUB_TOKEN}`,
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                message: `Nova publicação: ${payload.title} por ${payload.autor}`,
-                content: contentBase64
-            })
-        });
+        let autorLogado = "";
 
-        if (response.ok) {
-            STATUS.innerHTML = "✅ **Publicado com sucesso!** O site será atualizado em instantes.";
-            document.getElementById('formConteudo').reset();
-        } else {
-            throw new Error("Erro na API do GitHub");
+        function verificarAcesso() {
+            const key = document.getElementById('passkey').value;
+            if (OBREIROS[key]) {
+                autorLogado = OBREIROS[key];
+                document.getElementById('login-section').classList.add('hidden');
+                document.getElementById('admin-section').classList.remove('hidden');
+                document.getElementById('boas-vindas').innerText = `Olá, ${autorLogado}`;
+            } else {
+                alert("Chave de acesso inválida!");
+            }
         }
-    } catch (erro) {
-        console.error(erro);
-        STATUS.innerText = "❌ Erro ao publicar. Verifique sua conexão ou token.";
-    }
-}
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    
+
+        // Lógica para salvar (O JS não salva direto no servidor por segurança, 
+        // ele vai gerar o JSON para você colocar na pasta ou baixar)
+        document.getElementById('formConteudo').onsubmit = function(e) {
+            e.preventDefault();
+            const payload = {
+                tipo: document.getElementById('tipo').value,
+                autor: autorLogado,
+                titulo: document.getElementById('titulo').value,
+                date: new Date().toISOString(),
+                body: document.getElementById('texto').value
+            };
+
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(payload, null, 2));
+            const downloadAnchorNode = document.createElement('a');
+            downloadAnchorNode.setAttribute("href", dataStr);
+            downloadAnchorNode.setAttribute("download", `${payload.tipo}-${Date.now()}.json`);
+            document.body.appendChild(downloadAnchorNode);
+            downloadAnchorNode.click();
+            downloadAnchorNode.remove();
+            
+            document.getElementById('status').innerText = "Arquivo gerado! Agora mova-o para a pasta de publicações e rode o script Python.";
+        };
+    </script>
+</body>
+</html>
