@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Devocionais e Estudos | Famílias Church</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Lora:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+</head>
+<body>
+    <header id="header">
+        <div class="container">
+            <a href="index.html" class="logo"><img src="./assets/img/logo.jpg" alt="Famílias Church"></a>
+            <nav>
+                <ul class="nav-menu">
+                    <li><a href="index.html" class="nav-link">Início</a></li>
+                    <li><a href="eventos.html" class="nav-link">Eventos</a></li>
+                    <li><a href="devocionais.html" class="nav-link active">Devocionais</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <div class="hero-mini">
+        <h1>Alimento Diário</h1>
+        <p>Estudos Bíblicos e Mensagens de Fé</p>
+    </div>
+
+    <main class="container">
+        <div class="filtro-publicacoes">
+            <button class="btn-filtro active" onclick="filtrarTipo('todos')">Todos</button>
+            <button class="btn-filtro" onclick="filtrarTipo('devocional')">Devocionais</button>
+            <button class="btn-filtro" onclick="filtrarTipo('estudo')">Estudos Bíblicos</button>
+        </div>
+
+        <section id="lista-publicacoes" class="feed-publicacoes">
+            <div class="skeleton-text"></div>
+            <div class="skeleton-text"></div>
+        </section>
+    </main>
+
+    <div id="modalLeitura" class="modal">
+        <div class="modal-content">
+            <span class="close-modal" onclick="fecharLeitura()">&times;</span>
+            <div id="conteudo-completo-leitura">
+                </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
