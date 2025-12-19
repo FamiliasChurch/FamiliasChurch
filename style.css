@@ -1,38 +1,154 @@
 /* ==========================================================
-   1. VARIÁVEIS GLOBAIS (DESIGN SYSTEM)
+   1. VARIÁVEIS & RESET (RECUPERADOS)
 ========================================================== */
 :root {
-    /* Cores */
     --cor-primaria: #163a30;
     --cor-secundaria: #2a5f50;
     --cor-destaque: #d4a373;
     --cor-fundo: #ffffff;
     --cor-fundo-alt: #f4f6f5;
     --cor-texto: #333333;
-    --cor-branco: #ffffff;
-    
-    /* Tipografia */
-    --font-main: 'Raleway', sans-serif;
-    --font-display: 'Smooch Sans', sans-serif;
-    --font-serif: 'Lora', serif;
-    
-    /* Efeitos */
+    --cor-cinza-claro: #e0e0e0;
     --sombra-suave: 0 10px 30px rgba(0,0,0,0.08);
     --sombra-hover: 0 15px 35px rgba(22, 58, 48, 0.15);
-    --transicao: all 0.3s ease;
+    
+    /* Variáveis de apoio para a nova estrutura */
+    --fonte-titulos: 'Smooch Sans', sans-serif;
+    --fonte-principal: 'Raleway', sans-serif;
+    --transicao: 0.3s ease;
 }
 
-/* Reset Otimizado */
 * { margin: 0; padding: 0; box-sizing: border-box; }
 html { scroll-behavior: smooth; }
 body {
-    font-family: var(--font-main);
+    font-family: var(--fonte-principal);
     background-color: var(--cor-fundo);
     color: var(--cor-texto);
     line-height: 1.6;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
 }
 
-/* Utilize as variáveis em todo o código abaixo... */
+/* ==========================================================
+   2. CABEÇALHO & NAVEGAÇÃO (RECUPERADOS)
+========================================================== */
+header {
+    background-color: rgba(255, 255, 255, 0.98);
+    backdrop-filter: blur(10px);
+    box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+    position: fixed;
+    width: 100%;
+    top: 0;
+    left: 0;
+    z-index: 1000;
+    height: 110px;
+    display: flex;
+    align-items: center;
+}
+
+.logo img { height: 90px; width: auto; transition: transform var(--transicao); }
+.logo:hover img { transform: scale(1.05); }
+
+.nav-menu { display: flex; align-items: center; gap: 30px; }
+
+.nav-link {
+    font-weight: 600;
+    font-size: 0.95rem;
+    text-transform: uppercase;
+    color: var(--cor-texto);
+    position: relative;
+    padding: 5px 0;
+}
+
+/* Efeito de sublinhado animado recuperado */
+.nav-link::after {
+    content: '';
+    position: absolute;
+    width: 0;
+    height: 2px;
+    bottom: -5px;
+    left: 0;
+    background-color: var(--cor-primaria);
+    transition: width 0.3s;
+}
+.nav-link:hover::after { width: 100%; }
+
+/* Destaque do botão de oração no menu */
+.btn-menu-destaque { 
+    color: var(--cor-primaria) !important; 
+    border: 1px solid var(--cor-primaria);
+    padding: 10px 20px !important;
+    border-radius: 50px;
+}
+.btn-menu-destaque:hover {
+    background-color: var(--cor-primaria);
+    color: white !important;
+}
+
+/* Menu Mobile (Barras) */
+.menu-toggle { display: none; background: none; border: none; cursor: pointer; width: 40px; height: 30px; position: relative; z-index: 1100; }
+.bar { display: block; width: 100%; height: 3px; background-color: var(--cor-primaria); border-radius: 3px; position: absolute; left: 0; transition: all 0.3s; }
+.bar:nth-child(1) { top: 0; } .bar:nth-child(2) { top: 12px; } .bar:nth-child(3) { top: 24px; }
+
+.menu-toggle.active .bar:nth-child(1) { top: 12px; transform: rotate(45deg); }
+.menu-toggle.active .bar:nth-child(2) { opacity: 0; }
+.menu-toggle.active .bar:nth-child(3) { top: 12px; transform: rotate(-45deg); }
+
+/* ==========================================================
+   3. BOTÕES GLOBAIS (RECUPERADOS)
+========================================================== */
+.btn-hero {
+    background-color: #fff;
+    color: var(--cor-primaria);
+    padding: 15px 30px;
+    border-radius: 50px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+    display: inline-block;
+    transition: transform 0.2s, box-shadow 0.2s;
+    font-size: 0.9rem;
+}
+
+.btn-doar { 
+    background-color: transparent; 
+    border: 2px solid #fff; 
+    color: #fff; 
+    box-shadow: none; 
+}
+
+.btn-hero:hover, .btn-doar:hover { 
+    transform: translateY(-3px); 
+    box-shadow: 0 15px 25px rgba(0,0,0,0.3); 
+    background-color: #fff; 
+    color: var(--cor-primaria); 
+}
+
+/* Botão de Envio (Gradiente recuperado) */
+.btn-enviar-dizimo, .btn-enviar { 
+    width: 100%; 
+    background-image: linear-gradient(to right, var(--cor-primaria) 0%, var(--cor-secundaria) 51%, var(--cor-primaria) 100%); 
+    background-size: 200% auto; 
+    color: white; 
+    padding: 18px; 
+    border: none; 
+    border-radius: 50px; 
+    font-size: 1.1rem; 
+    font-weight: 800; 
+    text-transform: uppercase; 
+    cursor: pointer; 
+    transition: 0.5s; 
+    box-shadow: 0 10px 20px rgba(22, 58, 48, 0.2); 
+}
+
+.btn-enviar:hover { 
+    background-position: right center; 
+    transform: translateY(-3px); 
+    box-shadow: var(--sombra-hover); 
+}
+
 
 /* ==========================================================
    2. CABEÇALHO & NAVEGAÇÃO
