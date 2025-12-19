@@ -1,0 +1,20 @@
+backend:
+  name: git-gateway
+  branch: main # Certifique-se de que sua branch principal se chama main
+
+media_folder: "assets/img/eventos"
+public_folder: "/assets/img/eventos"
+
+collections:
+  - name: "eventos"
+    label: "Eventos"
+    folder: "content/eventos"
+    create: true
+    extension: json # Salvaremos como JSON para facilitar a leitura pelo site
+    slug: "{{year}}-{{month}}-{{day}}-{{slug}}"
+    fields:
+      - { label: "Título do Evento", name: "title", widget: "string" }
+      - { label: "Data e Hora", name: "date", widget: "datetime" }
+      - { label: "É Encontro com Deus?", name: "is_special", widget: "boolean", default: false }
+      - { label: "Imagem de Capa", name: "image", widget: "image" }
+      - { label: "Descrição Detalhada", name: "body", widget: "markdown" }
