@@ -4,247 +4,203 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Famílias Church | Restaurar, Cuidar, Amar</title>
+    
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Raleway:wght@400;500;700&family=Smooch+Sans:wght@100..900&display=swap" rel="stylesheet">
+    
     <link rel="stylesheet" href="style.css">
     <link rel="shortcut icon" href="./assets/img/logo.jpg" type="image/x-icon">
+    
     <meta name="description" content="Famílias Church - Restaurar, Cuidar e Amar. Venha nos visitar em Fazenda Rio Grande/PR ou Tijucas/SC.">
-    <meta name="keywords" content="Igreja, Culto, Família, Fazenda Rio Grande, Tijucas, Oração">
     <script src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
-    <meta property="og:title" content="Famílias Church | Restaurar, Cuidar e Amar">
-    <meta property="og:description" content="Conheça nossos ministérios e horários de culto.">
-    <meta property="og:image" content="https://seusite.com.br/assets/img/capa-whatsapp.jpg"> <meta property="og:url" content="https://seusite.com.br">
 </head>
 
 <body>
 
-    <header id="header">
-        <div class="container">
-            <a href="#inicio" class="logo"><img src="./assets/img/logo.jpg" alt="Famílias Church"></a>
-            <nav>
-                <ul class="nav-menu">
-                    <li><a href="#inicio" class="nav-link active">Início</a></li>
-                    <li><a href="#sobre" class="nav-link">Quem Somos</a></li>
-                    <li><a href="#ministerios" class="nav-link">Ministérios</a></li>
-                    <li><a href="#cultos" class="nav-link">Cultos</a></li>
-                    <li><a href="#pedidos" class="nav-link btn-menu-destaque">Pedido de Oração</a></li>
-                    <li><a href="eventos.html" class="nav-link">Eventos</a></li>
-                </ul>
-            </nav>
-            <button class="menu-toggle" id="mobileBtn" aria-label="Abrir Menu">
-                <span class="bar"></span><span class="bar"></span><span class="bar"></span>
-            </button>
-        </div>
-    </header>
+    <header id="header"></header>
 
-    <div id="inicio" class="hero">
-        <div class="hero-content">
-            <h1>FAMÍLIAS CHURCH</h1>
-            <p>"Restaurar, Cuidar e Amar"</p>
-            <div class="hero-btns">
-                <a href="#cultos" class="btn-hero">Venha nos Visitar</a>
-                <a href="doacoes.html" class="btn-hero btn-doar">Semeie</a>
-            </div>
-        </div>
-    </div>
-
-    <section id="eventos-destaque" class="bg-alt">
-        <div class="destaque-wrapper">
-            <div id="evento-principal" class="lado-esquerdo">
-                <div class="skeleton skeleton-principal"></div>
-            </div>
-
-            <div id="eventos-secundarios" class="lado-direito">
-                <div class="skeleton skeleton-secundario"></div>
-                <div class="skeleton skeleton-secundario"></div>
-            </div>
-        </div>
-        <div class="container">
-            <div class="section-title">
-                <h2>Próximos Encontros</h2>
-                <p>Fique por dentro do que está acontecendo na Famílias Church</p>
-            </div>
-            
-            <div class="destaque-wrapper">
-                <div id="evento-principal" class="lado-esquerdo"></div>
-                <div id="eventos-secundarios" class="lado-direito"></div>
-            </div>
-
-            <div style="text-align: center; margin-top: 40px;">
-                <a href="eventos.html" class="btn-hero">Ver Todos os Eventos</a>
-            </div>
-        </div>
-    </section>
-
-    <section id="sobre" class="bg-alt">
-        <div class="container sobre-container">
-            <div class="sobre-versiculo-box fade-in">
-                <div class="icone-citacao">“</div>
-                <blockquote>Roguemos a vocês, irmãos, que admoestem os indisciplinados, consolem os desanimados, amparem os fracos e sejam pacientes com todos.</blockquote>
-                <cite>1 Tessalonicenses 5.14</cite>
-            </div>
-            <figure class="sobre-lider fade-in">
-                <div class="img-moldura">
-                    <img src="./assets/img/Ap.jpg" alt="Apóstolo José Roberto Couto" loading="lazy">
-                </div>
-                <figcaption>
-                    <h3>José Roberto Couto</h3>
-                    <p>Apóstolo</p>
-                </figcaption>
-            </figure>
-        </div>
-    </section>
-
-    <section id="ministerios">
-        <div class="container section-title">
-            <h2>Nossos Ministérios</h2>
-            <p>Selecione uma área para conhecer</p>
-        </div>
-        <div class="container ministerios-wrapper">
-            <div class="tabs-header">
-                <button class="tab-btn active" onclick="ativarAba(this)" data-titulo="Louvor" data-desc="Levando a igreja à presença de Deus através da adoração profunda e música de excelência." data-img="https://images.unsplash.com/photo-1516280440614-6697288d5d38?q=80&w=2070">Louvor</button>
-                <button class="tab-btn" onclick="ativarAba(this)" data-titulo="Famílias" data-desc="Edificando lares sobre a Rocha, fortalecendo casamentos e a criação de filhos." data-img="https://images.unsplash.com/photo-1511895426328-dc8714191300?q=80&w=2070">Famílias</button>
-                <button class="tab-btn" onclick="ativarAba(this)" data-titulo="Déboras" data-desc="Mulheres de intercessão que se levantam em oração fervorosa por seus filhos e pela nação." data-img="https://images.unsplash.com/photo-1544005313-94ddf0286df2?q=80&w=1888">Déboras</button>
-                <button class="tab-btn" onclick="ativarAba(this)" data-titulo="Jovens" data-desc="Uma geração de força, santidade e propósito, pronta para transformar a sociedade." data-img="https://images.unsplash.com/photo-1523580494863-6f3031224c94?q=80&w=2070">Jovens</button>
-                <button class="tab-btn" onclick="ativarAba(this)" data-titulo="Teens" data-desc="Adolescentes conectados e apaixonados por Jesus, vivendo a verdade em um mundo confuso." data-img="https://images.unsplash.com/photo-1529333166437-7750a6dd5a70?q=80&w=2069">Teens</button>
-                <button class="tab-btn" onclick="ativarAba(this)" data-titulo="Kids" data-desc="Ensinando a próxima geração com amor, diversão e a pureza da Palavra de Deus." data-img="https://images.unsplash.com/photo-1485546246426-74dc88dec4d9?q=80&w=2069">Kids</button>
-                <button class="tab-btn" onclick="ativarAba(this)" data-titulo="Teatro" data-desc="A arte a serviço do Reino, comunicando o Evangelho de forma criativa e impactante." data-img="https://images.unsplash.com/photo-1503095392237-fa3b925b4487?q=80&w=2069">Teatro</button>
-                <button class="tab-btn" onclick="ativarAba(this)" data-titulo="Dança" data-desc="Expressão de liberdade, louvor e adoração através do movimento e da arte." data-img="https://images.unsplash.com/photo-1508700929628-666bc8bd84ea?q=80&w=2070">Dança</button>
-            </div>
-            <div class="ministerios-layout">
-                <div class="tab-content-display">
-                    <div class="tab-img-box">
-                        <img id="tabImg" src="https://images.unsplash.com/photo-1516280440614-6697288d5d38?q=80&w=2070" alt="Ministério" loading="lazy">
-                    </div>
-                    <div class="tab-text-box">
-                        <h3 id="tabTitulo">Louvor</h3>
-                        <div class="divisor-verde"></div>
-                        <p id="tabDesc">Levando a igreja à presença de Deus através da adoração profunda e música de excelência.</p>
-                    </div>
+    <main>
+        <section id="inicio" class="hero">
+            <div class="hero-content">
+                <h1>FAMÍLIAS CHURCH</h1>
+                <p>"Restaurar, Cuidar e Amar"</p>
+                <div class="hero-btns">
+                    <a href="#cultos" class="btn-hero">Venha nos Visitar</a>
+                    <a href="doacoes.html" class="btn-hero btn-doar">Semeie</a>
                 </div>
             </div>
-        </div>
-    </section>
+        </section>
 
-    <section id="cultos" class="bg-alt">
-        <div class="container section-title">
-            <h2>Encontre-nos</h2>
-            <p>Selecione um estado e encontre nossa Igreja mais próxima de você</p>
-            <div class="state-selector">
-                <button class="btn-state active" onclick="trocarUnidade('pr')" id="btn-pr">Paraná</button>
-                <button class="btn-state" onclick="trocarUnidade('sc')" id="btn-sc">Santa Catarina</button>
+        <section id="eventos-destaque" class="bg-alt">
+            <div class="container">
+                <div class="section-title">
+                    <h2>Próximos Encontros</h2>
+                    <p>Fique por dentro do que está acontecendo na Famílias Church</p>
+                </div>
+
+                <div class="destaque-wrapper">
+                    <div id="evento-principal" class="lado-esquerdo">
+                        <div class="skeleton skeleton-principal"></div>
+                    </div>
+
+                    <div id="eventos-secundarios" class="lado-direito">
+                        <div class="skeleton skeleton-secundario"></div>
+                        <div class="skeleton skeleton-secundario"></div>
+                    </div>
+                </div>
+
+                <div style="text-align: center; margin-top: 40px;">
+                    <a href="eventos.html" class="btn-hero">Ver Todos os Eventos</a>
+                </div>
             </div>
-        </div>
+        </section>
 
-        <div class="container">
-            <div id="conteudo-pr" class="unidade-wrapper fade-in">
-                <div class="layout-duplo">
-                    <div class="coluna-agenda">
-                        <h3 class="titulo-coluna">Fazenda Rio Grande</h3>
-                        <div class="grid-cultos">
-                            <div class="card"><h3>Domingo</h3><p class="horario">19:00</p><p class="nome-culto">Culto da Família</p></div>
-                            <div class="card"><h3>Quinta-Feira</h3><p class="horario">20:00</p><p class="nome-culto">Ensino Bíblico</p></div>
+        <section id="sobre">
+            <div class="container sobre-container">
+                <div class="sobre-versiculo-box fade-in">
+                    <div class="icone-citacao">“</div>
+                    <blockquote>Roguemos a vocês, irmãos, que admoestem os indisciplinados, consolem os desanimados, amparem os fracos e sejam pacientes com todos.</blockquote>
+                    <cite>1 Tessalonicenses 5.14</cite>
+                </div>
+                <figure class="sobre-lider fade-in">
+                    <div class="img-moldura">
+                        <img src="./assets/img/Ap.jpg" alt="Apóstolo José Roberto Couto" loading="lazy">
+                    </div>
+                    <figcaption>
+                        <h3>José Roberto Couto</h3>
+                        <p>Apóstolo</p>
+                    </figcaption>
+                </figure>
+            </div>
+        </section>
+
+        <section id="ministerios" class="bg-alt">
+            <div class="container section-title">
+                <h2>Nossos Ministérios</h2>
+                <p>Selecione uma área para conhecer</p>
+            </div>
+            <div class="container ministerios-wrapper">
+                <div class="tabs-header">
+                    <button class="tab-btn active" onclick="ativarAba(this)" data-titulo="Louvor" data-desc="Levando a igreja à presença de Deus através da adoração profunda e música de excelência." data-img="https://images.unsplash.com/photo-1516280440614-6697288d5d38?q=80&w=2070">Louvor</button>
+                    <button class="tab-btn" onclick="ativarAba(this)" data-titulo="Famílias" data-desc="Edificando lares sobre a Rocha, fortalecendo casamentos e a criação de filhos." data-img="https://images.unsplash.com/photo-1511895426328-dc8714191300?q=80&w=2070">Famílias</button>
+                    <button class="tab-btn" onclick="ativarAba(this)" data-titulo="Déboras" data-desc="Mulheres de intercessão que se levantam em oração fervorosa por seus filhos e pela nação." data-img="https://images.unsplash.com/photo-1544005313-94ddf0286df2?q=80&w=1888">Déboras</button>
+                    <button class="tab-btn" onclick="ativarAba(this)" data-titulo="Jovens" data-desc="Uma geração de força, santidade e propósito, pronta para transformar a sociedade." data-img="https://images.unsplash.com/photo-1523580494863-6f3031224c94?q=80&w=2070">Jovens</button>
+                    <button class="tab-btn" onclick="ativarAba(this)" data-titulo="Teens" data-desc="Adolescentes conectados e apaixonados por Jesus, vivendo a verdade em um mundo confuso." data-img="https://images.unsplash.com/photo-1529333166437-7750a6dd5a70?q=80&w=2069">Teens</button>
+                    <button class="tab-btn" onclick="ativarAba(this)" data-titulo="Kids" data-desc="Ensinando a próxima geração com amor, diversão e a pureza da Palavra de Deus." data-img="https://images.unsplash.com/photo-1485546246426-74dc88dec4d9?q=80&w=2069">Kids</button>
+                    <button class="tab-btn" onclick="ativarAba(this)" data-titulo="Teatro" data-desc="A arte a serviço do Reino, comunicando o Evangelho de forma criativa e impactante." data-img="https://images.unsplash.com/photo-1503095392237-fa3b925b4487?q=80&w=2069">Teatro</button>
+                    <button class="tab-btn" onclick="ativarAba(this)" data-titulo="Dança" data-desc="Expressão de liberdade, louvor e adoração através do movimento e da arte." data-img="https://images.unsplash.com/photo-1508700929628-666bc8bd84ea?q=80&w=2070">Dança</button>
+                </div>
+                <div class="ministerios-layout">
+                    <div class="tab-content-display">
+                        <div class="tab-img-box">
+                            <img id="tabImg" src="https://images.unsplash.com/photo-1516280440614-6697288d5d38?q=80&w=2070" alt="Ministério" loading="lazy">
                         </div>
-                    </div>
-                    <div class="coluna-mapa">
-                        <h3 class="titulo-coluna">Como Chegar</h3>
-                        <div class="map-box">                        
-                            <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3599.444707297092!2d-49.29415892376916!3d-25.55688967747866!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x94dcfbdae4905333%3A0x6659f8a375323e26!2sR.%20Cassuarina%2C%20219%20-%20Eucaliptos%2C%20Fazenda%20Rio%20Grande%20-%20PR%2C%2083820-174!5e0!3m2!1spt-BR!2sbr!4v1709123456789!5m2!1spt-BR!2sbr" width="100%" height="450" style="border:0; border-radius: 12px;" allowfullscreen="" loading="lazy"></iframe>
-                            <p class="endereco-texto"><strong>Famílias Church - Sede</strong><br>Rua Cassuarina, 219 - Eucaliptos<br>Fazenda Rio Grande - PR</p>
+                        <div class="tab-text-box">
+                            <h3 id="tabTitulo">Louvor</h3>
+                            <div class="divisor-verde"></div>
+                            <p id="tabDesc">Levando a igreja à presença de Deus através da adoração profunda e música de excelência.</p>
                         </div>
                     </div>
                 </div>
             </div>
+        </section>
 
-            <div id="conteudo-sc" class="unidade-wrapper hidden">
-                <div class="layout-duplo">
-                    <div class="coluna-agenda">
-                        <h3 class="titulo-coluna">Tijucas</h3>
-                        <div class="grid-cultos">
-                            <div class="card"><h3>Domingo</h3><p class="horario">19:00</p>
-                                <p class="nome-culto">Culto da Família</p>
+        <section id="cultos">
+            <div class="container section-title">
+                <h2>Encontre-nos</h2>
+                <p>Selecione um estado e encontre nossa Igreja mais próxima</p>
+                <div class="state-selector">
+                    <button class="btn-state active" onclick="trocarUnidade('pr')" id="btn-pr">Paraná</button>
+                    <button class="btn-state" onclick="trocarUnidade('sc')" id="btn-sc">Santa Catarina</button>
+                </div>
+            </div>
+
+            <div class="container">
+                <div id="conteudo-pr" class="unidade-wrapper fade-in">
+                    <div class="layout-duplo">
+                        <div class="coluna-agenda">
+                            <h3 class="titulo-coluna">Fazenda Rio Grande</h3>
+                            <div class="grid-cultos">
+                                <div class="card"><h3>Domingo</h3><p class="horario">19:00</p><p class="nome-culto">Culto da Família</p></div>
+                                <div class="card"><h3>Quinta-Feira</h3><p class="horario">20:00</p><p class="nome-culto">Ensino Bíblico</p></div>
                             </div>
-                            <div class="card"><h3>Quinta-Feira</h3>
-                                <p class="horario">20:00</p>
-                                <p class="nome-culto">Ensino Bíblico</p>
+                        </div>
+                        <div class="coluna-mapa">
+                            <h3 class="titulo-coluna">Como Chegar</h3>
+                            <div class="map-box">                        
+                                <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3599.444707297092!2d-49.29415892376916!3d-25.55688967747866!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x94dcfbdae4905333%3A0x6659f8a375323e26!2sR.%20Cassuarina%2C%20219%20-%20Eucaliptos%2C%20Fazenda%20Rio%20Grande%20-%20PR%2C%2083820-174!5e0!3m2!1spt-BR!2sbr!4v1709123456789!5m2!1spt-BR!2sbr" width="100%" height="450" style="border:0; border-radius: 12px;" allowfullscreen="" loading="lazy"></iframe>
+                                <p class="endereco-texto"><strong>Famílias Church - Sede</strong><br>Rua Cassuarina, 219 - Eucaliptos<br>Fazenda Rio Grande - PR</p>
                             </div>
                         </div>
                     </div>
-                    <div class="coluna-mapa">
-                        <h3 class="titulo-coluna">Como Chegar</h3>
-                        <div class="map-box">                            
-                            <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3545.964722606543!2d-48.63456792370764!3d-27.28318257642698!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x9523b123456789ab%3A0x123456789abcdef!2sR.%20Ant%C3%B4nio%20Leal%2C%2061%20-%20Centro%2C%20Tijucas%20-%20SC!5e0!3m2!1spt-BR!2sbr!4v1709123456789!5m2!1spt-BR!2sbr"
-                                    width="100%" height="450" style="border:0; border-radius: 12px;" allowfullscreen="" loading="lazy"></iframe>
-                            <p class="endereco-texto">
-                                <strong>Famílias Church - Tijucas</strong>
-                                <br>Rua Antônio Leal, 61 | Sala 1<br>Tijucas - SC
-                            </p>
+                </div>
+
+                <div id="conteudo-sc" class="unidade-wrapper hidden">
+                    <div class="layout-duplo">
+                        <div class="coluna-agenda">
+                            <h3 class="titulo-coluna">Tijucas</h3>
+                            <div class="grid-cultos">
+                                <div class="card"><h3>Domingo</h3><p class="horario">19:00</p><p class="nome-culto">Culto da Família</p></div>
+                                <div class="card"><h3>Quinta-Feira</h3><p class="horario">20:00</p><p class="nome-culto">Ensino Bíblico</p></div>
+                            </div>
+                        </div>
+                        <div class="coluna-mapa">
+                            <h3 class="titulo-coluna">Como Chegar</h3>
+                            <div class="map-box">                            
+                                <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3545.964722606543!2d-48.63456792370764!3d-27.28318257642698!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x9523b123456789ab%3A0x123456789abcdef!2sR.%20Ant%C3%B4nio%20Leal%2C%2061%20-%20Centro%2C%20Tijucas%20-%20SC!5e0!3m2!1spt-BR!2sbr!4v1709123456789!5m2!1spt-BR!2sbr" width="100%" height="450" style="border:0; border-radius: 12px;" allowfullscreen="" loading="lazy"></iframe>
+                                <p class="endereco-texto"><strong>Famílias Church - Tijucas</strong><br>Rua Antônio Leal, 61 | Sala 1<br>Tijucas - SC</p>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
-        </div>
-    </section>
+        </section>
 
-    <section id="pedidos" class="section-pedidos">
-        <div class="container">
-            <div class="section-title">
-                <h2>Pedido de Oração</h2>
-                <p>Compartilhe sua causa conosco. Nós vamos orar por você.</p>
-            </div>
-            <div class="form-container">
-                <form id="formOracao" action="https://formsubmit.co/gab.alves0531@gmail.com" method="POST">
-                    <input type="hidden" name="_subject" value="Novo Pedido de Oração (Pelo Site)">
-                    <input type="hidden" name="_template" value="table">
-                    <input type="hidden" name="_next" value="https://familiaschurch.netlify.app/obrigado.html"> 
-                    <input type="hidden" name="_captcha" value="false">
-                    <div class="checkbox-wrapper">
-                        <input type="checkbox" id="anonimo" name="Modo_Anonimo" value="Sim">
-                        <div class="checkbox-info">
-                            <label for="anonimo">Quero fazer um pedido anônimo</label>
-                            <span class="aviso-dados">(evite usar dados pessoais)</span>
+        <section id="pedidos" class="section-pedidos bg-alt">
+            <div class="container">
+                <div class="section-title">
+                    <h2>Pedido de Oração</h2>
+                    <p>Compartilhe sua causa conosco. Nós vamos orar por você.</p>
+                </div>
+                <div class="form-container">
+                    <form id="formOracao" action="https://formsubmit.co/gab.alves0531@gmail.com" method="POST">
+                        <input type="hidden" name="_subject" value="Novo Pedido de Oração (Pelo Site)">
+                        <input type="hidden" name="_next" value="https://familiaschurch.netlify.app/obrigado.html"> 
+                        <input type="hidden" name="_captcha" value="false">
+                        
+                        <div class="checkbox-wrapper">
+                            <input type="checkbox" id="anonimo" name="Modo_Anonimo" value="Sim">
+                            <div class="checkbox-info">
+                                <label for="anonimo">Quero fazer um pedido anônimo</label>
+                                <span class="aviso-dados">(evite usar dados pessoais)</span>
+                            </div>
                         </div>
-                    </div>
 
-                    <div id="identificacao-container">
+                        <div id="identificacao-container">
+                            <div class="input-group">
+                                <label for="nome">Nome Completo</label>
+                                <input type="text" id="nome" name="Nome" required placeholder="Seu nome">
+                            </div>
+                            <div class="input-group">
+                                <label for="telefone">WhatsApp / Telefone</label>
+                                <input type="tel" id="telefone" name="Telefone" required placeholder="(XX) 9XXXX-XXXX">
+                            </div>
+                        </div>
+
                         <div class="input-group">
-                            <label for="nome">Nome Completo</label>
-                            <input type="text" id="nome" name="Nome" required placeholder="Seu nome">
+                            <label for="mensagem">Seu Pedido de Oração</label>
+                            <textarea id="mensagem" name="Pedido" rows="5" required placeholder="Escreva seu pedido aqui..."></textarea>
                         </div>
 
-                        <div class="input-group">
-                            <label for="telefone">WhatsApp / Telefone</label>
-                            <input type="tel" id="telefone" name="Telefone" required placeholder="(XX) 9XXXX-XXXX">
-                        </div>
-                    </div>
-
-                    <div class="input-group">
-                        <label for="mensagem">Seu Pedido de Oração</label>
-                        <textarea id="mensagem" name="Pedido" rows="5" required placeholder="Escreva seu pedido aqui..."></textarea>
-                    </div>
-
-                    <button type="submit" class="btn-enviar">Enviar Pedido</button>
-                </form>
+                        <button type="submit" class="btn-enviar">Enviar Pedido</button>
+                    </form>
+                </div>
             </div>
-        </div>
-    </section>
+        </section>
+    </main>
 
-    <footer class="footer-moderno">
-        <div class="container">
-            <div class="footer-brand"><p class="footer-slogan">"Restaurar, Cuidar e Amar"</p></div>
-            <div class="footer-divider"></div>
-            <div class="footer-social">
-                <a href="https://www.instagram.com/familias.church" target="_blank">Instagram</a>
-                <a href="https://youtube.com/@FamiliasChurch" target="_blank">YouTube</a>
-                <a href="https://www.facebook.com/familiaschurch" target="_blank">Facebook</a>
-            </div>
-            <div class="footer-copy">
-                <p>© 2025 Famílias Church. Todos os direitos reservados.</p>
-                <p class="endereco-curto">Rua do Pinho, 263 - Eucaliptos | Fazenda Rio Grande - PR</p>
-            </div>
-        </div>
-    </footer>
+    <footer id="footer" class="footer-moderno"></footer>
 
     <script src="script.js"></script>
 </body>

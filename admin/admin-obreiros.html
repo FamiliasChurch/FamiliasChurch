@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>Portal do Obreiro | Famílias Church</title>
+    <link rel="stylesheet" href="../style.css">
+    <style>
+        .form-publicar { max-width: 600px; margin: 50px auto; padding: 30px; border: 1px solid #ddd; border-radius: 15px; background: #fff; box-shadow: var(--sombra-suave); }
+        .hidden { display: none; }
+        select, input, textarea { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ccc; border-radius: 8px; font-family: sans-serif; }
+        .btn-postar { background: var(--cor-primaria); color: #fff; border: none; padding: 15px; border-radius: 50px; cursor: pointer; font-weight: bold; width: 100%; transition: 0.3s; }
+    </style>
+</head>
+<body>
+    <div id="login-section" class="form-publicar">
+        <h2 style="color: var(--cor-primaria)">Acesso do Obreiro</h2>
+        <input type="password" id="passkey" placeholder="Digite sua chave de acesso">
+        <button class="btn-postar" onclick="verificarAcesso()">Entrar no Portal</button>
+    </div>
+
+    <div id="admin-section" class="form-publicar hidden">
+        <h2 id="boas-vindas" style="color: var(--cor-primaria)">Bem-vindo</h2>
+        <form id="formConteudo">
+            <label>Tipo de Conteúdo:</label>
+            <select id="tipo" required>
+                <option value="devocionais">Devocional</option>
+                <option value="estudos">Estudo Bíblico</option>
+            </select>
+            <input type="text" id="titulo" placeholder="Título da Mensagem" required>
+            <textarea id="texto" placeholder="Escreva a mensagem aqui (Suporta Markdown)..." rows="12" required></textarea>
+            <button type="submit" class="btn-postar">🚀 Publicar Agora</button>
+        </form>
+        <p id="status" style="margin-top: 20px; font-weight: bold; text-align: center;"></p>
+    </div>
+
+    <script>
+        const OBREIROS = { "apostolo123": "Apóstolo João", "pastor456": "Pastor Marcos" };
+        let autorLogado = "";
+
+        function verificarAcesso() {
+            const key = document.getElementById('passkey').value;
+            if (OBREIROS[key]) {
+                autorLogado = OBREIROS[key];
+                document.getElementById('login-section').classList.add('hidden');
+                document.getElementById('admin-section').classList.remove('hidden');
+                document.getElementById('boas-vindas').innerText = `Paz do Senhor, ${autorLogado}`;
+            } else { alert("Chave inválida!"); }
+        }
+
+        document.getElementById('formConteudo').onsubmit = async function(e) {
+            e.preventDefault();
+            const status = document.getElementById('status');
+            status.innerText = "Publicando no servidor...";
+
+            const payload = {
+                tipo: document.getElementById('tipo').value === 'devocionais' ? 'devocional' : 'estudo',
+                autor: autorLogado,
+                title: document.getElementById('titulo').value,
+                date: new Date().toISOString(),
+                body: document.getElementById('texto').value
+            };
+
+            // CONFIGURAÇÃO GITHUB
+            const TOKEN = "SEU_TOKEN_AQUI"; // ⚠️ Gere seu PAT no GitHub
+            const REPO = "FamiliasChurch/FamiliasChurch";
+            const fileName = `${Date.now()}-${payload.title.toLowerCase().replace(/ /g, '-')}.json`;
+            const PATH = `content/publicacoes/${document.getElementById('tipo').value}/${fileName}`;
+
+            try {
+                const contentBase64 = btoa(unescape(encodeURIComponent(JSON.stringify(payload, null, 2))));
+                const res = await fetch(`https://api.github.com/repos/${REPO}/contents/${PATH}`, {
+                    method: 'PUT',
+                    headers: { 'Authorization': `token ${TOKEN}`, 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ message: `Postagem: ${payload.title}`, content: contentBase64 })
+                });
+
+                if (res.ok) {
+                    status.innerHTML = "✅ Mensagem publicada! Lembre-se de rodar o script de publicação para atualizar o site.";
+                    document.getElementById('formConteudo').reset();
+                } else { throw new Error(); }
+            } catch (err) { status.innerText = "❌ Erro ao publicar. Verifique o token."; }
+        };
+    </script>
+</body>
+</html>

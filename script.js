@@ -1,285 +1,209 @@
 /* ==========================================================
-   1. CONFIGURAÇÕES INICIAIS E EVENTOS AO CARREGAR
+   CONFIGURAÇÕES GERAIS
 ========================================================== */
-document.addEventListener('DOMContentLoaded', function() {
+const CONFIG = {
+    basePath: './content',
+    repo: "FamiliasChurch/FamiliasChurch"
+};
 
-    // --- MENU MOBILE ---
-    const mobileBtn = document.getElementById('mobileBtn');
-    const navMenu = document.querySelector('.nav-menu');
-    if (mobileBtn) {
-        mobileBtn.addEventListener('click', () => {
-            navMenu.classList.toggle('active');
-            mobileBtn.classList.toggle('active');
-        });
-        document.querySelectorAll('.nav-link').forEach(link => {
-            link.addEventListener('click', () => {
-                navMenu.classList.remove('active');
-                mobileBtn.classList.remove('active'); 
-            });
-        });
-    }
+let cacheConteudo = []; 
+let synth = window.speechSynthesis;
+let utterance = null;
 
-    // --- FORMULÁRIO DE ORAÇÃO (HOME) ---
-    const checkAnonimo = document.getElementById('anonimo');
-    if (checkAnonimo) {
-        const divIdentificacao = document.getElementById('identificacao-container');
-        const inputNome = document.getElementById('nome');
-        const inputTelefone = document.getElementById('telefone');
-        
-        checkAnonimo.addEventListener('change', function() {
-            if (this.checked) {
-                divIdentificacao.style.display = 'none';
-                inputNome.removeAttribute('required');
-                inputTelefone.removeAttribute('required');
-            } else {
-                divIdentificacao.style.display = 'block';
-                inputNome.setAttribute('required', 'true');
-                inputTelefone.setAttribute('required', 'true');
-            }
-        });
-    }
+/* ==========================================================
+   ORQUESTRADOR DE INICIALIZAÇÃO
+========================================================== */
+document.addEventListener('DOMContentLoaded', async () => {
+    // 1. Carrega Componentes (Header/Footer)
+    await carregarComponentes();
+    
+    // 2. Inicializa UI básica
+    initMenuMobile();
 
-    // --- PERSONALIZAÇÃO ASSUNTO DÍZIMO (PÁGINA DOAÇÕES) ---
-    const formDizimo = document.querySelector('.form-custom');
-    if (formDizimo) {
-        formDizimo.addEventListener('submit', function() {
-            const campoNome = this.querySelector('input[name="nome"]');
-            const campoAssunto = this.querySelector('input[name="_subject"]');
-            if (campoNome && campoAssunto) {
-                campoAssunto.value = "Dízimo - " + campoNome.value;
-            }
-        });
-    }
+    // 3. ROTEADOR DE PÁGINAS: Executa lógica baseada nos elementos presentes
+    const rotas = {
+        'lista-proximos': carregarEventos,        // eventos.html
+        'evento-principal': carregarDestaquesHome, // index.html
+        'lista-publicacoes': carregarFeed,         // devocionais.html
+        'formOracao': initFormOracao,              // pedidos.html ou index.html
+        'box-oferta': () => mostrarOpcao('oferta'), // doacoes.html
+        'btn-pr': () => trocarUnidade('pr'),       // index.html (cultos)
+        'passkey': initAdminObreiros               // admin-obreiros.html
+    };
 
-    // --- REDIRECIONAMENTO ADMIN (NETLIFY IDENTITY) ---
+    Object.keys(rotas).forEach(id => {
+        if (document.getElementById(id)) rotas[id]();
+    });
+
+    // Netlify Identity Login Redirect
     if (window.netlifyIdentity) {
         window.netlifyIdentity.on("init", user => {
-            if (!user) {
-                window.netlifyIdentity.on("login", () => {
-                    document.location.href = "/admin/";
-                });
-            }
+            if (!user) window.netlifyIdentity.on("login", () => document.location.href = "/admin/");
         });
-    }
-
-    // --- DISPARAR CARREGAMENTO DE CONTEÚDO DINÂMICO ---
-    if (document.getElementById('lista-proximos')) {
-        carregarEventos(); // Carrega página de eventos.html
-    }
-    
-    if (document.getElementById('evento-principal')) {
-        carregarDestaquesHome(); // Carrega destaques da index.html
     }
 });
 
 /* ==========================================================
-   2. LÓGICA DO BLOG/EVENTOS (PÁGINA EVENTOS.HTML)
+   1. CORE: COMPONENTIZAÇÃO E UI
 ========================================================== */
-async function carregarEventos() {
-    // Lista dos arquivos JSON na pasta content/eventos
-    // IMPORTANTE: Adicione o nome dos novos arquivos aqui sempre que criá-los
-    const arquivos = [
-        '2025-12-18-encontro-com-deus.json',
-        // 'outro-evento.json', 
+async function carregarComponentes() {
+    const itens = [
+        { id: 'header', file: 'header' },
+        { id: 'footer', file: 'footer' }
     ];
-
-    const listaProximos = document.getElementById('lista-proximos');
-    const listaPassados = document.getElementById('lista-passados');
-    const agora = new Date();
-
-    try {
-        // 1. Buscar todos os arquivos JSON
-        const promessas = arquivos.map(file => fetch(`./content/eventos/${file}`).then(res => res.json()));
-        const eventos = await promessas;
-
-        // 2. Separar e Ordenar
-        const proximos = eventos.filter(ev => new Date(ev.data) >= agora);
-        const passados = eventos.filter(ev => new Date(ev.data) < agora);
-
-        const ordenador = (a, b) => {
-            // Regra 1: "Encontro com Deus" sempre no topo
-            if (a.isEncontroComDeus !== b.isEncontroComDeus) {
-                return a.isEncontroComDeus ? -1 : 1;
-            }
-            // Regra 2: Ordenar por data (mais próximos primeiro)
-            return new Date(a.data) - new Date(b.data);
-        };
-
-        // 3. Renderizar
-        renderizar(proximos.sort(ordenador), listaProximos);
-        renderizar(passados.sort(ordenador), listaPassados, true);
-
-    } catch (erro) {
-        console.error("Erro ao carregar eventos:", erro);
-        listaProximos.innerHTML = "<p>Erro ao carregar eventos.</p>";
-    }
+    
+    const promessas = itens.map(async item => {
+        const el = document.getElementById(item.id);
+        if (el) {
+            try {
+                const res = await fetch(`./components/${item.file}.html`);
+                el.innerHTML = await res.text();
+            } catch (e) { console.error(`Erro ao carregar componente ${item.file}`); }
+        }
+    });
+    await Promise.all(promessas);
 }
 
-function renderizar(lista, container, isPast = false) {
-    container.innerHTML = ""; // Limpa os skeletons
+function initMenuMobile() {
+    const btn = document.getElementById('mobileBtn');
+    const menu = document.querySelector('.nav-menu');
+    if (!btn || !menu) return;
 
-    if (lista.length === 0) {
-        container.innerHTML = "<p>Nenhum evento agendado no momento.</p>";
-        return;
-    }
-
-    lista.forEach(evento => {
-        const dataFormatada = new Date(evento.data).toLocaleString('pt-BR', {
-            day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit'
-        });
-
-        const card = `
-            <div class="card-evento ${evento.isEncontroComDeus ? 'destaque-encontro' : ''} ${isPast ? 'evento-passado' : ''}">
-                <div class="card-img">
-                    <img src="${evento.imagem}" alt="${evento.titulo}">
-                </div>
-                <div class="card-info">
-                    ${evento.isEncontroComDeus ? '<span class="badge">Destaque</span>' : ''}
-                    <h3>${evento.titulo}</h3>
-                    <p class="data">${dataFormatada}</p>
-                    <p class="descricao">${evento.descricao ? evento.descricao.substring(0, 100) + '...' : ''}</p>
-                    ${!isPast ? `<a href="#" class="btn-card">Saber mais</a>` : ''}
-                </div>
-            </div>
-        `;
-        container.innerHTML += card;
+    btn.onclick = () => {
+        menu.classList.toggle('active');
+        btn.classList.toggle('active');
+    };
+    
+    // Fecha o menu ao clicar em qualquer link
+    document.querySelectorAll('.nav-link').forEach(link => {
+        link.onclick = () => {
+            menu.classList.remove('active');
+            btn.classList.remove('active');
+        };
     });
 }
 
-// Inicia a função
-carregarEventos();
-
 /* ==========================================================
-   3. DESTAQUES DA HOME (PÁGINA INDEX.HTML)
+   2. GESTÃO DE DADOS (JSON)
 ========================================================== */
-async function carregarDestaquesHome() {
-    const repoPath = "FamiliasChurch/FamiliasChurch";
-    const folderPath = "content/eventos";
+async function fetchConteudo(subpasta) {
+    const res = await fetch(`${CONFIG.basePath}/${subpasta}/index.json`);
+    const arquivos = await res.json();
+    return Promise.all(arquivos.map(f => fetch(`${CONFIG.basePath}/${subpasta}/${f}`).then(r => r.json())));
+}
+
+// Lógica de Eventos (Próximos vs Passados)
+async function carregarEventos() {
+    const eventos = await fetchConteudo('eventos');
     const agora = new Date();
-    const containerPrincipal = document.getElementById('evento-principal');
-    const containerSecundarios = document.getElementById('eventos-secundarios');
+    
+    // Prioridade: Especial primeiro, depois por data
+    const ordenador = (a, b) => (a.is_special !== b.is_special ? (a.is_special ? -1 : 1) : new Date(a.date) - new Date(b.date));
+    
+    const proximos = eventos.filter(e => new Date(e.date) >= agora).sort(ordenador);
+    const passados = eventos.filter(e => new Date(e.date) < agora).sort((a,b) => new Date(b.date) - new Date(a.date));
 
-    try {
-        const response = await fetch(`https://api.github.com/repos/${repoPath}/contents/${folderPath}`);
-        if (!response.ok) throw new Error("Erro API");
-        
-        const arquivos = await response.json();
-        const promessas = arquivos.filter(arq => arq.name.endsWith('.json'))
-                                  .map(arq => fetch(arq.download_url).then(res => res.json()));
-        const eventos = await Promise.all(promessas);
+    renderizarCards(proximos, 'lista-proximos');
+    renderizarCards(passados, 'lista-passados', true);
+}
 
-        const proximos = eventos.filter(e => new Date(e.date) >= agora);
+function renderizarCards(lista, containerId, isPast = false) {
+    const container = document.getElementById(containerId);
+    if (!container) return;
 
-        if (proximos.length === 0) {
-            // No trecho de Render Principal da index:
-        containerPrincipal.innerHTML = `
-            <div class="card-principal">
-                <img src="${principal.image}" alt="${principal.title}">
-                <div class="info-overlay">
-                    <span>PRÓXIMO DESTAQUE</span>
-                    <h3>${principal.title}</h3>
-                    <div style="display: flex; gap: 10px; align-items: center;">
-                        <a href="eventos.html" class="btn-copy" style="width: fit-content; margin-top:15px">Saiba Mais</a>
-                        <button class="btn-share-whatsapp" style="margin-top:15px" onclick="compartilharWhatsapp('${principal.title}', '${new Date(principal.date).toLocaleDateString('pt-BR')}')">
-                            📲
-                        </button>
-                    </div>
-                </div>
-            </div>`
-        ;
-            containerSecundarios.innerHTML = "";
-            return;
-        }
-
-        const principal = proximos.find(e => e.is_special) || proximos[0];
-        const secundarios = proximos.filter(e => e !== principal).slice(0, 2);
-
-        // Render Principal
-        containerPrincipal.innerHTML = `
-            <div class="card-principal">
-                <img src="${principal.image}" alt="${principal.title}">
-                <div class="info-overlay">
-                    <span>PRÓXIMO DESTAQUE</span>
-                    <h3>${principal.title}</h3>
-                    <a href="eventos.html" class="btn-copy" style="width: fit-content; margin-top:15px">Saiba Mais</a>
-                </div>
-            </div>
-        `;
-
-        // Render Secundários
-        containerSecundarios.innerHTML = secundarios.map(ev => `
-            <div class="card-secundario">
-                <img src="${ev.image}">
-                <div class="info-pequena">
-                    <h4 style="color: var(--cor-primaria)">${ev.title}</h4>
-                    <p style="font-size: 0.8rem; color: #666">${new Date(ev.date).toLocaleDateString('pt-BR')}</p>
-                    <a href="eventos.html" style="color: var(--cor-destaque); font-weight: bold; font-size: 0.8rem">SAIBA MAIS →</a>
-                </div>
-            </div>
-        `).join('');
-
-    } catch (err) { 
-        console.error("Erro nos destaques:", err);
-        containerPrincipal.innerHTML = "";
+    if (lista.length === 0) {
+        container.innerHTML = "<p>Nenhum registro encontrado.</p>";
+        return;
     }
+
+    container.innerHTML = lista.map(e => `
+        <div class="card-evento ${e.is_special ? 'destaque-encontro' : ''} ${isPast ? 'evento-passado' : ''}">
+            <div class="card-img"><img src="${e.image}" alt="${e.title}"></div>
+            <div class="card-info">
+                ${e.is_special ? '<span class="badge">Destaque</span>' : ''}
+                <h3>${e.title}</h3>
+                <p class="data">${new Date(e.date).toLocaleDateString('pt-BR')}</p>
+                <p class="descricao">${e.body?.substring(0, 100)}...</p>
+                ${!isPast ? `<a href="eventos.html" class="btn-card">Saber mais</a>` : ''}
+            </div>
+        </div>
+    `).join('');
 }
 
 /* ==========================================================
-   4. FUNÇÕES GLOBAIS (CHAMADAS VIA ONCLICK NO HTML)
+   3. FEED DE PUBLICAÇÕES (DEVOCIONAIS/ESTUDOS)
 ========================================================== */
-
-function trocarUnidade(estado) {    
-    const contentPR = document.getElementById('conteudo-pr');
-    const contentSC = document.getElementById('conteudo-sc');
-    const btnPR = document.getElementById('btn-pr');
-    const btnSC = document.getElementById('btn-sc');
+async function carregarFeed() {
+    const folders = ['devocionais', 'estudos'];
+    const promessas = folders.map(f => fetchConteudo(`publicacoes/${f}`));
+    const resultados = await Promise.all(promessas);
     
-    if (estado === 'pr') {
-        contentPR.classList.remove('hidden');
-        contentSC.classList.add('hidden');
-        btnPR.classList.add('active');
-        btnSC.classList.remove('active');
-    } else {
-        contentPR.classList.add('hidden');
-        contentSC.classList.remove('hidden');
-        btnSC.classList.add('active');
-        btnPR.classList.remove('active');
-    }
+    cacheConteudo = resultados.flat().sort((a,b) => new Date(b.date) - new Date(a.date));
+    renderizarFeed(cacheConteudo);
 }
 
-function ativarAba(elemento) {
-    const botoes = document.querySelectorAll('.tab-btn');
-    botoes.forEach(btn => btn.classList.remove('active'));
-    elemento.classList.add('active');
-
-    const displayImg = document.getElementById('tabImg');
-    const displayTitulo = document.getElementById('tabTitulo');
-    const displayDesc = document.getElementById('tabDesc');
-
-    displayImg.style.opacity = '0';
-    setTimeout(() => {
-        displayImg.src = elemento.getAttribute('data-img');
-        displayTitulo.textContent = elemento.getAttribute('data-titulo');
-        displayDesc.textContent = elemento.getAttribute('data-desc');
-        displayImg.style.opacity = '1';
-    }, 200);
+function renderizarFeed(lista) {
+    const container = document.getElementById('lista-publicacoes');
+    if (!container) return;
+    
+    container.innerHTML = lista.map(p => `
+        <div class="card-publicacao">
+            <span class="autor">${p.autor}</span>
+            <h3>${p.title}</h3>
+            <p class="data">${new Date(p.date).toLocaleDateString('pt-BR')}</p>
+            <div class="texto-previo">${p.body.substring(0, 200)}...</div>
+            <button class="btn-card" onclick="abrirLeitura('${p.title}')">Ler Mensagem</button>
+        </div>
+    `).join('');
 }
 
-function mostrarOpcao(tipo) {
-    const boxOferta = document.getElementById('box-oferta');
-    const boxDizimo = document.getElementById('box-dizimo');
-    const botoes = document.querySelectorAll('.btn-toggle');
-    botoes.forEach(btn => btn.classList.remove('active'));
+function abrirLeitura(titulo) {
+    const pub = cacheConteudo.find(p => p.title === titulo);
+    const modal = document.getElementById('modalLeitura');
+    const display = document.getElementById('conteudo-completo-leitura');
 
-    if (tipo === 'oferta') {
-        if(boxOferta) boxOferta.classList.remove('hidden');
-        if(boxDizimo) boxDizimo.classList.add('hidden');
-        if(botoes[0]) botoes[0].classList.add('active');
-    } else {
-        if(boxOferta) boxOferta.classList.add('hidden');
-        if(boxDizimo) boxDizimo.classList.remove('hidden');
-        if(botoes[1]) botoes[1].classList.add('active');
-    }
+    // Integração com Marked.js para Markdown
+    const htmlBody = typeof marked !== 'undefined' ? marked.parse(pub.body) : pub.body;
+
+    display.innerHTML = `
+        <div class="controles-audio">
+            <button onclick="iniciarLeitura()" id="btnOuvir" class="btn-audio">🔊 Ouvir</button>
+            <button onclick="pararLeitura()" id="btnParar" class="btn-audio hidden">⏹️ Parar</button>
+        </div>
+        <small class="tipo-tag">${pub.tipo?.toUpperCase() || 'MENSAGEM'}</small>
+        <h1 style="font-family: 'Playfair Display', serif; margin: 15px 0;">${pub.title}</h1>
+        <p><strong>Por: ${pub.autor}</strong> — ${new Date(pub.date).toLocaleDateString('pt-BR')}</p>
+        <hr><div class="texto-completo">${htmlBody}</div>
+    `;
+    modal.style.display = "block";
+    document.body.style.overflow = "hidden";
+}
+
+/* ==========================================================
+   4. UTILITÁRIOS (ACESSIBILIDADE, PIX, UI)
+========================================================== */
+function iniciarLeitura() {
+    const texto = document.querySelector('.texto-completo').innerText;
+    synth.cancel();
+    utterance = new SpeechSynthesisUtterance(texto);
+    utterance.lang = 'pt-BR';
+    utterance.onend = pararLeitura;
+    synth.speak(utterance);
+    document.getElementById('btnOuvir').classList.add('hidden');
+    document.getElementById('btnParar').classList.remove('hidden');
+}
+
+function pararLeitura() {
+    synth.cancel();
+    document.getElementById('btnOuvir')?.classList.remove('hidden');
+    document.getElementById('btnParar')?.classList.add('hidden');
+}
+
+function fecharLeitura() {
+    pararLeitura();
+    const modal = document.getElementById('modalLeitura');
+    if (modal) modal.style.display = "none";
+    document.body.style.overflow = "auto";
 }
 
 function copiarPix(id) {
@@ -289,23 +213,92 @@ function copiarPix(id) {
 
 function formatarMoeda(i) {
     let v = i.value.replace(/\D/g,'');
-    v = (v/100).toFixed(2) + '';
-    v = v.replace(".", ",");
-    v = v.replace(/(\d)(\d{3})(\d{3}),/g, "$1.$2.$3,");
-    v = v.replace(/(\d)(\d{3}),/g, "$1.$2,");
+    v = (v/100).toFixed(2).replace(".", ",").replace(/(\d)(\d{3})(\d{3}),/g, "$1.$2.$3,").replace(/(\d)(\d{3}),/g, "$1.$2,");
     i.value = v;
 }
 
-// --- FUNÇÃO PARA PARTILHAR NO WHATSAPP ---
-function compartilharWhatsapp(titulo, data) {
-    const urlSite = window.location.href; // Pega o link da página atual
-    const mensagem = encodeURIComponent(
-        `Olá! Veja este evento na Famílias Church:\n\n` +
-        `📌 *${titulo}*\n` +
-        `📅 ${data}\n\n` +
-        `Confira os detalhes no site: ${urlSite}`
-    );
+function trocarUnidade(unidade) {
+    const configs = {
+        'pr': { btn: 'btn-pr', content: 'conteudo-pr', hide: ['btn-sc', 'conteudo-sc'] },
+        'sc': { btn: 'btn-sc', content: 'conteudo-sc', hide: ['btn-pr', 'conteudo-pr'] }
+    };
+    const c = configs[unidade];
+    document.getElementById(c.btn)?.classList.add('active');
+    document.getElementById(c.content)?.classList.remove('hidden');
+    c.hide.forEach(id => {
+        document.getElementById(id)?.classList.remove('active');
+        if (id.startsWith('conteudo')) document.getElementById(id)?.classList.add('hidden');
+    });
+}
+
+function mostrarOpcao(tipo) {
+    const oferta = document.getElementById('box-oferta');
+    const dizimo = document.getElementById('box-dizimo');
+    const btns = document.querySelectorAll('.btn-toggle');
     
-    // Abre o WhatsApp com a mensagem pronta
-    window.open(`https://api.whatsapp.com/send?text=${mensagem}`, '_blank');
+    if (tipo === 'oferta') {
+        oferta?.classList.remove('hidden'); dizimo?.classList.add('hidden');
+        btns[0]?.classList.add('active'); btns[1]?.classList.remove('active');
+    } else {
+        oferta?.classList.add('hidden'); dizimo?.classList.remove('hidden');
+        btns[1]?.classList.add('active'); btns[0]?.classList.remove('active');
+    }
+}
+
+function initFormOracao() {
+    const check = document.getElementById('anonimo');
+    const container = document.getElementById('identificacao-container');
+    if (!check || !container) return;
+    
+    check.onchange = () => {
+        container.style.display = check.checked ? 'none' : 'block';
+        container.querySelectorAll('input').forEach(i => i.required = !check.checked);
+    };
+}
+
+/* ==========================================================
+   5. HOME (DESTAQUES)
+========================================================== */
+async function carregarDestaquesHome() {
+    const eventos = await fetchConteudo('eventos');
+    const agora = new Date();
+    const proximos = eventos.filter(e => new Date(e.date) >= agora).sort((a,b) => (a.is_special ? -1 : 1));
+
+    const containerPrincipal = document.getElementById('evento-principal');
+    if (!containerPrincipal || proximos.length === 0) return;
+
+    const principal = proximos[0];
+    const secundarios = proximos.slice(1, 3);
+
+    containerPrincipal.innerHTML = `
+        <div class="card-principal">
+            <img src="${principal.image}" alt="${principal.title}">
+            <div class="info-overlay">
+                <span>${principal.is_special ? 'DESTAQUE ESPECIAL' : 'PRÓXIMO DESTAQUE'}</span>
+                <h3>${principal.title}</h3>
+                <div style="display:flex; gap:10px; align-items:center;">
+                    <a href="eventos.html" class="btn-copy">Saiba Mais</a>
+                    <button class="btn-share-whatsapp" onclick="compartilharWhatsapp('${principal.title}', '${new Date(principal.date).toLocaleDateString('pt-BR')}')">📲</button>
+                </div>
+            </div>
+        </div>`;
+
+    const containerSec = document.getElementById('eventos-secundarios');
+    if (containerSec) {
+        containerSec.innerHTML = secundarios.map(ev => `
+            <div class="card-secundario">
+                <img src="${ev.image}">
+                <div class="info-pequena">
+                    <h4>${ev.title}</h4>
+                    <p>${new Date(ev.date).toLocaleDateString('pt-BR')}</p>
+                    <a href="eventos.html">SAIBA MAIS →</a>
+                </div>
+            </div>
+        `).join('');
+    }
+}
+
+function compartilharWhatsapp(titulo, data) {
+    const msg = encodeURIComponent(`Paz! Veja este evento na Famílias Church:\n📌 *${titulo}*\n📅 ${data}\nConfira: ${window.location.origin}/eventos.html`);
+    window.open(`https://api.whatsapp.com/send?text=${msg}`, '_blank');
 }

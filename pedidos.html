@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pedido de Oração | Famílias Church</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Raleway:wght@400;700&family=Smooch+Sans:wght@700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <header id="header"></header>
+
+    <main>
+        <div class="hero-page">
+            <div class="hero-content-page">
+                <h1>PEDIDO DE ORAÇÃO</h1>
+                <p>"A oração de um justo é poderosa e eficaz"</p>
+            </div>
+        </div>
+
+        <section class="section-pedidos container">
+            <div class="form-container">
+                <form id="formOracao" action="https://formsubmit.co/gab.alves0531@gmail.com" method="POST">
+                    <input type="hidden" name="_subject" value="Novo Pedido de Oração (Site)">
+                    <input type="hidden" name="_next" value="https://familiaschurch.netlify.app/obrigado.html"> 
+                    <input type="hidden" name="_captcha" value="false">
+                    
+                    <div class="checkbox-wrapper">
+                        <input type="checkbox" id="anonimo" name="Modo_Anonimo" value="Sim">
+                        <div class="checkbox-info">
+                            <label for="anonimo">Quero fazer um pedido anônimo</label>
+                            <span class="aviso-dados">(evite usar dados pessoais)</span>
+                        </div>
+                    </div>
+
+                    <div id="identificacao-container">
+                        <div class="input-group">
+                            <label for="nome">Nome Completo</label>
+                            <input type="text" id="nome" name="Nome" required placeholder="Seu nome">
+                        </div>
+                        <div class="input-group">
+                            <label for="telefone">WhatsApp / Telefone</label>
+                            <input type="tel" id="telefone" name="Telefone" required placeholder="(XX) 9XXXX-XXXX">
+                        </div>
+                    </div>
+
+                    <div class="input-group">
+                        <label for="mensagem">Seu Pedido de Oração</label>
+                        <textarea id="mensagem" name="Pedido" rows="6" required placeholder="Como podemos orar por você?"></textarea>
+                    </div>
+
+                    <button type="submit" class="btn-enviar">Enviar Pedido para os Pastores</button>
+                </form>
+            </div>
+        </section>
+    </main>
+
+    <footer id="footer" class="footer-moderno"></footer>
+
+    <script src="script.js"></script>
+</body>
+</html>

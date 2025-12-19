@@ -4,121 +4,99 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Doações | Famílias Church</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Raleway:wght@400;500;700&family=Smooch+Sans:wght@100..900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
-    <link rel="shortcut icon" href="./Assets/img/logo.jpg" type="image/x-icon">
+    <link href="https://fonts.googleapis.com/css2?family=Raleway:wght@400;500;700&family=Smooch+Sans:wght@100..900&display=swap" rel="stylesheet">
+    <link rel="shortcut icon" href="./assets/img/logo.jpg" type="image/x-icon">
 </head>
 <body>
 
-    <header id="header">
-        <div class="container">
-            <a href="index.html" class="logo"><img src="./Assets/img/logo.jpg" alt="Famílias Church"></a>
-            <nav>
-                <ul class="nav-menu">
-                    <li><a href="index.html" class="nav-link">Voltar ao Início</a></li>
-                </ul>
-            </nav>
-        </div>
-    </header>
+    <header id="header"></header>
 
-    <div class="hero-page">
-        <div class="hero-content-page">
-            <h1>CONTRIBUA</h1>
-            <p>"Cada um contribua segundo propôs no seu coração"</p>
-        </div>
-    </div>
-
-    <section class="section-doacoes">
-        <div class="container">
-            
-            <div class="donation-card solidario">
-                <div class="icon-box">❤️</div>
-                <h2>Alimentos e Roupas</h2>
-                <p>Recebemos doações em nossas igrejas.</p>
-                <div class="info-delivery">
-                    <strong>📍 Onde entregar:</strong>
-                    <p>Rua Cassuarina, 219 - Eucaliptos<br>Fazenda Rio Grande - PR</p>
-                    <p style="margin-top:10px;"><span>🕒 Horários:</span> Antes dos cultos (Quintas às 20h e Domingos às 19h)</p>
-                </div>
+    <main>
+        <div class="hero-page">
+            <div class="hero-content-page">
+                <h1>CONTRIBUA</h1>
+                <p>"Cada um contribua segundo propôs no seu coração"</p>
             </div>
+        </div>
 
-            <div class="donation-card financeiro">
-                <div class="icon-box">🕊️</div>
-                <h2>Semeie</h2>
-                <p>Selecione uma opção abaixo:</p>
+        <section class="section-doacoes">
+            <div class="container">
 
-                <div class="toggle-donation">
-                    <button class="btn-toggle active" onclick="mostrarOpcao('oferta')">Oferta</button>
-                    <button class="btn-toggle" onclick="mostrarOpcao('dizimo')">Dízimo</button>
-                </div>
-
-                <div id="box-oferta" class="pix-content">
-                    <p class="desc-pix">Para ofertas, não é necessária identificação. Deus abençoe!</p>
-                    <div class="area-chave-pix">
-                        <span class="label-pix">Chave Pix (CNPJ):</span>
-                        <strong class="chave-texto" id="pixOferta">00.000.000/0001-00</strong>
-                        <button class="btn-copy" onclick="copiarPix('pixOferta')">Copiar Chave</button>
+                <div class="donation-card solidario">
+                    <div class="icon-box">❤️</div>
+                    <h2>Alimentos e Roupas</h2>
+                    <p>Recebemos doações em nossas igrejas.</p>
+                    <div class="info-delivery">
+                        <strong>📍 Onde entregar:</strong>
+                        <p>Rua Cassuarina, 219 - Eucaliptos<br>Fazenda Rio Grande - PR</p>
+                        <p style="margin-top:10px;"><span>🕒 Horários:</span> Antes dos cultos (Quintas às 20h e Domingos às 19h)</p>
                     </div>
                 </div>
 
-                <div id="box-dizimo" class="pix-content hidden">
-                    <p class="desc-pix">Para dízimos, faça o Pix e anexe o comprovante abaixo.</p>
-                    <div class="area-chave-pix destaque">
-                        <span class="label-pix">1º Faça o Pix (CNPJ):</span>
-                        <strong class="chave-texto" id="pixDizimo">00.000.000/0001-00</strong>
-                        <button class="btn-copy" type="button" onclick="copiarPix('pixDizimo')">Copiar Chave</button>
+                <div class="donation-card financeiro">
+                    <div class="icon-box">🕊️</div>
+                    <h2>Semeie</h2>
+                    <p>Selecione uma opção abaixo:</p>
+
+                    <div class="toggle-donation">
+                        <button class="btn-toggle active" onclick="mostrarOpcao('oferta')">Oferta</button>
+                        <button class="btn-toggle" onclick="mostrarOpcao('dizimo')">Dízimo</button>
                     </div>
 
-                    <div class="form-wrapper">
-                        <span class="label-pix" style="display:block; margin-bottom:15px; color:#555; text-align: center;">2º Envie o Comprovante:</span>
-                        <form action="https://formsubmit.co/gab.alves0531@gmail.com" method="POST" enctype="multipart/form-data" class="form-custom">
-                            <input type="hidden" name="_subject" id="assunto-email" value="Novo Dízimo">
-                            <input type="hidden" name="_captcha" value="false">
-                            <input type="hidden" name="_next" value="http://localhost/familias_church/index.html">
+                    <div id="box-oferta" class="pix-content">
+                        <p class="desc-pix">Para ofertas, não é necessária identificação. Deus abençoe!</p>
+                        <div class="area-chave-pix">
+                            <span class="label-pix">Chave Pix (CNPJ):</span>
+                            <strong class="chave-texto" id="pixOferta">00.000.000/0001-00</strong>
+                            <button class="btn-copy" onclick="copiarPix('pixOferta')">Copiar Chave</button>
+                        </div>
+                    </div>
+
+                    <div id="box-dizimo" class="pix-content hidden">
+                        <p class="desc-pix">Para dízimos, faça o Pix e anexe o comprovante abaixo.</p>
+                        <div class="area-chave-pix destaque">
+                            <span class="label-pix">1º Faça o Pix (CNPJ):</span>
+                            <strong class="chave-texto" id="pixDizimo">00.000.000/0001-00</strong>
+                            <button class="btn-copy" type="button" onclick="copiarPix('pixDizimo')">Copiar Chave</button>
+                        </div>
+
+                        <div class="form-wrapper">
+                            <span class="label-pix" style="display:block; margin-bottom:15px; color:#555; text-align: center;">2º Envie o Comprovante:</span>
                             
-                            <div class="input-group">
-                                <label>Nome Completo</label>
-                                <input type="text" name="nome" required placeholder="Seu nome">
-                            </div>
-                            <div class="row-dupla">
+                            <form action="https://formsubmit.co/gab.alves0531@gmail.com" method="POST" enctype="multipart/form-data" class="form-custom">
+                                <input type="hidden" name="_subject" id="assunto-email" value="Novo Dízimo">
+                                <input type="hidden" name="_captcha" value="false">
+                                <input type="hidden" name="_next" value="https://familiaschurch.netlify.app/obrigado.html">
+
                                 <div class="input-group">
-                                    <label>Data do Pix</label>
-                                    <input type="date" name="data" required>
+                                    <label>Nome Completo</label>
+                                    <input type="text" name="nome" required placeholder="Seu nome">
+                                </div>
+                                <div class="row-dupla">
+                                    <div class="input-group">
+                                        <label>Data do Pix</label>
+                                        <input type="date" name="data" required>
+                                    </div>
+                                    <div class="input-group">
+                                        <label>Valor (R$)</label>
+                                        <input type="text" name="valor" id="valor" required placeholder="0,00" onkeyup="formatarMoeda(this)">
+                                    </div>
                                 </div>
                                 <div class="input-group">
-                                    <label>Valor (R$)</label>
-                                    <input type="text" name="valor" id="valor" required placeholder="0,00" onkeyup="formatarMoeda(this)">
+                                    <label>Comprovante (Print ou PDF)</label>
+                                    <input type="file" name="comprovante" accept="image/*,.pdf" required class="input-file">
                                 </div>
-                            </div>
-                            <div class="input-group">
-                                <label>Comprovante (Print ou PDF)</label>
-                                <input type="file" name="comprovante" accept="image/*,.pdf" required class="input-file">
-                            </div>
-                            <button type="submit" class="btn-enviar-dizimo">Enviar Comprovante</button>
-                        </form>
+                                <button type="submit" class="btn-enviar-dizimo">Enviar Comprovante</button>
+                            </form>
+                        </div>
                     </div>
                 </div>
             </div>
-        </div>
-    </section>
+        </section>
+    </main>
 
-    <footer class="footer-moderno">
-        <div class="container">
-            <div class="footer-brand"><p class="footer-slogan">"Restaurar, Cuidar e Amar"</p></div>
-            <div class="footer-divider"></div>
-            <div class="footer-social">
-                <a href="https://www.instagram.com/familias.church" target="_blank">Instagram</a>
-                <a href="https://youtube.com/@FamiliasChurch" target="_blank">YouTube</a>
-                <a href="https://www.facebook.com/familiaschurch" target="_blank">Facebook</a>
-            </div>
-            <div class="footer-copy">
-                <p>&copy; 2025 Famílias Church. Todos os direitos reservados.</p>
-                <p class="endereco-curto">Rua da Igreja, 123 - Fazenda Rio Grande - PR</p>
-            </div>
-        </div>
-    </footer>
+    <footer id="footer" class="footer-moderno"></footer>
 
     <script src="script.js"></script>
 </body>
