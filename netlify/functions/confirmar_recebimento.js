@@ -1,5 +1,3 @@
-const fetch = require('node-fetch');
-
 exports.handler = async (event) => {
     const { fileId } = JSON.parse(event.body); // Nome do ficheiro enviado pelo painel
     const TOKEN = process.env.GH_TOKEN;

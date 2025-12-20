@@ -1,5 +1,3 @@
-const fetch = require('node-fetch');
-
 exports.handler = async (event) => {
     const TOKEN = process.env.GH_TOKEN;
     const REPO = "FamiliasChurch/FamiliasChurch";

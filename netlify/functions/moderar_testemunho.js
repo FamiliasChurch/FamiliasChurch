@@ -1,5 +1,3 @@
-const fetch = require('node-fetch');
-
 exports.handler = async (event) => {
     const { fileId, novoStatus } = JSON.parse(event.body);
     const TOKEN = process.env.GH_TOKEN;

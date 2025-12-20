@@ -1,5 +1,3 @@
-const fetch = require('node-fetch');
-
 exports.handler = async (event) => {
     const { userEmail } = event.queryStringParameters;
     const TOKEN = process.env.GH_TOKEN;
