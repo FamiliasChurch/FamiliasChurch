@@ -14,13 +14,15 @@
     <header id="header"></header>
 
     <main class="container" style="margin-top: 130px; min-height: 80vh;">
-        <div class="perfil-header-card">
-            <div class="avatar-perfil">
-                <img id="avatarImg" src="https://via.placeholder.com/120" alt="Foto de Perfil">
-            </div>
-            <h1 id="nomeUsuario">Carregando...</h1>
-            <p id="cargoUsuario" class="badge-cargo">Membro</p>
+        <div class="avatar-perfil" style="position: relative; display: inline-block;">
+            <img id="avatarImg" src="https://via.placeholder.com/120" alt="Foto de Perfil">
+            
+            <label for="fotoInput" style="position: absolute; bottom: 5px; right: 5px; background: var(--cor-primaria); color: white; padding: 8px; border-radius: 50%; cursor: pointer; border: 2px solid #fff;">
+                📷
+                <input type="file" id="fotoInput" accept="image/*" style="display: none;">
+            </label>
         </div>
+        <p id="statusUpload" style="font-size: 0.8rem; margin-top: 5px;"></p>
 
         <div class="perfil-grid">
             <section class="perfil-section">

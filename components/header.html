@@ -71,3 +71,33 @@
         <span class="bar"></span>
     </button>
 </div>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
+
+<style>
+    /* Estilo do Modal de Recorte */
+    #modalCrop {
+        display: none;
+        position: fixed;
+        top: 0; left: 0; width: 100%; height: 100%;
+        background: rgba(0,0,0,0.9);
+        z-index: 10000;
+        align-items: center; justify-content: center; flex-direction: column;
+    }
+    .crop-container { width: 90%; max-width: 500px; background: #fff; padding: 20px; border-radius: 10px; }
+    #imageToCrop { max-width: 100%; display: block; }
+    .crop-buttons { display: flex; gap: 10px; margin-top: 15px; }
+</style>
+
+<div id="modalCrop">
+    <div class="crop-container">
+        <h3>Ajuste sua foto</h3>
+        <div>
+            <img id="imageToCrop">
+        </div>
+        <div class="crop-buttons">
+            <button class="action-btn" id="btnSalvarCrop">✅ Confirmar e Enviar</button>
+            <button class="action-btn-secondary" onclick="fecharModal()">Cancelar</button>
+        </div>
+    </div>
+</div>

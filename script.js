@@ -324,24 +324,75 @@ function toggleMenu() {
 }
 
 // Atualiza as informações do usuário logado
-function updateUserInfo(user) {
+// 1. Função Matemática para calcular a idade
+function calcularIdade(dataNascimento) {
+    if (!dataNascimento) return "--";
+    const hoje = new Date();
+    const nascimento = new Date(dataNascimento);
+    let idade = hoje.getFullYear() - nascimento.getFullYear();
+    const m = hoje.getMonth() - nascimento.getMonth();
+    
+    if (m < 0 || (m === 0 && hoje.getDate() < nascimento.getDate())) {
+        idade--;
+    }
+    return idade;
+}
+
+// 2. Função Principal de Sincronização
+function atualizarDadosUsuario(user) {
     if (!user) return;
 
-    // Dados básicos
-    document.getElementById('userName').innerText = `Olá, ${user.user_metadata.full_name || 'Irmão'}!`;
-    document.getElementById('userEmail').innerText = user.email;
+    const meta = user.user_metadata;
+    const idadeCalculada = calcularIdade(meta.nascimento);
 
-    // Metadados Personalizados (Cargo e Idade)
-    // No Netlify, você configura isso em Identity -> Metadata
-    const metadata = user.user_metadata;
-    document.getElementById('userRole').innerText = metadata.cargo || "Membro";
-    document.getElementById('userAge').innerText = metadata.idade || "--";
+    // Elementos do Menu Flutuante (Header)
+    const elementos = {
+        nome: document.getElementById('userName'),
+        email: document.getElementById('userEmail'),
+        cargo: document.getElementById('userRole'),
+        idade: document.getElementById('userAge'),
+        avatarPequeno: document.getElementById('userAvatarSmall'),
+        avatarGrande: document.getElementById('userAvatarLarge')
+    };
 
-    // Fotos (Se vierem do Google Login, o Netlify mapeia automaticamente)
-    if (metadata.avatar_url) {
-        document.getElementById('userAvatarSmall').src = metadata.avatar_url;
-        document.getElementById('userAvatarLarge').src = metadata.avatar_url;
-    }
+    // Preenchimento Automático do Menu
+    if (elementos.nome) elementos.nome.innerText = `Olá, ${meta.full_name || 'Membro'}!`;
+    if (elementos.email) elementos.email.innerText = user.email;
+    if (elementos.cargo) elementos.cargo.innerText = meta.cargo || "Membro";
+    if (elementos.idade) elementos.idade.innerText = idadeCalculada;
+    if (elementos.avatarPequeno && meta.avatar_url) elementos.avatarPequeno.src = meta.avatar_url;
+    if (elementos.avatarGrande && meta.avatar_url) elementos.avatarGrande.src = meta.avatar_url;
+    if (meta.avatar_url) {    
+        document.getElementById('avatarImg').src = meta.avatar_url;
+        document.getElementById('userAvatarSmall').src = meta.avatar_url;
+    } else {
+    // Se não tiver nada, ele mantém a imagem padrão que você colocou no HTML
+    document.getElementById('avatarImg').src = "https://via.placeholder.com/120";
+    }       
+    // Sincronização com a Página de Perfil (perfil.html)
+    const perfilNome = document.getElementById('nomeUsuario');
+    const perfilCargo = document.getElementById('cargoUsuario');
+    const perfilAvatar = document.getElementById('avatarImg');
+
+    if (perfilNome) perfilNome.innerText = meta.full_name || "Membro da Família";
+    if (perfilCargo) perfilCargo.innerText = meta.cargo || "Membro";
+    if (perfilAvatar && meta.avatar_url) perfilAvatar.src = meta.avatar_url;
+}
+
+
+// 3. Netlify Identity
+netlifyIdentity.on('init', user => atualizarDadosUsuario(user));
+netlifyIdentity.on('login', user => {
+    atualizarDadosUsuario(user);
+    netlifyIdentity.close();
+});
+
+// Dentro da sua função atualizarInterfaceUsuario(user):
+const meta = user.user_metadata;
+const elementoIdade = document.getElementById('userAge'); //
+
+if (elementoIdade) {
+    elementoIdade.innerText = calcularIdade(meta.nascimento);
 }
 // Função para atualizar a interface com os dados do usuário
 function atualizarInterfaceUsuario(user) {
@@ -587,3 +638,73 @@ async function carregarMuralTestemunhos() {
         container.innerHTML = "<p>Em breve, novas vitórias compartilhadas!</p>";
     }
 }
+
+// Variável global para o editor
+let cropper;
+const modal = document.getElementById('modalCrop');
+const imageToCrop = document.getElementById('imageToCrop');
+const fotoInput = document.getElementById('fotoInput');
+
+// 1. Detecta a escolha do arquivo e abre o editor de recorte
+fotoInput.addEventListener('change', (e) => {
+    const file = e.target.files[0];
+    if (file) {
+        const reader = new FileReader();
+        reader.onload = (event) => {
+            imageToCrop.src = event.target.result;
+            modal.style.display = 'flex'; // Abre o modal de ajuste
+            
+            if (cropper) cropper.destroy();
+            cropper = new Cropper(imageToCrop, {
+                aspectRatio: 1, // Garante que a foto seja quadrada para o círculo
+                viewMode: 1,
+                guides: false
+            });
+        };
+        reader.readAsDataURL(file);
+    }
+});
+
+// 2. Lógica de Upload (Integrada com sua Chave API)
+document.getElementById('btnSalvarCrop').addEventListener('click', () => {
+    const canvas = cropper.getCroppedCanvas({ width: 400, height: 400 });
+    const status = document.getElementById('statusUpload');
+    const user = netlifyIdentity.currentUser();
+
+    fecharModal();
+    status.innerText = "⏳ Enviando foto...";
+
+    // Transforma o recorte em um arquivo (Blob) para envio
+    canvas.toBlob(async (blob) => {
+        const formData = new FormData();
+        formData.append('image', blob);
+
+        try {
+            // Upload para o ImgBB com sua chave: aa5bd2aacedeb43b6521a4f45d71b442
+            const res = await fetch('https://api.imgbb.com/1/upload?key=aa5bd2aacedeb43b6521a4f45d71b442', {
+                method: 'POST',
+                body: formData
+            });
+            const data = await res.json();
+
+            if (data.success) {
+                const novaUrlFoto = data.data.url;
+
+                // Atualiza o Netlify Identity do usuário logado
+                user.update({ data: { avatar_url: novaUrlFoto } }).then((updatedUser) => {
+                    // Atualiza as imagens na tela instantaneamente
+                    if(document.getElementById('avatarImg')) document.getElementById('avatarImg').src = novaUrlFoto;
+                    if(document.getElementById('userAvatarSmall')) document.getElementById('userAvatarSmall').src = novaUrlFoto;
+                    if(document.getElementById('userAvatarLarge')) document.getElementById('userAvatarLarge').src = novaUrlFoto;
+                    
+                    status.innerText = "✅ Foto atualizada!";
+                });
+            }
+        } catch (err) {
+            status.innerText = "❌ Erro ao subir foto.";
+            console.error(err);
+        }
+    }, 'image/jpeg');
+});
+
+function fecharModal() { modal.style.display = 'none'; }
