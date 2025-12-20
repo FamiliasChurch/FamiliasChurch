@@ -397,22 +397,28 @@ function atualizarDadosUsuario(user) {
 
     const meta = user.user_metadata;
     
-    // 1. Prioriza a foto do Netlify/Google. Se não existir, usa o placeholder cinza.
-    const fotoUrl = meta.avatar_url || "https://via.placeholder.com/120";
+    // Caminho para uma imagem padrão caso o utilizador não tenha foto
+    const fotoPadrao = "https://www.w3schools.com/howto/img_avatar.png"; 
+    const fotoUrl = meta.avatar_url || fotoPadrao;
 
-    // 2. Atualiza Menu Flutuante (Header)
-    const elAvatarSmall = document.getElementById('userAvatarSmall');
-    const elAvatarLarge = document.getElementById('userAvatarLarge');
-    const elNome = document.getElementById('userName');
-    
-    if (elAvatarSmall) elAvatarSmall.src = fotoUrl;
-    if (elAvatarLarge) elAvatarLarge.src = fotoUrl;
-    if (elNome) elNome.innerText = `Olá, ${meta.full_name || 'Membro'}!`;
+    // Atualiza os elementos visualmente
+    const idsAvatares = ['userAvatarSmall', 'userAvatarLarge', 'avatarImg'];
+    idsAvatares.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) {
+            el.src = fotoUrl;
+            el.style.display = "block"; // Garante que não está escondido por CSS
+        }
+    });
+
+    if (document.getElementById('userName')) {
+        document.getElementById('userName').innerText = `Olá, ${meta.full_name || 'Membro'}!`;
+    }
 
     // 3. Atualiza Página de Perfil
     const elPerfilAvatar = document.getElementById('avatarImg');
     const elPerfilNome = document.getElementById('nomeUsuario');
-    
+
     if (elPerfilAvatar) elPerfilAvatar.src = fotoUrl;
     if (elPerfilNome) elPerfilNome.innerText = meta.full_name || "Membro da Família";
 }
