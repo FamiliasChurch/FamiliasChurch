@@ -3,6 +3,7 @@ exports.handler = async (event) => {
 
     const { payload, path, folder } = JSON.parse(event.body);
     const TOKEN = process.env.GH_TOKEN;
+    const BUILD_HOOK = process.env.NETLIFY_BUILD_HOOK; // Configurar no painel do Netlify
     const REPO = "FamiliasChurch/FamiliasChurch";
 
     try {
@@ -14,19 +15,18 @@ exports.handler = async (event) => {
             body: JSON.stringify({ message: `Add: ${payload.title}`, content: contentBase64 })
         });
 
-        // 2. BUSCAR LISTA DE FICHEIROS NA PASTA PARA ATUALIZAR O ÍNDICE
+        // 2. BUSCAR LISTA DE FICHEIROS PARA ATUALIZAR O ÍNDICE
         const folderPath = path.substring(0, path.lastIndexOf('/'));
         const resFolder = await fetch(`https://api.github.com/repos/${REPO}/contents/${folderPath}`, {
             headers: { 'Authorization': `token ${TOKEN}` }
         });
         const files = await resFolder.json();
 
-        // Filtra apenas ficheiros .json e ignora o index.json
         const indexData = files
             .filter(f => f.name.endsWith('.json') && f.name !== 'index.json')
             .map(f => f.name);
 
-        // 3. ATUALIZAR O index.json (Precisa do SHA se já existir)
+        // 3. ATUALIZAR O index.json
         const resIndex = await fetch(`https://api.github.com/repos/${REPO}/contents/${folderPath}/index.json`, {
             headers: { 'Authorization': `token ${TOKEN}` }
         });
@@ -43,7 +43,17 @@ exports.handler = async (event) => {
             })
         });
 
-        return { statusCode: 200, body: JSON.stringify({ msg: "Publicado e Indexado!" }) };
+        // 🚀 PASSO 4: DISPARAR O BUILD AUTOMÁTICO
+        // Isso fará o Netlify rodar o bundle_content.py e atualizar o site
+        if (BUILD_HOOK) {
+            await fetch(BUILD_HOOK, { method: 'POST' });
+            console.log("Gatilho de Build enviado com sucesso!");
+        }
+
+        return { 
+            statusCode: 200, 
+            body: JSON.stringify({ msg: "Publicado e automação de build iniciada!" }) 
+        };
 
     } catch (err) {
         return { statusCode: 500, body: err.toString() };

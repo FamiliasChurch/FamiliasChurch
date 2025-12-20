@@ -15,10 +15,15 @@ let utterance = null;
 /* ==========================================================
    ORQUESTRADOR DE INICIALIZAÇÃO
 ========================================================== */
-document.addEventListener('DOMContentLoaded', async () => {
-    await carregarComponentes();
+/* ==========================================================
+   ORQUESTRADOR DE INICIALIZAÇÃO OTIMIZADO
+========================================================== */
+document.addEventListener('DOMContentLoaded', () => {
+    // Carrega o esqueleto do site primeiro
+    carregarComponentes(); 
     initMenuMobile();
 
+    // Inicia as seções dinâmicas sem travar a navegação
     const rotas = {
         'lista-proximos': carregarEventos,
         'evento-principal': carregarDestaquesHome,
@@ -26,18 +31,33 @@ document.addEventListener('DOMContentLoaded', async () => {
         'lista-publicacoes': carregarFeed,
         'ministerios-tabs': initTabsMinisterios,
         'formOracao': initFormOracao,
-        'box-oferta': () => mostrarOpcao('oferta'),
-        'btn-pr': () => trocarUnidade('pr'),
         'passkey': initAdminObreiros
     };
 
     Object.keys(rotas).forEach(id => {
-        if (document.getElementById(id)) rotas[id]();
+        if (document.getElementById(id)) setTimeout(rotas[id], 0);
     });
 
+    // ÚNICO lugar para configurar o Netlify Identity
     if (window.netlifyIdentity) {
         window.netlifyIdentity.on("init", user => {
-            if (!user) window.netlifyIdentity.on("login", () => document.location.href = "/admin/");
+            if (user) {
+                atualizarDadosUsuario(user);
+                checarNotificacoes();
+            }
+        });
+
+        window.netlifyIdentity.on("login", user => {
+            atualizarDadosUsuario(user);
+            netlifyIdentity.close();
+            // Limpa o cache para garantir que o novo login veja dados novos
+            localStorage.clear(); 
+            location.reload(); 
+        });
+
+        window.netlifyIdentity.on("logout", () => {
+            localStorage.clear();
+            location.reload();
         });
     }
 });
@@ -85,11 +105,44 @@ function initMenuMobile() {
    2. GESTÃO DE DADOS (JSON)
 ========================================================== */
 async function fetchConteudo(subpasta) {
+    // 1. Definições de Cache
+    const cacheKey = `church_cache_${subpasta.replace('/', '_')}`;
+    const expiraEm = 10 * 60 * 1000; // 10 minutos
+    const cacheSalvo = localStorage.getItem(cacheKey);
+
+    // 2. Tenta carregar do Cache primeiro (Velocidade Instantânea)
+    if (cacheSalvo) {
+        const { timestamp, data } = JSON.parse(cacheSalvo);
+        if (Date.now() - timestamp < expiraEm) {
+            console.log(`⚡ Cache: ${subpasta} carregado instantaneamente.`);
+            return data;
+        }
+    }
+
+    // 3. Busca o arquivo consolidado (Apenas 1 requisição ao servidor)
+    // Transforma 'publicacoes/devocionais' em 'devocionais_all'
+    const nomeBase = subpasta.includes('/') ? subpasta.split('/').pop() : subpasta;
+    const urlConsolidada = `${CONFIG.basePath}/${nomeBase}_all.json`;
+
     try {
-        const res = await fetch(`${CONFIG.basePath}/${subpasta}/index.json`);
-        const arquivos = await res.json();
-        return Promise.all(arquivos.map(f => fetch(`${CONFIG.basePath}/${subpasta}/${f}`).then(r => r.json())));
-    } catch (e) { return []; }
+        console.log(`🌐 Servidor: Buscando arquivo único ${urlConsolidada}...`);
+        const res = await fetch(urlConsolidada);
+        
+        if (!res.ok) throw new Error("Arquivo consolidado não encontrado. Rode o script Python!");
+        
+        const dataFinal = await res.json();
+
+        // 4. Salva o resultado no Cache para a próxima vez
+        localStorage.setItem(cacheKey, JSON.stringify({
+            timestamp: Date.now(),
+            data: dataFinal
+        }));
+
+        return dataFinal;
+    } catch (e) { 
+        console.error(`❌ Erro crítico em ${subpasta}:`, e);
+        return []; 
+    }
 }
 
 async function carregarEventos() {
@@ -286,14 +339,14 @@ function initTabsMinisterios() {
     const displayTexto = document.querySelector('.tab-text-box p');
 
     const dados = {
-        "LOUVOR": { img: "https://images.unsplash.com/photo-1510915361894-db8b60106cb1?q=80&w=2070", txt: "Levando a igreja à adoração profunda através da música." },
-        "FAMÍLIAS": { img: "https://images.unsplash.com/photo-1511895426328-dc8714191300?q=80&w=2070", txt: "Edificando lares sobre a rocha que é a Palavra de Deus." },
-        "DÉBORAS": { img: "https://images.unsplash.com/photo-1519741497674-611481863552?q=80&w=2070", txt: "Mães de joelhos, filhos de pé. Intercessão contínua." },
-        "JOVENS": { img: "https://images.unsplash.com/photo-1523240795612-9a054b0db644?q=80&w=2070", txt: "Uma geração apaixonada por Jesus e pelo Seu Reino." },
-        "TEENS": { img: "https://images.unsplash.com/photo-1491438590914-bc09fcaaf77a?q=80&w=2070", txt: "Adolescentes crescendo em sabedoria e graça." },
-        "KIDS": { img: "https://images.unsplash.com/photo-1484981138541-3d074aa97716?q=80&w=2070", txt: "Plantando a semente da vida no coração dos pequenos." },
-        "TEATRO": { img: "https://images.unsplash.com/photo-1507676184212-d03ab07a01bf?q=80&w=2070", txt: "Expressando o Evangelho através da arte dramática." },
-        "DANÇA": { img: "https://images.unsplash.com/photo-1508700115892-45ecd05ae2ad?q=80&w=2070", txt: "Adoração em movimento e gratidão ao Criador." }
+        "LOUVOR": { img: "https://images.unsplash.com/photo-1510915361894-db8b60106cb1?q=80&w=800", txt: "Levando a igreja à adoração profunda através da música." },
+        "FAMÍLIAS": { img: "https://images.unsplash.com/photo-1511895426328-dc8714191300?q=80&w=800", txt: "Edificando lares sobre a rocha que é a Palavra de Deus." },
+        "DÉBORAS": { img: "https://images.unsplash.com/photo-1519741497674-611481863552?q=80&w=800", txt: "Mães de joelhos, filhos de pé. Intercessão contínua." },
+        "JOVENS": { img: "https://images.unsplash.com/photo-1523240795612-9a054b0db644?q=80&w=800", txt: "Uma geração apaixonada por Jesus e pelo Seu Reino." },
+        "TEENS": { img: "https://images.unsplash.com/photo-1491438590914-bc09fcaaf77a?q=80&w=800", txt: "Adolescentes crescendo em sabedoria e graça." },
+        "KIDS": { img: "https://images.unsplash.com/photo-1484981138541-3d074aa97716?q=80&w=800", txt: "Plantando a semente da vida no coração dos pequenos." },
+        "TEATRO": { img: "https://images.unsplash.com/photo-1507676184212-d03ab07a01bf?q=80&w=800", txt: "Expressando o Evangelho através da arte dramática." },
+        "DANÇA": { img: "https://images.unsplash.com/photo-1508700115892-45ecd05ae2ad?q=80&w=800", txt: "Adoração em movimento e gratidão ao Criador." }
     };
 
     botoes.forEach(btn => {
@@ -639,24 +692,25 @@ async function carregarMuralTestemunhos() {
     }
 }
 
-// Variável global para o editor
+// Variáveis globais para o controle do editor
 let cropper;
 const modal = document.getElementById('modalCrop');
 const imageToCrop = document.getElementById('imageToCrop');
 const fotoInput = document.getElementById('fotoInput');
 
-// 1. Detecta a escolha do arquivo e abre o editor de recorte
+// 1. Detecta a escolha da foto e abre o Modal de Recorte
 fotoInput.addEventListener('change', (e) => {
     const file = e.target.files[0];
     if (file) {
         const reader = new FileReader();
         reader.onload = (event) => {
             imageToCrop.src = event.target.result;
-            modal.style.display = 'flex'; // Abre o modal de ajuste
+            modal.style.display = 'flex'; // Exibe o modal de ajuste
             
+            // Inicia o Cropper.js com proporção 1:1 (quadrado)
             if (cropper) cropper.destroy();
             cropper = new Cropper(imageToCrop, {
-                aspectRatio: 1, // Garante que a foto seja quadrada para o círculo
+                aspectRatio: 1,
                 viewMode: 1,
                 guides: false
             });
@@ -665,21 +719,11 @@ fotoInput.addEventListener('change', (e) => {
     }
 });
 
-<<<<<<< Updated upstream
-// 2. Lógica de Upload (Integrada com sua Chave API)
-=======
->>>>>>> Stashed changes
 document.getElementById('btnSalvarCrop').addEventListener('click', () => {
     const canvas = cropper.getCroppedCanvas({ width: 400, height: 400 });
     const status = document.getElementById('statusUpload');
     const user = netlifyIdentity.currentUser();
 
-<<<<<<< Updated upstream
-    fecharModal();
-    status.innerText = "⏳ Enviando foto...";
-
-    // Transforma o recorte em um arquivo (Blob) para envio
-=======
     if (!user) {
         alert("Erro: Utilizador não identificado. Verifique se fez login corretamente.");
         return;
@@ -688,7 +732,6 @@ document.getElementById('btnSalvarCrop').addEventListener('click', () => {
     fecharModal();
     status.innerText = "⏳ A processar imagem...";
 
->>>>>>> Stashed changes
     canvas.toBlob(async (blob) => {
         if (!blob) {
             alert("Erro ao gerar o ficheiro da imagem.");
@@ -699,11 +742,7 @@ document.getElementById('btnSalvarCrop').addEventListener('click', () => {
         formData.append('image', blob);
 
         try {
-<<<<<<< Updated upstream
-            // Upload para o ImgBB com sua chave: aa5bd2aacedeb43b6521a4f45d71b442
-=======
             status.innerText = "⏳ A enviar para o servidor ImgBB...";
->>>>>>> Stashed changes
             const res = await fetch('https://api.imgbb.com/1/upload?key=aa5bd2aacedeb43b6521a4f45d71b442', {
                 method: 'POST',
                 body: formData
@@ -714,17 +753,6 @@ document.getElementById('btnSalvarCrop').addEventListener('click', () => {
                 const novaUrlFoto = data.data.url;
                 status.innerText = "⏳ A guardar no seu perfil...";
 
-<<<<<<< Updated upstream
-                // Atualiza o Netlify Identity do usuário logado
-                user.update({ data: { avatar_url: novaUrlFoto } }).then((updatedUser) => {
-                    // Atualiza as imagens na tela instantaneamente
-                    if(document.getElementById('avatarImg')) document.getElementById('avatarImg').src = novaUrlFoto;
-                    if(document.getElementById('userAvatarSmall')) document.getElementById('userAvatarSmall').src = novaUrlFoto;
-                    if(document.getElementById('userAvatarLarge')) document.getElementById('userAvatarLarge').src = novaUrlFoto;
-                    
-                    status.innerText = "✅ Foto atualizada!";
-                });
-=======
                 // Atualiza os metadados no Netlify
                 await user.update({ data: { avatar_url: novaUrlFoto } });
                 
@@ -734,12 +762,9 @@ document.getElementById('btnSalvarCrop').addEventListener('click', () => {
                 location.reload(); // Recarrega para garantir que o cabeçalho puxe a nova foto
             } else {
                 alert("Erro no ImgBB: " + data.error.message);
->>>>>>> Stashed changes
             }
         } catch (err) {
             alert("Erro na ligação com o servidor: " + err.message);
         }
     }, 'image/jpeg');
 });
-
-function fecharModal() { modal.style.display = 'none'; }
