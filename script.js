@@ -397,30 +397,46 @@ function atualizarDadosUsuario(user) {
 
     const meta = user.user_metadata;
     
-    // Caminho para uma imagem padrão caso o utilizador não tenha foto
-    const fotoPadrao = "https://www.w3schools.com/howto/img_avatar.png"; 
-    const fotoUrl = meta.avatar_url || fotoPadrao;
+    // 1. Definição da Foto (Prioridade: Netlify/Google > Fallback Silhueta)
+    const fotoFallback = "https://www.w3schools.com/howto/img_avatar.png"; 
+    const fotoFinal = meta.avatar_url || fotoFallback;
 
-    // Atualiza os elementos visualmente
+    // 2. Atualização em Massa de todos os Avatares (Header, Dropdown e Perfil)
     const idsAvatares = ['userAvatarSmall', 'userAvatarLarge', 'avatarImg'];
     idsAvatares.forEach(id => {
         const el = document.getElementById(id);
         if (el) {
-            el.src = fotoUrl;
-            el.style.display = "block"; // Garante que não está escondido por CSS
+            el.src = fotoFinal;
+            el.style.opacity = "1"; // Garante visibilidade
+            el.style.display = "block"; // Garante que não está oculto por CSS
         }
     });
 
+    // 3. Atualização de Textos no Header / Dropdown
     if (document.getElementById('userName')) {
         document.getElementById('userName').innerText = `Olá, ${meta.full_name || 'Membro'}!`;
     }
+    if (document.getElementById('userRole')) {
+        document.getElementById('userRole').innerText = meta.cargo || "Membro";
+    }
+    if (document.getElementById('userEmail')) {
+        document.getElementById('userEmail').innerText = user.email;
+    }
+    if (document.getElementById('userAge') && meta.nascimento) {
+        // Usa a função calcularIdade que já definimos antes
+        document.getElementById('userAge').innerText = calcularIdade(meta.nascimento);
+    }
 
-    // 3. Atualiza Página de Perfil
-    const elPerfilAvatar = document.getElementById('avatarImg');
+    // 4. Sincronização Específica com a Página de Perfil (perfil.html)
     const elPerfilNome = document.getElementById('nomeUsuario');
+    const elPerfilCargo = document.getElementById('cargoUsuario');
 
-    if (elPerfilAvatar) elPerfilAvatar.src = fotoUrl;
-    if (elPerfilNome) elPerfilNome.innerText = meta.full_name || "Membro da Família";
+    if (elPerfilNome) {
+        elPerfilNome.innerText = meta.full_name || "Membro da Família";
+    }
+    if (elPerfilCargo) {
+        elPerfilCargo.innerText = meta.cargo || "Membro";
+    }
 }
 
 // 3. Netlify Identity
@@ -757,4 +773,8 @@ document.getElementById('btnSalvarCrop').addEventListener('click', () => {
             alert("Erro na ligação com o servidor: " + err.message);
         }
     }, 'image/jpeg');
+});
+
+netlifyIdentity.init({
+  API_URL: 'https://familiaschurch.netlify.app/.netlify/identity'
 });

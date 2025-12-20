@@ -1,130 +1,85 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
-
 <head>
     <meta charset="UTF-8">
     <title>Meu Perfil | Famílias Church</title>
     <link rel="stylesheet" href="style.css">
-    <link href="https://fonts.googleapis.com/css2?family=Raleway:wght@400;700&family=Smooch+Sans:wght@700&display=swap"
-        rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Raleway:wght@400;700&family=Smooch+Sans:wght@700&display=swap" rel="stylesheet">
     <script src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
 </head>
-
 <body>
     <header id="header"></header>
 
     <main class="container" style="margin-top: 130px; min-height: 80vh;">
-        <div class="avatar-perfil">
-            <img id="avatarImg" src="https://via.placeholder.com/120" alt="Foto de Perfil">
+        <div class="perfil-header-card" style="text-align: center; margin-bottom: 40px;">
+            <div class="avatar-perfil">
+                <img id="avatarImg" src="https://www.w3schools.com/howto/img_avatar.png" alt="Foto de Perfil" style="width: 120px; height: 120px; border-radius: 50%; border: 3px solid var(--cor-primaria);">
+            </div>
+            <h1 id="nomeUsuario" style="margin-top: 15px;">Carregando...</h1>
+            <p id="cargoUsuario" class="badge-cargo">Membro</p>
         </div>
-        <p id="statusUpload" style="font-size: 0.8rem; margin-top: 5px;"></p>
 
         <div class="perfil-grid">
             <section class="perfil-section">
-                <div class="perfil-section" style="margin-bottom: 30px;">
-                    <h2 class="titulo-secao" style="font-size: 1.5rem;">Novo Pedido de Oração</h2>
-                    <form id="formOracaoPerfil" style="margin-top: 15px;">
-                        <textarea id="textoOracao" placeholder="Escreve aqui o teu motivo de oração..." rows="4"
-                            required></textarea>
-                        <button type="submit" class="btn-enviar" style="padding: 10px; font-size: 0.9rem;">🙏 Enviar
-                            Pedido</button>
-                    </form>
-                    <p id="statusOracao" style="margin-top: 10px; font-size: 0.8rem; text-align: center;"></p>
-                </div>
-                <h2 class="titulo-secao" style="font-size: 2rem;">Minhas Orações</h2>
-                <div id="lista-oracoes" class="lista-registros">
-                    <p class="aviso-vazio">Nenhum pedido de oração enviado ainda.</p>
-                </div>
-            </section>
-
-            <section class="perfil-section">
-                <h2 class="titulo-secao" style="font-size: 2rem;">Contribuições</h2>
-                <div id="lista-contribuicoes" class="lista-registros">
-                    <p class="aviso-vazio">Ainda não há registos de sementes plantadas.</p>
-                </div>
+                <h2 class="titulo-secao">🙏 Pedidos de Oração</h2>
+                <form id="formOracaoPerfil">
+                    <textarea id="textoOracao" placeholder="Motivo de oração..." rows="4" required></textarea>
+                    <button type="submit" class="btn-enviar">Enviar ao Altar</button>
+                </form>
+                <div id="lista-oracoes" class="lista-registros"></div>
             </section>
 
             <section class="perfil-section financeiro-card" id="secaoFinanceira">
-                <h2 class="titulo-secao" style="font-size: 1.8rem;">Resumo de Contribuições</h2>
+                <h2 class="titulo-secao">Contribuições</h2>
                 <div class="financeiro-grid">
-                    <div class="stat-box">
-                        <span>Este Mês</span>
-                        <strong id="totalMensal">R$ 0,00</strong>
-                    </div>
-                    <div class="stat-box">
-                        <span>Este Ano</span>
-                        <strong id="totalAnual">R$ 0,00</strong>
-                    </div>
+                    <div class="stat-box"><span>Este Mês</span><strong id="totalMensal">R$ 0,00</strong></div>
+                    <div class="stat-box"><span>Este Ano</span><strong id="totalAnual">R$ 0,00</strong></div>
                 </div>
-
-                <div id="adminFinanceiro" class="hidden"
-                    style="margin-top: 20px; border-top: 1px solid #eee; padding-top: 15px;">
-                    <button class="action-btn-secondary" onclick="window.location.href='admin/financeiro.html'">⚙️
-                        Gerenciar Todas as Contribuições</button>
+                <div id="adminFinanceiro" class="hidden" style="margin-top: 20px;">
+                    <button class="action-btn-secondary" onclick="window.location.href='admin-obreiros.html'">⚙️ Painel Administrativo</button>
                 </div>
             </section>
         </div>
     </main>
 
-    <footer id="footer" class="footer-moderno"></footer>
+    <footer id="footer"></footer>
 
     <script src="script.js"></script>
     <script>
-        // Lógica específica para carregar dados do usuário logado
         document.addEventListener('DOMContentLoaded', () => {
+            // Inicializa e verifica o usuário
             const user = netlifyIdentity.currentUser();
+            
             if (!user) {
-                window.location.href = "index.html"; // Redireciona se não estiver logado
-                return;
+                // Se não houver usuário, espera o evento de init ou redireciona
+                netlifyIdentity.on('init', u => { if(!u) window.location.href = "index.html"; else carregarPerfil(u); });
+            } else {
+                carregarPerfil(user);
             }
-
-            const meta = user.user_metadata;
-            document.getElementById('nomeUsuario').innerText = meta.full_name || "Membro da Família";
-            document.getElementById('cargoUsuario').innerText = meta.cargo || "Membro";
-            if (meta.avatar_url) document.getElementById('avatarImg').src = meta.avatar_url;
-            const cargoParaPermissao = meta.cargo ? meta.cargo.toLowerCase() : "membro";
-            if (cargoParaPermissao === "admin" || cargoParaPermissao === "financeiro" || cargoParaPermissao === "pastor" || cargoParaPermissao === "apóstolo" ||) {
-                const secaoAdmin = document.getElementById('adminFinanceiro');
-                if (secaoAdmin) secaoAdmin.classList.remove('hidden');
-            }
-            carregarHistoricoFake();
         });
 
-        async function carregarHistoricoReal() {
-            const user = netlifyIdentity.currentUser();
-            const container = document.getElementById('lista-oracoes');
+        function carregarPerfil(user) {
+            const meta = user.user_metadata;
+            const avatarPadrao = "https://www.w3schools.com/howto/img_avatar.png";
 
-            if (!user) return;
+            // Preenche os dados
+            document.getElementById('nomeUsuario').innerText = meta.full_name || "Membro da Família";
+            document.getElementById('cargoUsuario').innerText = meta.cargo || "Membro";
+            document.getElementById('avatarImg').src = meta.avatar_url || avatarPadrao;
 
-            try {
-                const res = await fetch(`/.netlify/functions/buscar_historico?userEmail=${user.email}`);
-                const oracoes = await res.json();
-
-                if (oracoes.length === 0) {
-                    container.innerHTML = '<p class="aviso-vazio">Ainda não enviaste pedidos de oração.</p>';
-                    return;
-                }
-
-                // Renderiza a lista dinamicamente
-                container.innerHTML = oracoes.map(o => `
-                    <div class="item-registro">
-                        <div style="flex-grow: 1;">
-                            <p style="margin: 0; font-weight: 500;">${o.texto}</p>
-                            <small style="color: #888;">${new Date(o.data).toLocaleDateString('pt-BR')}</small>
-                        </div>
-                        <span>🙏 Enviada</span>
-                    </div>
-                `).join('');
-
-            } catch (err) {
-                container.innerHTML = '<p style="color:red;">Erro ao carregar histórico.</p>';
+            // Lógica de Permissões (CORRIGIDA)
+            const cargo = (meta.cargo || "membro").toLowerCase();
+            const cargosAdmin = ["admin", "financeiro", "pastor", "apóstolo", "apostolo"];
+            
+            if (cargosAdmin.includes(cargo)) {
+                document.getElementById('adminFinanceiro').classList.remove('hidden');
             }
+            
+            carregarHistoricoReal(user.email);
         }
 
-        // Chame a função após o login ser confirmado
-        netlifyIdentity.on("init", user => { if (user) carregarHistoricoReal(); });
-        netlifyIdentity.on("login", user => { if (user) carregarHistoricoReal(); });
+        // Garante que o login funcione e limpe o erro
+        netlifyIdentity.on("login", user => window.location.reload());
     </script>
 </body>
-
 </html>

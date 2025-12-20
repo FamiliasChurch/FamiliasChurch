@@ -1,35 +1,37 @@
-<div class="container">
+<div class="container" style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
     <a href="index.html" class="logo">
         <img src="./assets/img/logo.jpg" alt="Famílias Church">
     </a>
 
-    <nav>
-        <ul class="nav-menu">
-            <li><a href="index.html#inicio" class="nav-link">Início</a></li>
-            <li><a href="index.html#sobre" class="nav-link">Quem Somos</a></li>
-            <li><a href="index.html#ministerios-tabs" class="nav-link">Ministérios</a></li>
-            <li><a href="index.html#cultos" class="nav-link">Cultos</a></li>
-            <li><a href="eventos.html" class="nav-link">Eventos</a></li>
-            <li><a href="devocionais.html" class="nav-link">Devocionais</a></li>
-            <li><a href="doacoes.html" class="nav-link">Contribuições</a></li>
-        </ul>
-    </nav>
-
-    <div class="user-menu-container">
-        <button class="profile-trigger" onclick="toggleMenu()">
-            <img id="userAvatarSmall" src="https://via.placeholder.com/40" alt="Foto de Perfil">
-        </button>
-
-        <div class="profile-card" id="profileCard">
-            <div class="card-header">
-                <span class="email-display" id="userEmail">carregando...</span>
-                <button class="close-btn" onclick="toggleMenu()">&times;</button>
+    <div class="user-controls" style="display: flex; align-items: center; gap: 20px;">
+        <div class="notification-wrapper">
+            <button class="noti-trigger" onclick="toggleNotifications()" style="background: none; border: none; cursor: pointer; font-size: 1.2rem;">
+                <i class="fa-solid fa-bell"></i>
+                <span id="noti-count" class="badge-count hidden">0</span>
+            </button>
+            <div id="noti-dropdown" class="noti-card hidden">
+                <div class="noti-header">Notificações</div>
+                <div id="noti-list" class="noti-body">
+                    <p class="noti-empty">Nenhuma novidade.</p>
+                </div>
             </div>
-            <div class="card-content">
+        </div>
+
+        <div class="user-menu-container">
+            <button class="profile-trigger" onclick="toggleMenu()" style="background: none; border: none; cursor: pointer;">
+                <img id="userAvatarSmall" src="https://www.w3schools.com/howto/img_avatar.png" 
+                     alt="Perfil" style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover; border: 2px solid var(--cor-primaria);">
+            </button>
+
+            <div class="profile-card" id="profileCard">
+                <div class="card-header">
+                    <span id="userEmail" class="email-display">carregando...</span>
+                    <button class="close-btn" onclick="toggleMenu()">&times;</button>
+                </div>
                 <div class="card-content">
                     <div class="profile-info">
                         <div class="avatar-large">
-                            <img id="userAvatarLarge" src="https://via.placeholder.com/80" alt="Foto Grande">
+                            <img id="userAvatarLarge" src="https://www.w3schools.com/howto/img_avatar.png" alt="Foto">
                         </div>
                         <h2 id="userName">Olá!</h2>
                     </div>
@@ -37,67 +39,11 @@
                         <div class="menu-item">📅 Idade: <strong id="userAge">--</strong> anos</div>
                         <div class="menu-item">🛡️ Cargo: <strong id="userRole">Membro</strong></div>
                     </div>
-
-                    <div id="admin-actions-container" style="margin-bottom: 10px;"></div>
-
-                    <button class="action-btn-secondary" onclick="window.location.href='perfil.html'">Gerenciar sua
-                        conta</button>
+                    <div id="admin-actions-container"></div>
+                    <button class="action-btn-secondary" onclick="window.location.href='perfil.html'">Gerenciar Conta</button>
                     <button class="action-btn logout-btn" onclick="netlifyIdentity.logout()">Sair</button>
                 </div>
             </div>
-        </div>
-        <div class="notification-wrapper">
-            <button class="noti-trigger" onclick="toggleNotifications()">
-                <i class="fa-solid fa-bell"></i>
-                <span id="noti-count" class="badge-count hidden">0</span>
-            </button>
-
-            <div id="noti-dropdown" class="noti-card hidden">
-                <div class="noti-header">Notificações</div>
-                <div id="noti-list" class="noti-body">
-                    <p class="noti-empty">Nenhuma novidade por enquanto.</p>
-                </div>
-            </div>
-        </div>
-
-        <button class="profile-trigger" onclick="toggleMenu()">
-            <img id="userAvatarSmall" src="https://via.placeholder.com/40" alt="Foto">
-        </button>
-    </div>
-
-    <button class="menu-toggle" id="mobileBtn" aria-label="Abrir Menu">
-        <span class="bar"></span>
-        <span class="bar"></span>
-        <span class="bar"></span>
-    </button>
-</div>
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css">
-<script src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
-
-<style>
-    /* Estilo do Modal de Recorte */
-    #modalCrop {
-        display: none;
-        position: fixed;
-        top: 0; left: 0; width: 100%; height: 100%;
-        background: rgba(0,0,0,0.9);
-        z-index: 10000;
-        align-items: center; justify-content: center; flex-direction: column;
-    }
-    .crop-container { width: 90%; max-width: 500px; background: #fff; padding: 20px; border-radius: 10px; }
-    #imageToCrop { max-width: 100%; display: block; }
-    .crop-buttons { display: flex; gap: 10px; margin-top: 15px; }
-</style>
-
-<div id="modalCrop">
-    <div class="crop-container">
-        <h3>Ajuste sua foto</h3>
-        <div>
-            <img id="imageToCrop">
-        </div>
-        <div class="crop-buttons">
-            <button class="action-btn" id="btnSalvarCrop">✅ Confirmar e Enviar</button>
-            <button class="action-btn-secondary" onclick="fecharModal()">Cancelar</button>
         </div>
     </div>
 </div>
