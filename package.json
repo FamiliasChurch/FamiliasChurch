@@ -1,0 +1,14 @@
+{
+  "name": "familias-church-portal",
+  "version": "1.0.0",
+  "description": "Portal da Famílias Church com automação em Python",
+  "main": "index.html",
+  "scripts": {
+    "bundle": "python3 bundle_content.py",
+    "prebuild": "npm run bundle",
+    "build": "echo 'Build concluído com sucesso!'",
+    "start": "npm run bundle && npx netlify dev"
+  },
+  "author": "Gabriel",
+  "license": "MIT"
+}
