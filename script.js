@@ -665,22 +665,45 @@ fotoInput.addEventListener('change', (e) => {
     }
 });
 
+<<<<<<< Updated upstream
 // 2. Lógica de Upload (Integrada com sua Chave API)
+=======
+>>>>>>> Stashed changes
 document.getElementById('btnSalvarCrop').addEventListener('click', () => {
     const canvas = cropper.getCroppedCanvas({ width: 400, height: 400 });
     const status = document.getElementById('statusUpload');
     const user = netlifyIdentity.currentUser();
 
+<<<<<<< Updated upstream
     fecharModal();
     status.innerText = "⏳ Enviando foto...";
 
     // Transforma o recorte em um arquivo (Blob) para envio
+=======
+    if (!user) {
+        alert("Erro: Utilizador não identificado. Verifique se fez login corretamente.");
+        return;
+    }
+
+    fecharModal();
+    status.innerText = "⏳ A processar imagem...";
+
+>>>>>>> Stashed changes
     canvas.toBlob(async (blob) => {
+        if (!blob) {
+            alert("Erro ao gerar o ficheiro da imagem.");
+            return;
+        }
+
         const formData = new FormData();
         formData.append('image', blob);
 
         try {
+<<<<<<< Updated upstream
             // Upload para o ImgBB com sua chave: aa5bd2aacedeb43b6521a4f45d71b442
+=======
+            status.innerText = "⏳ A enviar para o servidor ImgBB...";
+>>>>>>> Stashed changes
             const res = await fetch('https://api.imgbb.com/1/upload?key=aa5bd2aacedeb43b6521a4f45d71b442', {
                 method: 'POST',
                 body: formData
@@ -689,7 +712,9 @@ document.getElementById('btnSalvarCrop').addEventListener('click', () => {
 
             if (data.success) {
                 const novaUrlFoto = data.data.url;
+                status.innerText = "⏳ A guardar no seu perfil...";
 
+<<<<<<< Updated upstream
                 // Atualiza o Netlify Identity do usuário logado
                 user.update({ data: { avatar_url: novaUrlFoto } }).then((updatedUser) => {
                     // Atualiza as imagens na tela instantaneamente
@@ -699,10 +724,20 @@ document.getElementById('btnSalvarCrop').addEventListener('click', () => {
                     
                     status.innerText = "✅ Foto atualizada!";
                 });
+=======
+                // Atualiza os metadados no Netlify
+                await user.update({ data: { avatar_url: novaUrlFoto } });
+                
+                // Força a atualização visual imediata
+                document.getElementById('avatarImg').src = novaUrlFoto;
+                alert("✅ Sucesso! Foto atualizada.");
+                location.reload(); // Recarrega para garantir que o cabeçalho puxe a nova foto
+            } else {
+                alert("Erro no ImgBB: " + data.error.message);
+>>>>>>> Stashed changes
             }
         } catch (err) {
-            status.innerText = "❌ Erro ao subir foto.";
-            console.error(err);
+            alert("Erro na ligação com o servidor: " + err.message);
         }
     }, 'image/jpeg');
 });
