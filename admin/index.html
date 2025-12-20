@@ -5,6 +5,48 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Painel Administrativo | Famílias Church</title>
   <script src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
+  <script>
+        // Função de bloqueio imediato
+        function verificarAcessoAdmin() {
+            const user = netlifyIdentity.currentUser();
+
+            // 1. Se não houver usuário logado, expulsa imediatamente
+            if (!user) {
+                console.warn("Acesso negado: Usuário não autenticado.");
+                window.location.href = "../index.html";
+                return;
+            }
+
+            const meta = user.user_metadata;
+            const appMeta = user.app_metadata;
+
+            // Normaliza o cargo para evitar erros de acentuação ou maiúsculas
+            const cargo = (meta.cargo || "").toLowerCase();
+            const roles = appMeta.roles || [];
+
+            // 2. Critérios de Permissão (Apenas Financeiro ou Apóstolo)
+            const temAcesso =
+                cargo === "financeiro" ||
+                cargo === "apóstolo" ||
+                cargo === "apostolo" ||
+                roles.includes("financeiro");
+
+            if (!temAcesso) {
+                alert("⚠️ Acesso Restrito: Esta área é exclusiva para a administração.");
+                window.location.href = "../perfil.html"; // Manda para o perfil comum
+            }
+        }
+
+        // Executa assim que o widget terminar de carregar as configurações
+        netlifyIdentity.on('init', user => {
+            verificarAcessoAdmin();
+        });
+
+        // Caso o status de login mude enquanto a página está aberta
+        netlifyIdentity.on('logout', () => {
+            window.location.href = "../index.html";
+        });
+    </script>
 </head>
 <body>
   <script src="https://unpkg.com/decap-cms@^3.0.0/dist/decap-cms.js"></script>

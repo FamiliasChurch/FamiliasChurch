@@ -6,6 +6,48 @@
     <link rel="stylesheet" href="../style.css">
     <link href="https://fonts.googleapis.com/css2?family=Raleway:wght@400;700&display=swap" rel="stylesheet">
     <script src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
+    <script>
+        // Função de bloqueio imediato
+        function verificarAcessoAdmin() {
+            const user = netlifyIdentity.currentUser();
+
+            // 1. Se não houver usuário logado, expulsa imediatamente
+            if (!user) {
+                console.warn("Acesso negado: Usuário não autenticado.");
+                window.location.href = "../index.html";
+                return;
+            }
+
+            const meta = user.user_metadata;
+            const appMeta = user.app_metadata;
+
+            // Normaliza o cargo para evitar erros de acentuação ou maiúsculas
+            const cargo = (meta.cargo || "").toLowerCase();
+            const roles = appMeta.roles || [];
+
+            // 2. Critérios de Permissão (Apenas Financeiro ou Apóstolo)
+            const temAcesso =
+                cargo === "financeiro" ||
+                cargo === "apóstolo" ||
+                cargo === "apostolo" ||
+                roles.includes("financeiro");
+
+            if (!temAcesso) {
+                alert("⚠️ Acesso Restrito: Esta área é exclusiva para a administração.");
+                window.location.href = "../perfil.html"; // Manda para o perfil comum
+            }
+        }
+
+        // Executa assim que o widget terminar de carregar as configurações
+        netlifyIdentity.on('init', user => {
+            verificarAcessoAdmin();
+        });
+
+        // Caso o status de login mude enquanto a página está aberta
+        netlifyIdentity.on('logout', () => {
+            window.location.href = "../index.html";
+        });
+    </script>
 </head>
 <body style="background: #f4f6f5;">
     <header id="header"></header>
@@ -25,83 +67,98 @@
 
     <script src="../script.js"></script>
     <script>
-        // Aguarda o widget do Netlify Identity inicializar
-        netlifyIdentity.on("init", user => {
-            validarAcesso(user);
-        });
+    // 1. Inicialização e Proteção de Rota
+    netlifyIdentity.on("init", user => validarAcesso(user));
+    netlifyIdentity.on("login", user => validarAcesso(user));
 
-        // Verifica novamente se houver um novo login
-        netlifyIdentity.on("login", user => {
-            validarAcesso(user);
-        });
+    function validarAcesso(user) {
+        // Verifica se há sessão ativa
+        if (!user) {
+            alert("Sessão expirada. Faça login novamente.");
+            window.location.href = "../index.html";
+            return;
+        }
 
-        function validarAcesso(user) {
-            // 1. Verifica se existe um usuário logado
-            if (!user) {
-                alert("Acesso restrito. Por favor, faça login.");
-                window.location.href = "../index.html";
+        // 2. Verificação Silenciosa (Role interna 'mod')
+        // app_metadata não é editável pelo usuário e não aparece no Perfil
+        const permissoes = user.app_metadata?.roles || [];
+        const eModerador = permissoes.includes("mod");
+
+        if (!eModerador) {
+            console.warn("Tentativa de acesso sem a role 'mod'.");
+            alert("Acesso negado. Área restrita à equipe de moderação.");
+            window.location.href = "../index.html";
+        } else {
+            // Se tiver a permissão interna 'mod', carrega a lista
+            carregarPendentes();
+        }
+    }
+
+    // 3. Carregamento de Testemunhos Pendentes
+    async function carregarPendentes() {
+        const container = document.getElementById('lista-moderacao');
+        if (!container) return;
+
+        try {
+            const res = await fetch(`/.netlify/functions/listar_todos_testemunhos`);
+            const lista = await res.json();
+
+            // Filtra apenas o que aguarda aprovação
+            const pendentes = lista.filter(t => t.status === "Pendente");
+
+            if (pendentes.length === 0) {
+                container.innerHTML = `
+                    <div class="aviso-vazio" style="text-align:center; padding: 40px;">
+                        <i class="fa-solid fa-check-double" style="font-size: 2rem; color: #2d5a27;"></i>
+                        <p style="margin-top:15px;">Tudo limpo! Não há testemunhos para moderar.</p>
+                    </div>`;
                 return;
             }
 
-            // 2. Verifica se o usuário possui especificamente a role 'moderador'
-            const roles = user.app_metadata?.roles || [];
-            const eModerador = roles.includes("moderador");
-
-            if (!eModerador) {
-                alert("Acesso negado. Apenas o Moderador tem permissão para esta página.");
-                // Redireciona para a página principal ou perfil
-                window.location.href = "../index.html"; 
-            } else {
-                // Se for moderador, inicia o carregamento das funções de moderação
-                carregarPendentes();
-            }
-        }
-
-        async function carregarPendentes() {
-            const container = document.getElementById('lista-moderacao');
-            try {
-                const res = await fetch(`/.netlify/functions/listar_todos_testemunhos`);
-                const lista = await res.json();
-
-                const pendentes = lista.filter(t => t.status === "Pendente");
-
-                if (pendentes.length === 0) {
-                    container.innerHTML = '<p class="aviso-vazio">Não há testemunhos pendentes de aprovação.</p>';
-                    return;
-                }
-
-                container.innerHTML = pendentes.map(t => `
-                    <div class="card-testemunho" style="border-bottom: 4px solid orange;">
-                        <p class="texto-testemunho">${t.texto}</p>
-                        <div class="autor-testemunho">
-                            <strong>— ${t.autor}</strong>
-                        </div>
-                        <div style="margin-top:20px; display:flex; gap:10px;">
-                            <button class="btn-hero" style="background: green; font-size: 0.7rem;" onclick="moderar('${t.id}', 'Aprovado')">✅ Aprovar</button>
-                            <button class="btn-hero" style="background: #ea4335; font-size: 0.7rem;" onclick="moderar('${t.id}', 'Recusado')">❌ Recusar</button>
-                        </div>
+            container.innerHTML = pendentes.map(t => `
+                <div class="card-testemunho" style="border-left: 5px solid #d4a373; margin-bottom: 20px;">
+                    <p class="texto-testemunho">${t.texto}</p>
+                    <div class="autor-testemunho">
+                        <strong>— ${t.autor}</strong>
                     </div>
-                `).join('');
-            } catch (err) {
-                container.innerHTML = '<p style="color:red;">Erro ao carregar moderação.</p>';
-            }
-        }
+                    <div style="margin-top:20px; display:flex; gap:10px;">
+                        <button class="btn-hero" 
+                                style="background: #2d5a27; font-size: 0.75rem; padding: 8px 20px;" 
+                                onclick="moderar('${t.id}', 'Aprovado')">✅ Aprovar</button>
+                        <button class="btn-hero" 
+                                style="background: #ea4335; font-size: 0.75rem; padding: 8px 20px;" 
+                                onclick="moderar('${t.id}', 'Recusado')">❌ Recusar</button>
+                    </div>
+                </div>
+            `).join('');
 
-        async function moderar(fileId, novoStatus) {
-            const acao = novoStatus === 'Aprovado' ? "aprovar" : "recusar";
-            if(!confirm(`Deseja realmente ${acao} este testemunho?`)) return;
-            
-            try {
-                const res = await fetch(`/.netlify/functions/moderar_testemunho`, {
-                    method: 'POST',
-                    body: JSON.stringify({ fileId, novoStatus })
-                });
-                if(res.ok) {
-                    alert(`Testemunho ${novoStatus} com sucesso!`);
-                    carregarPendentes();
-                }
-            } catch (err) { alert("Erro na operação."); }
+        } catch (err) {
+            container.innerHTML = '<p style="color:red; text-align:center;">Erro na conexão com o servidor de moderação.</p>';
         }
-    </script>
+    }
+
+    // 4. Execução da Ação de Moderação
+    async function moderar(fileId, novoStatus) {
+        const acao = novoStatus === 'Aprovado' ? "APROVAR" : "RECUSAR";
+        if(!confirm(`Confirma que deseja ${acao} este registro?`)) return;
+        
+        try {
+            const res = await fetch(`/.netlify/functions/moderar_testemunho`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ fileId, novoStatus })
+            });
+
+            if(res.ok) {
+                alert(`Sucesso! Testemunho ${novoStatus.toLowerCase()}.`);
+                carregarPendentes(); // Atualiza a lista automaticamente
+            } else {
+                throw new Error();
+            }
+        } catch (err) { 
+            alert("Erro ao processar moderação. Verifique sua conexão."); 
+        }
+    }
+</script>
 </body>
 </html>
