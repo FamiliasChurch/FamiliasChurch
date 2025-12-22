@@ -1,33 +1,33 @@
 import os
 import json
-import sys # Importe o módulo sys
 
-def bundle_json_files(folder_path, output_name):
-    bundled_data = []
-    try:
-        if not os.path.exists(folder_path):
-            raise FileNotFoundError(f"Pasta não encontrada: {folder_path}")
+# Caminho das pastas conforme sua estrutura no VS Code
+CONTENT_DIR = "content/membros"
+OUTPUT_FILE = "content/membros_all.json"
 
-        files = [f for f in os.listdir(folder_path) if f.endswith('.json') and f != 'index.json']
-        
-        for file_name in files:
-            file_path = os.path.join(folder_path, file_name)
-            with open(file_path, 'r', encoding='utf-8') as f:
-                content = json.load(f)
-                content['id'] = file_name
-                bundled_data.append(content)
+def bundle_membros():
+    todos_membros = []
+    
+    for filename in os.listdir(CONTENT_DIR):
+        if filename.endswith(".json"):
+            with open(os.path.join(CONTENT_DIR, filename), 'r', encoding='utf-8') as f:
+                dados = json.load(f)
+                
+                # Garante que o novo campo WhatsApp e Nascimento sejam incluídos
+                membro_validado = {
+                    "id": dados.get("id"),
+                    "nome": dados.get("full_name"),
+                    "cargo": dados.get("cargo", "Membro"),
+                    "whatsapp": dados.get("whatsapp", "Não informado"), # NOVO CAMPO
+                    "nascimento": dados.get("nascimento"),
+                    "avatar_url": dados.get("avatar_url", "https://www.w3schools.com/howto/img_avatar.png")
+                }
+                todos_membros.append(membro_validado)
 
-        output_path = f"content/{output_name}.json"
-        with open(output_path, 'w', encoding='utf-8') as f:
-            json.dump(bundled_data, f, ensure_ascii=False, indent=2)
-        
-        print(f"✅ {output_name} gerado.")
-
-    except Exception as e:
-        print(f"❌ ERRO CRÍTICO: {e}")
-        sys.exit(1) # Força o Netlify a interromper o build e te avisar
+    with open(OUTPUT_FILE, 'w', encoding='utf-8') as f:
+        json.dump(todos_membros, f, indent=2, ensure_ascii=False)
+    
+    print(f"✅ {len(todos_membros)} membros consolidados com sucesso!")
 
 if __name__ == "__main__":
-    bundle_json_files('content/eventos', 'eventos_all')
-    bundle_json_files('content/publicacoes/devocionais', 'devocionais_all')
-    bundle_json_files('content/publicacoes/estudos', 'estudos_all')
+    bundle_membros()

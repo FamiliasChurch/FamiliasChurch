@@ -1,5 +1,5 @@
 /* ==========================================================
-   1. CONFIGURAÇÕES E ESTADO GLOBAL
+    1. CONFIGURAÇÕES E INICIALIZAÇÃO
 ========================================================== */
 const prefixo = window.location.pathname.includes('/admin/') ? '../' : './';
 const CONFIG = {
@@ -8,77 +8,81 @@ const CONFIG = {
     avatarFallback: "https://www.w3schools.com/howto/img_avatar.png"
 };
 
-let cacheConteudo = [];
-let cropper; // Para edição de imagem
+// Funções de inicialização obrigatórias (Evita o erro de 'not defined')
+function initMenuMobile() {
+    console.log("Menu mobile inicializado");
+}
 
-/* ==========================================================
-   2. ORQUESTRADOR DE INICIALIZAÇÃO (O CÉREBRO)
-========================================================== */
+let cacheConteudo = [];
+let cropper;
+
 document.addEventListener('DOMContentLoaded', () => {
-    // A. Carregamento Estrutural (Sem travar a UI)
-    carregarComponentes(); 
+    carregarComponentes();
     initMenuMobile();
 
-    // B. Inicialização do Netlify Identity
+    // Inicialização do Netlify Identity
     if (window.netlifyIdentity) {
-        netlifyIdentity.init({
-            API_URL: 'https://familiaschurch.netlify.app/.netlify/identity'
-        });
+        netlifyIdentity.init({ API_URL: 'https://familiaschurch.netlify.app/.netlify/identity' });
 
-        // Eventos do Identity centralizados
         netlifyIdentity.on("init", user => { if (user) atualizarInterfaceUsuario(user); });
+
         netlifyIdentity.on("login", user => {
+            const meta = user.user_metadata;
             atualizarInterfaceUsuario(user);
             netlifyIdentity.close();
-            // Pequeno delay para garantir persistência antes de ações automáticas
-            setTimeout(() => { 
-                if (window.location.pathname.includes('perfil')) carregarHistoricoReal(user.email);
-            }, 500);
+
+            // Lógica de Redirecionamento e Savepoint
+            if (!meta.nascimento || !meta.whatsapp) {
+                window.location.href = prefixo + 'completar-perfil.html';
+            } else {
+                const cargo = (meta.cargo || "").toLowerCase();
+                const roles = user.app_metadata?.roles || [];
+                if (["financeiro", "apóstolo", "apostolo"].includes(cargo) || roles.includes("mod")) {
+                    window.location.href = prefixo + 'admin/index.html';
+                } else {
+                    window.location.href = prefixo + 'perfil.html';
+                }
+            }
         });
+
         netlifyIdentity.on("logout", () => {
             localStorage.clear();
             window.location.href = prefixo + 'index.html';
         });
     }
 
-    // C. Roteamento de Funções por Elemento Presente na Página
+    // Rotas de Inicialização baseadas em IDs presentes na página
     const rotas = {
-        'lista-proximos': carregarEventos,
-        'evento-principal': carregarDestaquesHome,
+        'lista-proximos': typeof carregarEventos === 'function' ? carregarEventos : null,
+        'evento-principal': typeof carregarDestaquesHome === 'function' ? carregarDestaquesHome : null,
         'mural-testemunhos': carregarMuralTestemunhos,
-        'lista-publicacoes': carregarFeed,
-        'ministerios-tabs': initTabsMinisterios,
-        'formOracaoPerfil': initFormOracaoInterno, // Form dentro do perfil
-        'formOracao': initFormOracaoPublico,     // Form na home
-        'secaoFinanceira': carregarEstatisticasFinanceiras,
+        'lista-publicacoes': typeof carregarFeed === 'function' ? carregarFeed : null,
+        'ministerios-tabs': typeof initTabsMinisterios === 'function' ? initTabsMinisterios : null,
+        'formCompletarPerfil': initCompletarPerfil,
         'fotoInput': initUploadAvatar
     };
 
     Object.keys(rotas).forEach(id => {
-        if (document.getElementById(id)) setTimeout(rotas[id], 0);
+        if (document.getElementById(id) && rotas[id]) setTimeout(rotas[id], 0);
     });
 });
 
 /* ==========================================================
-   3. INTERFACE E UX (SKELETONS, MENUS, PERFIL)
+    2. INTERFACE E PERMISSÕES
 ========================================================== */
-
 function atualizarInterfaceUsuario(user) {
     if (!user) return;
     const meta = user.user_metadata;
+    const roles = user.app_metadata?.roles || [];
     const fotoFinal = meta.avatar_url || CONFIG.avatarFallback;
 
-    // A. Sincroniza Fotos e Remove Skeletons
+    // Sincroniza Avatares
     ['userAvatarSmall', 'userAvatarLarge', 'avatarImg'].forEach(id => {
         const el = document.getElementById(id);
-        if (el) {
-            el.src = fotoFinal;
-            el.classList.remove('skeleton');
-            el.style.opacity = "1";
-        }
+        if (el) { el.src = fotoFinal; el.classList.remove('skeleton'); }
     });
 
-    // B. Sincroniza Textos (Header e Perfil)
+    // Sincroniza Textos do Perfil
     const campos = {
         'userName': `Olá, ${meta.full_name || 'Membro'}!`,
         'userRole': meta.cargo || "Membro",
@@ -90,53 +94,49 @@ function atualizarInterfaceUsuario(user) {
 
     Object.keys(campos).forEach(id => {
         const el = document.getElementById(id);
-        if (el) {
-            el.innerText = campos[id];
-            el.classList.remove('skeleton');
-        }
+        if (el) { el.innerText = campos[id]; el.classList.remove('skeleton'); }
     });
 
-    // C. Permissões de Admin (Pastor, Mídia, etc)
-    const cargo = (meta.cargo || "membro").toLowerCase();
+    // Botões de Administração dinâmicos
     const containerAcoes = document.getElementById('admin-actions-container');
-    const btnAdminFinanceiro = document.getElementById('adminFinanceiro');
-    const roles = user.app_metadata?.roles || [];
-
     if (containerAcoes) {
-        if (["pastor", "apóstolo", "apostolo"].includes(cargo)) {
-            containerAcoes.innerHTML = `<button class="action-btn" onclick="window.location.href='publicar.html'">📢 Painel de Publicação</button>`;
-        } else if (["mídia", "midia"].includes(cargo)) {
-            containerAcoes.innerHTML = `<button class="action-btn" onclick="window.location.href='publicar.html?tab=eventos'">📅 Publicar Eventos</button>`;
+        containerAcoes.innerHTML = '';
+        if (roles.includes("mod") || ["apóstolo", "apostolo", "financeiro"].includes(meta.cargo?.toLowerCase())) {
+            containerAcoes.innerHTML += `<button class="action-btn-secondary" onclick="window.location.href='${prefixo}admin/index.html'">🛡️ Dashboard Admin</button>`;
         }
     }
-    if (containerAcoes) {
-    // 2. Se for Moderador (role 'mod'), adiciona o botão com o escudo
-        if (roles.includes("mod")) {
-            // Criar um divisor visual se já houver botões de Pastor/Mídia
-            if (containerAcoes.innerHTML !== '') {
-                containerAcoes.innerHTML += '<hr style="margin: 10px 0; border: 0; border-top: 1px solid #eee;">';
-            }
-            
-            containerAcoes.innerHTML += `
-                <button class="action-btn-secondary" 
-                        onclick="window.location.href='${prefixo}admin/moderacao.html'" 
-                        style="width: 100%; border-color: #d4a373; color: #163a30; font-weight: bold; margin-top: 5px;">
-                    🛡️ Painel de Moderação
-                </button>
-            `;
-        }
-    }
-
-
-
-    if (btnAdminFinanceiro && ["admin", "financeiro", "pastor"].includes(cargo)) {
-        btnAdminFinanceiro.classList.remove('hidden');
-    }
-
-    // Inicia checagem de notificações
-    checarNotificacoes();
 }
 
+function initCompletarPerfil() {
+    const form = document.getElementById('formCompletarPerfil');
+    if (!form) return;
+    form.onsubmit = async (e) => {
+        e.preventDefault();
+        const user = netlifyIdentity.currentUser();
+        const btn = form.querySelector('button');
+        btn.innerText = "Salvando...";
+
+        const novosDados = {
+            full_name: document.getElementById('regNome').value,
+            nascimento: document.getElementById('regNascimento').value,
+            whatsapp: document.getElementById('regWhatsapp').value,
+            cargo: "Membro"
+        };
+
+        try {
+            await user.update({ data: novosDados });
+            alert("Perfil atualizado com sucesso!");
+            window.location.href = "perfil.html";
+        } catch (err) {
+            alert("Erro ao salvar dados.");
+            btn.innerText = "Tentar novamente";
+        }
+    };
+}
+
+/* ==========================================================
+    3. INTERFACE E UX (MENUS E DROPDOWNS)
+========================================================== */
 function toggleMenu() {
     const card = document.getElementById('profileCard');
     const noti = document.getElementById('noti-dropdown');
@@ -159,12 +159,11 @@ window.onclick = (e) => {
 };
 
 /* ==========================================================
-   4. GESTÃO DE DADOS (API & CACHE)
+    4. GESTÃO DE DADOS (API & CACHE)
 ========================================================== */
-
 async function fetchConteudo(subpasta) {
     const cacheKey = `church_cache_${subpasta.replace('/', '_')}`;
-    const expiraEm = 10 * 60 * 1000;
+    const expiraEm = 10 * 60 * 1000; // 10 minutos
     const cacheSalvo = localStorage.getItem(cacheKey);
 
     if (cacheSalvo) {
@@ -172,8 +171,7 @@ async function fetchConteudo(subpasta) {
         if (Date.now() - timestamp < expiraEm) return data;
     }
 
-    const nomeBase = subpasta.includes('/') ? subpasta.split('/').pop() : subpasta;
-    const url = `${CONFIG.basePath}/${nomeBase}_all.json`;
+    const url = `${CONFIG.basePath}/${subpasta.includes('/') ? subpasta.split('/').pop() : subpasta}_all.json`;
 
     try {
         const res = await fetch(url);
@@ -187,12 +185,9 @@ async function fetchConteudo(subpasta) {
     }
 }
 
-// ... (carregarEventos, carregarFeed, carregarMuralTestemunhos seguem a mesma lógica anterior) ...
-
 /* ==========================================================
-   5. COMPONENTES E UTILITÁRIOS
+    5. COMPONENTES E UTILITÁRIOS
 ========================================================== */
-
 async function carregarComponentes() {
     const itens = [{ id: 'header', file: 'header' }, { id: 'footer', file: 'footer' }];
     await Promise.all(itens.map(async item => {
@@ -217,47 +212,189 @@ function calcularIdade(dataNascimento) {
 }
 
 /* ==========================================================
-   6. FUNCIONALIDADES DE PERFIL (UPLOAD & ORAÇÃO)
+    6. FIREBASE (TESTEMUNHOS, DÍZIMOS E ORAÇÕES)
 ========================================================== */
 
+const firebaseConfig = {
+    apiKey: "AIzaSyBvFM13K0XadCnAHdHE0C5GtA2TH5DaqLg",
+    authDomain: "familias-church.firebaseapp.com",
+    projectId: "familias-church",
+    storageBucket: "familias-church.firebasestorage.app",
+    messagingSenderId: "764183777206",
+    appId: "1:764183777206:web:758e4f04ee24b86229bb17",
+    measurementId: "G-VHWLCPM3FR"
+};
+
+// Inicialização compatível com a arquitetura híbrida
+if (!firebase.apps.length) {
+    firebase.initializeApp(firebaseConfig);
+}
+const db = firebase.firestore();
+
+// MURAL DE TESTEMUNHOS (Firestore Real-time)
+async function carregarMuralTestemunhos() {
+    const container = document.getElementById('mural-testemunhos');
+    if (!container) return;
+
+    try {
+        const snapshot = await db.collection("testemunhos")
+            .where("status", "==", "Aprovado")
+            .orderBy("data", "desc")
+            .limit(6)
+            .get();
+
+        container.innerHTML = snapshot.docs.map(doc => {
+            const t = doc.data();
+            return `
+                <div class="card-testemunho">
+                    <p class="texto-testemunho">${t.texto}</p>
+                    <div class="autor-testemunho"><strong>— ${t.autor}</strong></div>
+                </div>`;
+        }).join('');
+    } catch (err) {
+        console.error("Erro ao carregar mural:", err);
+    }
+}
+
+// TROCA DE OFERTA/DÍZIMO (Interface Doações)
+function mostrarOpcao(tipo) {
+    const boxOferta = document.getElementById('box-oferta');
+    const boxDizimo = document.getElementById('box-dizimo');
+    const btns = document.querySelectorAll('.btn-toggle');
+
+    btns.forEach(btn => btn.classList.remove('active'));
+
+    if (tipo === 'oferta') {
+        boxOferta.classList.remove('hidden');
+        boxDizimo.classList.add('hidden');
+        document.querySelector('button[onclick*="oferta"]').classList.add('active');
+    } else {
+        boxOferta.classList.add('hidden');
+        boxDizimo.classList.remove('hidden');
+        document.querySelector('button[onclick*="dizimo"]').classList.add('active');
+    }
+}
+
+// REGISTRO DE DÍZIMOS (Firestore + ImgBB)
+async function registrarDizimo(e) {
+    e.preventDefault();
+    const status = document.getElementById('statusDizimo');
+    const file = document.getElementById('comprovanteFile').files[0];
+    const valor = document.getElementById('valorDizimo').value;
+    const user = netlifyIdentity.currentUser();
+
+    if (!user) { alert("Faça login para registrar."); return; }
+
+    status.innerText = "⏳ Enviando comprovante...";
+
+    try {
+        const formData = new FormData();
+        formData.append('image', file);
+        const resImg = await fetch('https://api.imgbb.com/1/upload?key=aa5bd2aacedeb43b6521a4f45d71b442', {
+            method: 'POST', body: formData
+        });
+        const dataImg = await resImg.json();
+
+        await db.collection("contribuicoes").add({
+            email: user.email,
+            nome: user.user_metadata.full_name || "Membro",
+            valor: parseFloat(valor),
+            comprovante: dataImg.data.url,
+            data: firebase.firestore.FieldValue.serverTimestamp(),
+            status: "Pendente"
+        });
+
+        alert("✅ Dízimo registrado com sucesso!");
+        location.reload();
+    } catch (err) { status.innerText = "❌ Erro no registro."; }
+    const telFinanceiro = "55419XXXXXXXX"; // Coloque o número real aqui
+    const msg = `Olá! Acabei de enviar o dízimo no valor de R$ ${valor}. O comprovante já está no sistema para aprovação.`;
+    const urlWa = `https://wa.me/${telFinanceiro}?text=${encodeURIComponent(msg)}`;
+
+    alert("✅ Dízimo registrado! Clique em OK para enviar o aviso no WhatsApp do Financeiro.");
+    window.open(urlWa, '_blank');
+    location.reload();
+}
+
+document.getElementById('formDizimoReal')?.addEventListener('submit', registrarDizimo);
+
+// ENVIAR ORAÇÃO E LOGS
+async function enviarOracao(e) {
+    e.preventDefault();
+    const user = netlifyIdentity.currentUser();
+    const texto = document.getElementById('textoOracao').value;
+
+    await db.collection("oracoes").add({
+        email: user.email,
+        texto: texto,
+        data: firebase.firestore.FieldValue.serverTimestamp(),
+        status: "Pendente"
+    });
+    alert("Pedido de oração enviado!");
+}
+
+async function registrarAcessoFirebase(user) {
+    if (sessionStorage.getItem('acesso_firebase_ok')) return;
+    try {
+        await db.collection("logs").add({
+            nome: user.user_metadata.full_name || "Admin",
+            email: user.email,
+            cargo: user.user_metadata.cargo || "Moderador",
+            data: firebase.firestore.FieldValue.serverTimestamp(),
+            ip: "Acesso Web"
+        });
+        sessionStorage.setItem('acesso_firebase_ok', 'true');
+    } catch (err) { console.error("Erro log:", err); }
+}
+
+/* ==========================================================
+    7. FUNCIONALIDADES DE PERFIL (UPLOAD)
+========================================================== */
 function initUploadAvatar() {
     const input = document.getElementById('fotoInput');
+    if (!input) return;
+
     input.addEventListener('change', (e) => {
         const file = e.target.files[0];
         if (!file) return;
         const reader = new FileReader();
         reader.onload = (event) => {
             const img = document.getElementById('imageToCrop');
-            img.src = event.target.result;
-            document.getElementById('modalCrop').style.display = 'flex';
-            if (cropper) cropper.destroy();
-            cropper = new Cropper(img, { aspectRatio: 1, viewMode: 1 });
+            if (img) {
+                img.src = event.target.result;
+                document.getElementById('modalCrop').style.display = 'flex';
+                if (cropper) cropper.destroy();
+                cropper = new Cropper(img, { aspectRatio: 1, viewMode: 1 });
+            }
         };
         reader.readAsDataURL(file);
     });
 
-    document.getElementById('btnSalvarCrop').onclick = () => {
-        const canvas = cropper.getCroppedCanvas({ width: 400, height: 400 });
-        const user = netlifyIdentity.currentUser();
-        const status = document.getElementById('statusUpload');
-        
-        document.getElementById('modalCrop').style.display = 'none';
-        status.innerText = "⏳ Enviando...";
+    const btnSalvar = document.getElementById('btnSalvarCrop');
+    if (btnSalvar) {
+        btnSalvar.onclick = () => {
+            const canvas = cropper.getCroppedCanvas({ width: 400, height: 400 });
+            const user = netlifyIdentity.currentUser();
+            const status = document.getElementById('statusUpload');
 
-        canvas.toBlob(async (blob) => {
-            const formData = new FormData();
-            formData.append('image', blob);
-            try {
-                const res = await fetch('https://api.imgbb.com/1/upload?key=aa5bd2aacedeb43b6521a4f45d71b442', {
-                    method: 'POST', body: formData
-                });
-                const data = await res.json();
-                if (data.success) {
-                    await user.update({ data: { avatar_url: data.data.url } });
-                    status.innerText = "✅ Atualizado!";
-                    location.reload();
-                }
-            } catch (err) { status.innerText = "❌ Erro no upload"; }
-        }, 'image/jpeg');
-    };
+            document.getElementById('modalCrop').style.display = 'none';
+            if (status) status.innerText = "⏳ Enviando...";
+
+            canvas.toBlob(async (blob) => {
+                const formData = new FormData();
+                formData.append('image', blob);
+                try {
+                    const res = await fetch('https://api.imgbb.com/1/upload?key=aa5bd2aacedeb43b6521a4f45d71b442', {
+                        method: 'POST', body: formData
+                    });
+                    const data = await res.json();
+                    if (data.success) {
+                        await user.update({ data: { avatar_url: data.data.url } });
+                        if (status) status.innerText = "✅ Atualizado!";
+                        location.reload();
+                    }
+                } catch (err) { if (status) status.innerText = "❌ Erro"; }
+            }, 'image/jpeg');
+        };
+    }
 }

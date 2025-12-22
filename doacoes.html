@@ -1,14 +1,18 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Doações | Famílias Church</title>
     <link rel="stylesheet" href="style.css">
-    <link href="https://fonts.googleapis.com/css2?family=Raleway:wght@400;500;700&family=Smooch+Sans:wght@100..900&display=swap" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Raleway:wght@400;500;700&family=Smooch+Sans:wght@100..900&display=swap"
+        rel="stylesheet">
     <link rel="shortcut icon" href="./assets/img/logo.jpg" type="image/x-icon">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
+
 <body>
 
     <header id="header"></header>
@@ -31,7 +35,8 @@
                     <div class="info-delivery">
                         <strong>📍 Onde entregar:</strong>
                         <p>Rua Cassuarina, 219 - Eucaliptos<br>Fazenda Rio Grande - PR</p>
-                        <p style="margin-top:10px;"><span>🕒 Horários:</span> Antes dos cultos (Quintas às 20h e Domingos às 19h)</p>
+                        <p style="margin-top:10px;"><span>🕒 Horários:</span> Antes dos cultos (Quintas às 20h e
+                            Domingos às 19h)</p>
                     </div>
                 </div>
 
@@ -59,15 +64,32 @@
                         <div class="area-chave-pix destaque">
                             <span class="label-pix">1º Faça o Pix (CNPJ):</span>
                             <strong class="chave-texto" id="pixDizimo">00.000.000/0001-00</strong>
-                            <button class="btn-copy" type="button" onclick="copiarPix('pixDizimo')">Copiar Chave</button>
+                            <button class="btn-copy" type="button" onclick="copiarPix('pixDizimo')">Copiar
+                                Chave</button>
                         </div>
 
                         <div class="form-wrapper">
-                            <span class="label-pix" style="display:block; margin-bottom:15px; color:#555; text-align: center;">2º Envie o Comprovante:</span>
-                            
+                            <span class="label-pix"
+                                style="display:block; margin-bottom:15px; color:#555; text-align: center;">2º Envie o
+                                Comprovante:</span>
+
                             <form id="formDizimoReal" class="form-custom">
+                                <div class="input-group">
+                                    <label>Valor da Contribuição</label>
+                                    <input type="number" id="valorDizimo" step="0.01" placeholder="R$ 0,00" required>
+                                </div>
+                                <div class="input-group">
+                                    <label>Anexar Comprovante (Imagem)</label>
+                                    <input type="file" id="comprovanteFile" accept="image/*" class="input-file"
+                                        required>
+                                </div>
+                                <p id="statusDizimo"
+                                    style="font-size: 0.8rem; text-align: center; margin-bottom: 10px;"></p>
+                                <button type="submit" class="btn-enviar-dizimo">Registrar Dízimo</button>
+                            </form>
                         </div>
                     </div>
+
                 </div>
             </div>
         </section>
@@ -75,6 +97,9 @@
 
     <footer id="footer" class="footer-moderno"></footer>
 
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-analytics-compat.js"></script>
     <script src="script.js"></script>
 </body>
 

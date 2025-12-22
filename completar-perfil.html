@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>Concluir Cadastro | Famílias Church</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
+</head>
+<body class="bg-alt">
+    <main class="container" style="margin-top: 100px;">
+        <div class="form-container">
+            <h2 class="titulo-secao">Seja bem-vindo!</h2>
+            <p>Para continuar, precisamos de algumas informações adicionais.</p>
+            
+            <form id="formCompletarPerfil" style="margin-top: 20px;">
+                <div class="input-group">
+                    <label>Seu Nome Completo</label>
+                    <input type="text" id="regNome" required placeholder="Ex: Gabriel Alves">
+                </div>
+                <div class="input-group">
+                    <label>Data de Nascimento</label>
+                    <input type="date" id="regNascimento" required>
+                </div>
+                <div class="input-group">
+                    <label>WhatsApp</label>
+                    <input type="tel" id="regWhatsapp" required placeholder="(41) 99999-9999">
+                </div>
+                <button type="submit" class="btn-enviar">Salvar e Acessar Perfil</button>
+            </form>
+        </div>
+    </main>
+    <script src="script.js"></script>
+</body>
+</html>

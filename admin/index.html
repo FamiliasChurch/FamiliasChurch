@@ -1,68 +1,147 @@
 <!DOCTYPE html>
-<html>
+<html lang="pt-BR">
+
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Painel Administrativo | Famílias Church</title>
-  <script src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
-  <script>
-        // Função de bloqueio imediato
+    <meta charset="UTF-8">
+    <title>Painel Administrativo | Famílias Church</title>
+    <link rel="shortcut icon" href="../assets/img/logo.jpg" type="image/x-icon">
+    <link rel="stylesheet" href="../style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Raleway:wght@400;700&family=Smooch+Sans:wght@700&display=swap"
+        rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Raleway:wght@400;500;700&family=Smooch+Sans:wght@100..900&display=swap"
+        rel="stylesheet">
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
+
+    <script>
+        /* ==========================================================
+            1. SEGURANÇA E ACESSO
+        ========================================================== */
+        // CORREÇÃO DA LÓGICA DE ACESSO
         function verificarAcessoAdmin() {
             const user = netlifyIdentity.currentUser();
-            if (temAcesso) {
-                // Registra o acesso apenas se ainda não foi registrado nesta sessão
-                if (!sessionStorage.getItem('acesso_registrado')) {
-                    fetch('/.netlify/functions/registrar_acesso', {
-                        method: 'POST',
-                        body: JSON.stringify({
-                            adminNome: meta.full_name || "Admin",
-                            adminEmail: user.email,
-                            cargo: meta.cargo || "Admin"
-                        })
-                    }).then(() => {
-                        sessionStorage.setItem('acesso_registrado', 'true');
-                    });
-                }
-            }
-            // 1. Se não houver usuário logado, expulsa imediatamente
-            if (!user) {
-                console.warn("Acesso negado: Usuário não autenticado.");
-                window.location.href = "../index.html";
-                return;
-            }
+            if (!user) { window.location.href = "../index.html"; return; }
 
             const meta = user.user_metadata;
-            const appMeta = user.app_metadata;
-
-            // Normaliza o cargo para evitar erros de acentuação ou maiúsculas
             const cargo = (meta.cargo || "").toLowerCase();
-            const roles = appMeta.roles || [];
+            const roles = user.app_metadata.roles || [];
 
-            // 2. Critérios de Permissão (Apenas Financeiro ou Apóstolo)
-            const temAcesso =
-                cargo === "financeiro" ||
-                cargo === "apóstolo" ||
-                cargo === "apostolo" ||
-                roles.includes("financeiro");
+            // Critério: Apostolo, Financeiro ou Moderador
+            const temAcesso = ["financeiro", "apóstolo", "apostolo"].includes(cargo) || roles.includes("mod");
 
-            if (!temAcesso) {
-                alert("⚠️ Acesso Restrito: Esta área é exclusiva para a administração.");
-                window.location.href = "../perfil.html"; // Manda para o perfil comum
+            if (temAcesso) { // <--- REMOVI O "!" DAQUI (Se TEM acesso, entra)
+                registrarAcessoFirebase(user);
+                trocarAba('aba_resumo');
+            } else {
+                alert("Acesso Restrito!");
+                window.location.href = "../perfil.html"; // Se NÃO tem, expulsa
             }
         }
 
-        // Executa assim que o widget terminar de carregar as configurações
-        netlifyIdentity.on('init', user => {
-            verificarAcessoAdmin();
-        });
-
-        // Caso o status de login mude enquanto a página está aberta
-        netlifyIdentity.on('logout', () => {
-            window.location.href = "../index.html";
-        });
+        netlifyIdentity.on('init', user => verificarAcessoAdmin());
+        netlifyIdentity.on('logout', () => window.location.href = "../index.html");
     </script>
 </head>
-<body>
-  <script src="https://unpkg.com/decap-cms@^3.0.0/dist/decap-cms.js"></script>
+
+<body class="bg-alt">
+    <header id="header"></header>
+
+    <main class="container" style="margin-top: 100px; min-height: 80vh;">
+        <div class="perfil-header-card" style="text-align: left; padding: 25px;">
+            <h1 class="titulo-secao">Painel Administrativo</h1>
+            <div class="tabs-header"
+                style="flex-direction: row; width: 100%; overflow-x: auto; margin-top: 20px; gap: 10px;">
+                <button class="tab-btn active" onclick="trocarAba('aba_resumo', this)">🏠 Início</button>
+                <button class="tab-btn" onclick="trocarAba('mod_testemunhos', this)">📝 Testemunhos</button>
+                <button class="tab-btn" onclick="trocarAba('financeiro_stats', this)">💰 Financeiro</button>
+                <button class="tab-btn" onclick="trocarAba('gestao_membros', this)">👥 Membros</button>
+                <button class="tab-btn" onclick="trocarAba('logs_auditoria', this)">🛡️ Auditoria</button>
+            </div>
+        </div>
+
+        <section id="aba_resumo" class="tab-content" style="margin-top: 20px;">
+            <div class="hero-btns" style="justify-content: flex-start; gap: 20px; flex-wrap: wrap;">
+                <div class="card" style="min-width: 200px; padding: 20px; border-top: 5px solid var(--cor-primaria);">
+                    <h3>Membros</h3>
+                    <div id="est-total-membros" class="horario">...</div>
+                    <p class="nome-culto">Total cadastrado</p>
+                </div>
+                <div class="card" style="min-width: 200px; padding: 20px; border-top: 5px solid #2a5f50;">
+                    <h3>Relatórios</h3>
+                    <button onclick="gerarRelatorio()" class="btn-hero"
+                        style="width: 100%; margin-top: 15px; font-size: 0.8rem;">📧 Enviar Backup</button>
+                    <p id="status-relatorio" style="font-size: 0.6rem; margin-top: 5px;"></p>
+                </div>
+            </div>
+        </section>
+
+        <section id="financeiro_stats" class="tab-content perfil-section" style="margin-top: 20px; display: none;">
+            <h3>📊 Crescimento de Contribuições</h3>
+            <div style="margin-bottom: 15px;">
+                <select id="filtroAno" onchange="carregarGraficoCrescimento(this.value)"
+                    style="padding: 5px 12px; border-radius: 8px;">
+                    <option value="todos">Todos os Anos</option>
+                    <option value="2024">2024</option>
+                    <option value="2025" selected>2025</option>
+                </select>
+            </div>
+            <div class="card" style="padding: 20px; background: white; border-radius: 12px; margin-bottom: 20px;">
+                <canvas id="meuGrafico" style="max-height: 400px;"></canvas>
+            </div>
+            <h3>💰 Dízimos Pendentes</h3>
+            <div id="lista-financeiro" class="lista-registros"></div>
+        </section>
+
+        <section id="mod_testemunhos" class="tab-content perfil-section" style="display: none; margin-top: 20px;">
+            <h3>📝 Testemunhos Pendentes</h3>
+            <div id="lista-moderacao" class="grid-testemunhos"></div>
+        </section>
+
+        <section id="gestao_membros" class="tab-content perfil-section" style="display: none; margin-top: 20px;">
+            <h3>👥 Lista de Contatos</h3>
+            <div id="lista-membros-admin" class="lista-registros"></div>
+        </section>
+
+        <section id="logs_auditoria" class="tab-content perfil-section" style="display: none; margin-top: 20px;">
+            <h3>🛡️ Histórico de Auditoria</h3>
+            <table style="width: 100%; border-collapse: collapse;">
+                <tbody id="corpo-tabela-logs"></tbody>
+            </table>
+        </section>
+    </main>
+
+    <footer id="footer" class="footer-moderno"></footer>
+
+    <script src="../script.js"></script>
+    <script>
+        let instanciaGrafico = null;
+
+        function trocarAba(idAba, btn) {
+            document.querySelectorAll('.tab-content').forEach(s => s.style.display = 'none');
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById(idAba).style.display = 'block';
+            if (btn) btn.classList.add('active');
+
+            // Gatilhos de carregamento
+            if (idAba === 'aba_resumo') carregarResumoEstatisticas();
+            if (idAba === 'mod_testemunhos') carregarPendentes();
+            if (idAba === 'financeiro_stats') { carregarDizimosPendentes(); carregarGraficoCrescimento('2025'); }
+            if (idAba === 'gestao_membros') carregarMembrosAdmin();
+            if (idAba === 'logs_auditoria') carregarTabelaLogs();
+        }
+
+        async function carregarResumoEstatisticas() {
+            const resMembros = await fetch('../content/membros_all.json?v=' + Date.now());
+            const membros = await resMembros.json();
+            document.getElementById('est-total-membros').innerText = membros.length;
+        }
+
+        /* ... Insira aqui as funções carregarGraficoCrescimento, carregarDizimosPendentes, carregarTabelaLogs, etc ... */
+    </script>
 </body>
+
 </html>
