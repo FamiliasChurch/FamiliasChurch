@@ -27,10 +27,7 @@
 
   /* AJUSTE DOS TÍTULOS (AQUI ESTAVA O PROBLEMA) */
   h1, h2, .font-display {
-    /* Mudamos de tracking-tighter para tracking-normal ou tight */
-    @apply font-display tracking-tight leading-[0.9] uppercase;
-    /* Evita que o navegador 'engrosse' a letra artificialmente */
-    font-weight: 800; 
+    font-display: swap;
   }
 
   /* Subtítulos e parágrafos precisam de mais espaço para não 'colar' */
