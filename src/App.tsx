@@ -12,7 +12,7 @@ import ProtectedRoute from "./components/ProtectedRoute";
 // Supondo que recebes o userRole do teu estado global de Auth
 export default function App({ userRole, userName }: { userRole: string, userName: string }) {
   return (
-    <BrowserRouter basename={import.meta.env.DEV ? "/" : "/familias_church"}>
+    <BrowserRouter basename="/Familias">
       <Routes>
         <Route path="/" element={<Layout />}>
           <Route index element={<Home />} />

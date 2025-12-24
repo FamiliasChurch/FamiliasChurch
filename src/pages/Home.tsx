@@ -102,7 +102,7 @@ export default function Home() {
                     </div>
                     <div className="flex items-center gap-8">
                         <img
-                            src="/Ap.jpg" // Fix: Em Vite, arquivos na pasta public são acessados pela raiz '/'
+                            src="./Ap.jpg" // Fix: Em Vite, arquivos na pasta public são acessados pela raiz '/'
                             alt="Apóstolo"
                             className="w-48 h-48 rounded-[2rem] object-cover border-2 border-destaque p-2"
                         />
