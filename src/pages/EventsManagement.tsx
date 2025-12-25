@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { db } from "../lib/firebase";
 import { collection, addDoc, query, orderBy, onSnapshot, serverTimestamp, deleteDoc, doc } from "firebase/firestore";
-import { Calendar, Plus, Trash2, MapPin, Clock } from "lucide-react";
+import { Calendar, Trash2, MapPin} from "lucide-react";
 
 export default function EventsManagement({ userRole }: { userRole: string }) {
   const [eventos, setEventos] = useState<any[]>([]);
