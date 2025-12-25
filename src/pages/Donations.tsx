@@ -13,38 +13,43 @@ export default function Donations() {
 
   const pixChave = "00.000.000/0001-00";
 
-  const handleDizimo = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    setLoading(true);
-    const formData = new FormData(e.currentTarget);
-    const nome = formData.get("nome") as string;
-    const valor = formData.get("valor") as string;
-    const arquivo = formData.get("comprovante") as File;
-
+const handleDizimo = async (e: React.FormEvent<HTMLFormElement>) => {
+  e.preventDefault();
+  setLoading(true);
+  const formData = new FormData(e.currentTarget);
+  const nome = formData.get("nome") as string;
+  const valor = formData.get("valor") as string;
+  const arquivo = (formData.get("comprovante") as File);
+  if (!arquivo || arquivo.size === 0) {
+    alert("Por favor, selecione o comprovante.");
+    setLoading(false);
+    return;
+  }
     try {
-      // 1. Upload para o Firebase Storage
-      const storageRef = ref(storage, `comprovantes/${Date.now()}_${arquivo.name}`);
-      await uploadBytes(storageRef, arquivo);
-      const downloadURL = await getDownloadURL(storageRef);
+    // 1. Upload para o Storage (Caminho organizado por data)
+    const storageRef = ref(storage, `comprovantes/${Date.now()}_${arquivo.name}`);
+    await uploadBytes(storageRef, arquivo);
+    const downloadURL = await getDownloadURL(storageRef);
 
-      // 2. Salvar no Firestore com a URL do comprovante
-      await addDoc(collection(db, "registros_dizimos"), {
-        nome,
-        valor: Number(valor),
-        data: serverTimestamp(),
-        tipo: "Dízimo",
-        status: "Pendente",
-        comprovanteUrl: downloadURL
-      });
+    // 2. Registro no Firestore com a URL gerada
+    await addDoc(collection(db, "registros_dizimos"), {
+      nome,
+      valor: Number(valor),
+      data: serverTimestamp(),
+      tipo: tab === 'dizimo' ? "Dízimo" : "Oferta",
+      status: "Pendente",
+      comprovanteUrl: downloadURL // Crucial para o Tesoureiro conferir
+    });
 
-      alert("Dízimo registrado com sucesso!");
-      (e.target as HTMLFormElement).reset();
-    } catch (err) {
-      alert("Erro ao processar. Verifique sua conexão.");
-    } finally {
-      setLoading(false);
-    }
-  };
+    alert("Contribuição registrada! Deus abençoe.");
+    (e.target as HTMLFormElement).reset();
+  } catch (err) {
+    console.error(err);
+    alert("Erro no servidor. Tente novamente.");
+  } finally {
+    setLoading(false);
+  }
+};
 
   return (
     <div className="min-h-screen bg-background text-white selection:bg-destaque/30">
@@ -62,7 +67,6 @@ export default function Donations() {
           </div>
         </div>
       </main>
-      <Footer />
     </div>
   );
 }
