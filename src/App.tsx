@@ -4,13 +4,13 @@ import Layout from "./components/layout";
 import Home from "./pages/Home";
 import Donations from "./pages/Donations";
 import AdminDashboard from "./pages/Admin";
+import AdminAudit from "./pages/AdminAudit"; // Importação corrigida
 import MembersList from "./pages/MembersList";
 import BibleStudies from "./pages/BibleStudies";
 import EventsManagement from "./pages/EventsManagement";
 import MinistriesManagement from "./pages/MinistriesManagement";
 import ProtectedRoute from "./components/ProtectedRoute";
 
-// COMPONENTE DE RESET DE SCROLL
 function ScrollToTop() {
   const { pathname } = useLocation();
   useEffect(() => {
@@ -29,9 +29,18 @@ export default function App({ userRole, userName }: AppProps) {
     <BrowserRouter>
       <ScrollToTop />
       <Routes>
+        {/* ROTA PAI: O Layout envolve tudo que está dentro dele */}
         <Route path="/" element={<Layout userRole={userRole} userName={userName} />}>
+          
           <Route index element={<Home />} />
           <Route path="doacoes" element={<Donations />} />
+
+          {/* ROTA DE AUDITORIA: Agora dentro do Layout */}
+          <Route path="auditoria" element={
+            <ProtectedRoute userRole={userRole} allowedRoles={["Tesoureira", "Apóstolo", "Dev"]}>
+              <AdminAudit />
+            </ProtectedRoute>
+          } />
 
           <Route path="admin" element={
             <ProtectedRoute userRole={userRole} allowedRoles={["Tesoureira", "Apóstolo", "Dev"]}>

@@ -1,14 +1,21 @@
 import { useState, useEffect } from "react";
+import { useOutletContext } from "react-router-dom";
 import { db, storage } from "../lib/firebase";
 import { collection, addDoc, serverTimestamp } from "firebase/firestore";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { Copy, Check, Heart, Wallet, Upload, Loader2 } from "lucide-react";
 
+interface ContextType {
+  userRole: string;
+  userName: string;
+}
+
 export default function Donations() {
+  const { userName } = useOutletContext<ContextType>();
   const [tab, setTab] = useState<'oferta' | 'dizimo'>('oferta');
-  const [copied, setCopied] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [showForm, setShowForm] = useState(false); // Estado para a animação
+  const [showForm, setShowForm] = useState(false);
+  const [copied, setCopied] = useState(false);
 
   const pixChave = "00.000.000/0001-00";
 
@@ -26,7 +33,7 @@ export default function Donations() {
   const handleContribuição = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setLoading(true);
-    
+
     const formData = new FormData(e.currentTarget);
     const nome = formData.get("nome") as string;
     const valor = formData.get("valor") as string;
@@ -65,22 +72,27 @@ export default function Donations() {
   };
 
   return (
-    <div className={`transition-all duration-1000 transform ${showForm ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
+    <div className={`transition-all duration-1000 ${showForm ? 'opacity-100' : 'opacity-0'}`}>
       <main className="container mx-auto px-6 pt-32 pb-24 text-center">
-        {/* Título com Estilo de Engenharia Visual */}
+        <div className="mb-8 animate-pulse">
+          <p className="text-destaque font-black uppercase tracking-[0.3em] text-[10px]">
+            Bem-vindo ao Altar, {userName}
+          </p>
+        </div>
+
         <h1 className="font-display text-6xl md:text-[8rem] tracking-tighter uppercase mb-16 leading-none">
           CONTRIBUA
         </h1>
 
         <div className="grid md:grid-cols-2 gap-12 items-start max-w-6xl mx-auto">
-          
+
           {/* CARD 1: INFORMAÇÕES PIX */}
           <div className="glass p-10 rounded-[3rem] space-y-8 border border-white/5 text-left">
             <div className="flex items-center gap-4 text-destaque">
               <Wallet size={32} />
               <h2 className="text-3xl font-black uppercase italic">PIX Oficial</h2>
             </div>
-            
+
             <p className="text-white/60 text-sm leading-relaxed">
               Utilize nossa chave CNPJ para dízimos e ofertas. O comprovante deve ser enviado ao lado para conferência da tesouraria.
             </p>
@@ -90,7 +102,7 @@ export default function Donations() {
                 <p className="text-[10px] uppercase font-bold text-destaque mb-1">Chave CNPJ</p>
                 <code className="text-xl font-mono">{pixChave}</code>
               </div>
-              <button 
+              <button
                 onClick={copyPix}
                 className="p-4 bg-destaque text-black rounded-xl hover:scale-110 transition-transform active:scale-95"
               >
@@ -103,13 +115,13 @@ export default function Donations() {
           <div className="glass p-10 rounded-[3rem] space-y-8 border-t-4 border-destaque shadow-2xl">
             <div className="flex flex-col items-center gap-4">
               <div className="flex bg-white/5 p-1 rounded-full w-full">
-                <button 
+                <button
                   onClick={() => setTab('oferta')}
                   className={`flex-1 py-3 rounded-full text-xs font-black uppercase tracking-widest transition-all ${tab === 'oferta' ? 'bg-destaque text-black' : 'hover:text-white'}`}
                 >
                   Oferta
                 </button>
-                <button 
+                <button
                   onClick={() => setTab('dizimo')}
                   className={`flex-1 py-3 rounded-full text-xs font-black uppercase tracking-widest transition-all ${tab === 'dizimo' ? 'bg-destaque text-black' : 'hover:text-white'}`}
                 >
@@ -121,7 +133,7 @@ export default function Donations() {
             <form onSubmit={handleContribuição} className="space-y-4 text-left">
               <div>
                 <label className="text-[10px] uppercase font-bold ml-4 mb-2 block text-white/40">Nome do Doador</label>
-                <input 
+                <input
                   name="nome"
                   required
                   placeholder="Ex: Roberto de Oliveira"
@@ -131,7 +143,7 @@ export default function Donations() {
 
               <div>
                 <label className="text-[10px] uppercase font-bold ml-4 mb-2 block text-white/40">Valor Semeado (R$)</label>
-                <input 
+                <input
                   name="valor"
                   type="number"
                   step="0.01"
@@ -154,7 +166,7 @@ export default function Donations() {
                 </div>
               </div>
 
-              <button 
+              <button
                 type="submit"
                 disabled={loading}
                 className="w-full bg-destaque text-black font-black uppercase py-5 rounded-2xl hover:tracking-[0.2em] transition-all flex items-center justify-center gap-2 disabled:opacity-50"
