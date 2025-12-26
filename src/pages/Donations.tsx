@@ -1,139 +1,171 @@
-import { useState, useEffect } from "react";
-import { useOutletContext } from "react-router-dom";
-import { db, storage } from "../lib/firebase";
+import { useState } from "react";
+import { db, storage } from "../lib/firebase"; 
 import { collection, addDoc, serverTimestamp } from "firebase/firestore";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
-import { Copy, Check, Heart, Wallet, Upload, Loader2 } from "lucide-react";
+import { Copy, Check, QrCode, Heart, Wallet, User, DollarSign, Send, Loader2, ShieldCheck, ArrowLeft, Download, Paperclip, FileText, X } from "lucide-react";
 
-interface ContextType {
-  userRole: string;
-  userName: string;
-}
+export default function Doacoes() {
+  const [passo, setPasso] = useState<"form" | "sucesso">("form");
+  const [enviando, setEnviando] = useState(false);
+  const [nome, setNome] = useState("");
+  const [valor, setValor] = useState("");
+  const [arquivo, setArquivo] = useState<File | null>(null);
+  const [copiado, setCopiado] = useState(false);
 
-export default function Donations() {
-  const { userName } = useOutletContext<ContextType>();
-  const [tab, setTab] = useState<'oferta' | 'dizimo'>('oferta');
-  const [loading, setLoading] = useState(false);
-  const [showForm, setShowForm] = useState(false);
-  const [copied, setCopied] = useState(false);
+  const cnpj = "00.000.000/0001-00";
 
-  const pixChave = "00.000.000/0001-00";
-
-  useEffect(() => {
-    setShowForm(true);
-  }, []);
-
-  const copyPix = () => {
-    navigator.clipboard.writeText(pixChave);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
-  };
-
-  const handleContribuição = async (e: React.FormEvent<HTMLFormElement>) => {
+  const handleIdentificacao = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
+    if (!nome || !valor || !arquivo) return alert("O comprovante é obrigatório para identificação.");
 
-    const formData = new FormData(e.currentTarget);
-    const nome = formData.get("nome") as string;
-    const valor = formData.get("valor") as string;
-    const arquivo = formData.get("comprovante") as File;
-
-    // VALIDAÇÃO DINÂMICA: Comprovante obrigatório apenas para Dízimo
-    if (tab === 'dizimo' && (!arquivo || arquivo.size === 0)) {
-      alert("Para Dízimos, por favor anexe o comprovante para a conferência da Tesouraria.");
-      setLoading(false);
-      return;
-    }
-
+    setEnviando(true);
     try {
-      let downloadURL = "";
-      
-      // Upload apenas se houver arquivo selecionado
-      if (arquivo && arquivo.size > 0) {
-        const storageRef = ref(storage, `comprovantes/${Date.now()}_${arquivo.name}`);
-        await uploadBytes(storageRef, arquivo);
-        downloadURL = await getDownloadURL(storageRef);
-      }
+      // 1. Upload do arquivo para o Firebase Storage
+      const storageRef = ref(storage, `comprovantes/${Date.now()}_${arquivo.name}`);
+      const uploadTask = await uploadBytes(storageRef, arquivo);
+      const downloadUrl = await getDownloadURL(uploadTask.ref);
 
+      // 2. Salva no Firestore com a URL da imagem
       await addDoc(collection(db, "registros_dizimos"), {
         nome,
-        valor: Number(valor),
-        data: serverTimestamp(),
-        tipo: tab === 'dizimo' ? "Dízimo" : "Oferta",
-        status: "Pendente",
-        comprovanteUrl: downloadURL // Pode ser string vazia se for oferta sem anexo
+        valor,
+        comprovanteUrl: downloadUrl,
+        tipo: "Dízimo",
+        status: "Pendente Verificação",
+        data: serverTimestamp()
       });
-
-      alert("Sua semente foi registrada! Deus abençoe generosamente.");
-      (e.target as HTMLFormElement).reset();
-    } catch (err) {
-      console.error("Erro no Firebase:", err);
-      alert("Erro ao registrar. Verifique sua conexão.");
+      
+      setPasso("sucesso");
+    } catch (error) {
+      console.error(error);
+      alert("Erro ao enviar. Verifique se o Firebase Storage está ativado.");
     } finally {
-      setLoading(false);
+      setEnviando(false);
     }
   };
 
+  if (passo === "sucesso") {
+    return (
+      <div className="min-h-screen bg-n-fundo flex items-center justify-center p-6 animate-in fade-in duration-500">
+        <div className="bg-white w-full max-w-md rounded-[3rem] border border-n-borda shadow-2xl p-10 text-center space-y-8">
+          <div className="flex justify-center">
+            <div className="bg-green-100 text-green-600 p-6 rounded-full">
+              <ShieldCheck size={48} />
+            </div>
+          </div>
+          <div className="space-y-2">
+            <h2 className="font-display text-4xl uppercase tracking-tighter text-n-texto">Recebido!</h2>
+            <p className="text-n-suave text-[10px] font-black uppercase tracking-widest">Semente Registrada com Sucesso</p>
+          </div>
+          <div className="bg-n-fundo rounded-3xl p-6 text-left space-y-4 border border-n-borda/50">
+            <div className="flex justify-between border-b border-n-borda/30 pb-2">
+              <span className="text-[10px] uppercase font-black text-n-suave">Nome completo</span>
+              <span className="text-sm font-bold text-n-texto truncate ml-4">{nome}</span>
+            </div>
+            <div className="flex justify-between border-b border-n-borda/30 pb-2">
+              <span className="text-[10px] uppercase font-black text-n-suave">Valor</span>
+              <span className="text-sm font-bold text-primaria">R$ {parseFloat(valor).toLocaleString('pt-BR', {minimumFractionDigits: 2})}</span>
+            </div>
+          </div>
+          <button 
+            onClick={() => { setPasso("form"); setNome(""); setValor(""); setArquivo(null); }}
+            className="w-full bg-n-texto text-white py-4 rounded-full font-black text-[10px] uppercase tracking-widest flex items-center justify-center gap-2 hover:bg-primaria transition-all"
+          >
+            <ArrowLeft size={14} /> Voltar
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className={`transition-all duration-1000 ${showForm ? 'opacity-100' : 'opacity-0'}`}>
-      <main className="container mx-auto px-6 pt-32 pb-24 text-center">
-        <div className="mb-8 animate-pulse">
-          <p className="text-destaque font-black uppercase tracking-[0.3em] text-[10px]">
-            Bem-vindo ao Altar, {userName}
-          </p>
+    <div className="min-h-screen bg-n-fundo text-n-texto font-body pt-32 pb-20">
+      <div className="container mx-auto px-6 max-w-6xl">
+        <div className="text-center mb-16 space-y-4">
+          <h1 className="font-display text-8xl md:text-[10rem] uppercase tracking-tighter leading-none">
+            CONTRI<span className="text-primaria">BUA</span>
+          </h1>
         </div>
 
-        <h1 className="font-display text-6xl md:text-[8rem] tracking-tighter uppercase mb-16 leading-none">
-          CONTRIBUA
-        </h1>
-
-        <div className="grid md:grid-cols-2 gap-12 items-start max-w-6xl mx-auto">
-          <div className="glass p-10 rounded-[3rem] space-y-8 border border-white/5 text-left">
-            <div className="flex items-center gap-4 text-destaque">
-              <Wallet size={32} />
-              <h2 className="text-3xl font-black uppercase italic">PIX Oficial</h2>
-            </div>
-            <p className="text-white/60 text-sm leading-relaxed">
-              Utilize nossa chave CNPJ para dízimos e ofertas. O comprovante deve ser enviado ao lado para conferência da tesouraria.
-            </p>
-            <div className="bg-white/5 p-6 rounded-2xl border border-white/10 flex justify-between items-center group">
-              <div>
-                <p className="text-[10px] uppercase font-bold text-destaque mb-1">Chave CNPJ</p>
-                <code className="text-xl font-mono">{pixChave}</code>
+        <div className="grid lg:grid-cols-5 gap-8 items-stretch">
+          {/* ÁREA PIX - */}
+          <div className="lg:col-span-3 bg-white p-10 md:p-14 rounded-[3rem] border border-n-borda shadow-sm flex flex-col justify-between">
+            <div className="space-y-8">
+              <div className="flex items-center gap-4">
+                <div className="bg-primaria/10 p-3 rounded-2xl text-primaria"><Wallet size={28} /></div>
+                <h2 className="font-display text-5xl uppercase tracking-tighter">PIX Oficial</h2>
               </div>
-              <button onClick={copyPix} className="p-4 bg-destaque text-black rounded-xl hover:scale-110 transition-transform">
-                {copied ? <Check size={20} /> : <Copy size={20} />}
-              </button>
+              <div className="space-y-4">
+                <div className="flex flex-col md:flex-row gap-4">
+                  <div className="flex-1 bg-n-fundo border border-n-borda p-5 rounded-2xl font-mono text-xl flex items-center justify-between">
+                    {cnpj}
+                    <button onClick={() => {navigator.clipboard.writeText(cnpj); setCopiado(true); setTimeout(()=>setCopiado(false), 2000)}} className="text-n-suave hover:text-primaria transition-colors">
+                      {copiado ? <Check size={20} className="text-green-600" /> : <Copy size={20} />}
+                    </button>
+                  </div>
+                </div>
+              </div>
+              <div className="p-6 bg-gray-50 rounded-2xl border border-n-borda flex items-start gap-4">
+                <Heart className="text-primaria shrink-0" size={20} />
+                <p className="text-n-suave text-xs italic">Para **Ofertas**, não é necessário identificar. Use o PIX e sua semente será anônima.</p>
+              </div>
             </div>
           </div>
 
-          <div className="glass p-10 rounded-[3rem] space-y-8 border-t-4 border-destaque shadow-2xl">
-            <div className="flex bg-white/5 p-1 rounded-full w-full">
-              <button onClick={() => setTab('oferta')} className={`flex-1 py-3 rounded-full text-xs font-black uppercase tracking-widest transition-all ${tab === 'oferta' ? 'bg-destaque text-black' : 'hover:text-white'}`}>Oferta</button>
-              <button onClick={() => setTab('dizimo')} className={`flex-1 py-3 rounded-full text-xs font-black uppercase tracking-widest transition-all ${tab === 'dizimo' ? 'bg-destaque text-black' : 'hover:text-white'}`}>Dízimo</button>
-            </div>
-
-            <form onSubmit={handleContribuição} className="space-y-4 text-left">
-              <input name="nome" required placeholder="Nome do Doador" className="w-full bg-white/5 border border-white/10 p-4 rounded-2xl focus:border-destaque outline-none" />
-              <input name="valor" type="number" step="0.01" required placeholder="Valor (R$)" className="w-full bg-white/5 border border-white/10 p-4 rounded-2xl focus:border-destaque outline-none" />
-              
-              <div className="relative group">
-                <label className="text-[10px] uppercase font-bold ml-4 mb-2 block text-white/40">Comprovante {tab === 'dizimo' ? '(Obrigatório)' : '(Opcional)'}</label>
-                <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-white/10 border-dashed rounded-2xl cursor-pointer bg-white/5 hover:bg-white/10">
-                  <Upload size={24} className="text-destaque mb-2" />
-                  <p className="text-xs text-white/40">Clique para enviar</p>
-                  <input name="comprovante" type="file" className="hidden" accept="image/*,application/pdf" />
-                </label>
+          {/* FORMULÁRIO COM UPLOAD OBRIGATÓRIO - */}
+          <div className="lg:col-span-2 bg-white p-10 md:p-12 rounded-[3rem] border border-n-borda shadow-xl">
+            <div className="space-y-8">
+              <div className="space-y-1">
+                <h3 className="font-display text-4xl uppercase tracking-tighter">Identificar</h3>
+                <p className="text-n-suave text-[9px] font-black uppercase tracking-widest opacity-60">Dízimos(Obrigatório anexar comprovante)</p>
               </div>
 
-              <button type="submit" disabled={loading} className="w-full bg-destaque text-black font-black uppercase py-5 rounded-2xl flex items-center justify-center gap-2">
-                {loading ? <Loader2 className="animate-spin" /> : <Heart size={18} />}
-                {loading ? "Processando..." : "Confirmar Semente"}
-              </button>
-            </form>
+              <form onSubmit={handleIdentificacao} className="space-y-5">
+                <input 
+                  type="text" value={nome} onChange={(e) => setNome(e.target.value)} 
+                  placeholder="Nome completo" required
+                  className="w-full bg-n-fundo border border-n-borda p-5 rounded-2xl outline-none focus:border-primaria text-sm"
+                />
+                <input 
+                  type="number" value={valor} onChange={(e) => setValor(e.target.value)} 
+                  placeholder="Valor (R$)" required
+                  className="w-full bg-n-fundo border border-n-borda p-5 rounded-2xl outline-none focus:border-primaria font-bold text-lg"
+                />
+
+                {/* CAMPO DE UPLOAD ESTILIZADO */}
+                <div className="space-y-2">
+                  <p className="text-[9px] font-black uppercase tracking-widest text-n-suave ml-1">Comprovante Bancário</p>
+                  {!arquivo ? (
+                    <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-n-borda rounded-2xl cursor-pointer hover:bg-gray-50 transition-all">
+                      <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                        <Paperclip className="text-n-suave mb-2" size={20} />
+                        <p className="text-[10px] text-n-suave font-bold uppercase">Anexar Comprovante</p>
+                      </div>
+                      <input type="file" className="hidden" accept="image/*,application/pdf" onChange={(e) => setArquivo(e.target.files?.[0] || null)} />
+                    </label>
+                  ) : (
+                    <div className="flex items-center justify-between bg-primaria/5 border border-primaria/20 p-4 rounded-2xl">
+                      <div className="flex items-center gap-3">
+                        <FileText className="text-primaria" size={20} />
+                        <span className="text-[10px] font-bold text-n-texto truncate max-w-[150px]">{arquivo.name}</span>
+                      </div>
+                      <button type="button" onClick={() => setArquivo(null)} className="text-red-500 hover:bg-red-50 p-1 rounded-full"><X size={16} /></button>
+                    </div>
+                  )}
+                </div>
+
+                <button 
+                  disabled={enviando || !arquivo}
+                  className="w-full bg-primaria text-white py-5 rounded-full font-black text-[10px] uppercase tracking-[0.3em] flex items-center justify-center gap-3 disabled:opacity-50"
+                >
+                  {enviando ? <Loader2 className="animate-spin" size={16} /> : <Send size={16} />}
+                  Confirmar Semente
+                </button>
+              </form>
+            </div>
           </div>
         </div>
-      </main>
+      </div>
     </div>
   );
 }

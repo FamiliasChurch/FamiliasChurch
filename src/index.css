@@ -2,44 +2,24 @@
 @tailwind components;
 @tailwind utilities;
 
-@theme {
-  --color-primaria: #163a30;
-  --color-destaque: #d4a373;
-  --color-background: #060e0c;
-
-  /* Garantimos que o sistema use as fontes carregadas com fallback seguro */
-  --font-display: "Smooch Sans", "Inter", system-ui, sans-serif;
-  --font-body: "Raleway", "Inter", system-ui, sans-serif;
+:root {
+  /* Tons Neutros Elegantes (Paleta Slate/Zinc) */
+  --n-bg: 248 250 252;      /* Slate 50 (Fundo limpo e sofisticado) */
+  --n-text: 15 23 42;       /* Slate 900 (Texto principal, quase preto) */
+  --n-dim: 71 85 105;       /* Slate 600 (Texto secundário legível) */
+  --n-border: 203 213 225;  /* Slate 300 (Bordas definidas) */
 }
 
 @layer base {
-  html {
-    scroll-behavior: smooth;
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
-    text-rendering: optimizeLegibility;
-  }
-
   body {
-    /* Usamos font-body (Raleway) com peso normal para textos longos */
-    @apply bg-background text-white antialiased font-body font-normal;
-  }
-
-  /* AJUSTE DOS TÍTULOS (AQUI ESTAVA O PROBLEMA) */
-  h1, h2, .font-display {
-    font-display: swap;
-  }
-
-  /* Subtítulos e parágrafos precisam de mais espaço para não 'colar' */
-  p {
-    @apply tracking-wide leading-relaxed;
+    background-color: rgb(var(--n-bg));
+    color: rgb(var(--n-text));
+    @apply antialiased font-body;
   }
 }
 
 .glass {
-  @apply bg-white/5 backdrop-blur-xl border border-white/10 shadow-2xl;
-}
-
-.text-gradient {
-  @apply bg-gradient-to-br from-white to-destaque bg-clip-text text-transparent;
+  /* Correção para os erros das imagens 860546, 86767b, 86e9e3 e 86f53f */
+  background: rgba(255, 255, 255, 0.7);
+  @apply backdrop-blur-xl border border-n-borda shadow-sm;
 }

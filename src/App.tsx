@@ -36,12 +36,15 @@ export default function App({ userRole, userName }: AppProps) {
           <Route index element={<Home />} />
           <Route path="doacoes" element={<Donations />} />
 
-          {/* ROTA DE AUDITORIA: Agora dentro do Layout */}
-          <Route path="auditoria" element={
-            <ProtectedRoute userRole={userRole} allowedRoles={["Tesoureira", "Apóstolo", "Dev"]}>
-              <AdminAudit />
-            </ProtectedRoute>
-          } />
+          {/* ROTA DE AUDITORIA: Protegida e com acesso restrito */}
+          <Route
+            path="/admin/financeiro"
+            element={
+              <ProtectedRoute userRole={userRole} allowedRoles={["Tesoureira", "Apóstolo", "Dev"]}>
+                <AdminAudit userRole={userRole} />
+              </ProtectedRoute>
+            }
+          />
 
           <Route path="admin" element={
             <ProtectedRoute userRole={userRole} allowedRoles={["Tesoureira", "Apóstolo", "Dev"]}>
