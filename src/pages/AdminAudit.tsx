@@ -1,122 +1,178 @@
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import { db } from "../lib/firebase";
-import { collection, query, where, onSnapshot, doc, updateDoc, orderBy } from "firebase/firestore";
-import { CheckCircle, Eye, Loader2, DollarSign, TrendingUp, AlertCircle } from "lucide-react";
+import { collection, onSnapshot, doc, updateDoc, deleteDoc, orderBy, query } from "firebase/firestore";
+import { Eye, Check, X, TrendingUp, AlertCircle } from "lucide-react";
 
 export default function AdminAudit({ userRole }: { userRole: string }) {
-  const [registros, setRegistros] = useState<any[]>([]);
-  const [dadosGrafico, setDadosGrafico] = useState<{ mes: string; total: number }[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [transacoes, setTransacoes] = useState<any[]>([]);
+  const [pendencias, setPendencias] = useState<any[]>([]);
+  const [monthlyData, setMonthlyData] = useState<any[]>([]);
 
-  // 1. Bloqueio de Segurança: Apenas cargos autorizados
-  const temAcesso = ["Tesoureira", "Apóstolo", "Dev"].includes(userRole);
-
+  // BUSCA DADOS EM TEMPO REAL
   useEffect(() => {
-    if (!temAcesso) return;
-
-    // Busca todos os registros para calcular o gráfico e listar pendentes
     const q = query(collection(db, "registros_dizimos"), orderBy("data", "desc"));
-    
     const unsub = onSnapshot(q, (snap) => {
       const docs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-      setRegistros(docs);
+      
+      setTransacoes(docs);
+      
+      // Filtra pendentes
+      setPendencias(docs.filter((d: any) => d.status === "Pendente" || d.status === "Pendente Verificação"));
 
-      // 2. Lógica do Gráfico de Crescimento (Sementes já aprovadas/conferidas)
-      const meses: { [key: string]: number } = {};
-      docs.forEach((reg: any) => {
-        if (reg.status === "Aprovado" || reg.status === "Conferido") {
-          const mesAno = reg.data?.toDate().toLocaleString('pt-BR', { month: 'short' }).toUpperCase() || "S/D";
-          meses[mesAno] = (meses[mesAno] || 0) + parseFloat(reg.valor);
-        }
-      });
-      setDadosGrafico(Object.entries(meses).map(([mes, total]) => ({ mes, total })).slice(-6));
-      setLoading(false);
+      // Processa dados para o gráfico (Últimos 6 meses)
+      processarGrafico(docs);
     });
-
     return () => unsub();
-  }, [temAcesso]);
+  }, []);
 
-  const aprovarSemente = async (id: string) => {
-    const docRef = doc(db, "registros_dizimos", id);
-    // Atualiza para o status que define o sucesso no teu fluxo
-    await updateDoc(docRef, { status: "Aprovado" });
+  // Lógica manual para agrupar por mês (Sem bibliotecas extras)
+  const processarGrafico = (dados: any[]) => {
+    const meses = ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"];
+    const hoje = new Date();
+    const dadosGrafico = [];
+
+    // Pega os últimos 6 meses
+    for (let i = 5; i >= 0; i--) {
+      const d = new Date(hoje.getFullYear(), hoje.getMonth() - i, 1);
+      const mesNome = meses[d.getMonth()];
+      
+      // Soma valores deste mês (apenas aprovados)
+      const totalMes = dados
+        .filter((item: any) => {
+           if (!item.data || item.status !== "Aprovado") return false;
+           // Converte timestamp do firebase para Date
+           const itemDate = item.data.toDate ? item.data.toDate() : new Date(item.data);
+           return itemDate.getMonth() === d.getMonth() && itemDate.getFullYear() === d.getFullYear();
+        })
+        .reduce((acc: number, cur: any) => acc + Number(cur.valor), 0);
+
+      dadosGrafico.push({ mes: mesNome, valor: totalMes });
+    }
+    setMonthlyData(dadosGrafico);
   };
 
-  if (!temAcesso) return <div className="h-screen flex items-center justify-center font-black text-red-600 uppercase tracking-widest">Acesso Restrito</div>;
-  if (loading) return <div className="flex justify-center p-20"><Loader2 className="animate-spin text-primaria" /></div>;
+  const handleAprovar = async (id: string) => {
+    if(!window.confirm("Confirmar entrada deste valor no caixa?")) return;
+    try {
+      await updateDoc(doc(db, "registros_dizimos", id), {
+        status: "Aprovado"
+      });
+    } catch (e) {
+      alert("Erro ao aprovar.");
+    }
+  };
 
-  // Filtra apenas o que ainda precisa de atenção para a lista de auditoria
-  const pendentes = registros.filter(r => r.status === "Pendente" || r.status === "Pendente Verificação");
+  const handleRejeitar = async (id: string) => {
+    if(!window.confirm("ATENÇÃO: Rejeitar irá EXCLUIR este registro permanentemente. Continuar?")) return;
+    try {
+      await deleteDoc(doc(db, "registros_dizimos", id));
+    } catch (e) {
+      alert("Erro ao rejeitar/excluir.");
+    }
+  };
+
+  // Encontrar o maior valor para escalar o gráfico
+  const maxValor = Math.max(...monthlyData.map(d => d.valor), 100); // Mínimo 100 para não dividir por zero
 
   return (
-    <div className="min-h-screen bg-n-fundo pt-28 pb-12 px-6 space-y-10">
-      <div className="container mx-auto max-w-6xl space-y-10">
-        
-        {/* DASHBOARD DE CRESCIMENTO (Visão do Apóstolo) */}
-        <div className="bg-white p-10 rounded-[3rem] border border-n-borda shadow-xl">
-          <div className="flex items-center gap-2 text-primaria font-black text-[10px] uppercase tracking-widest mb-8">
-            <TrendingUp size={14} /> Evolução Financeira Mensal
-          </div>
-          <div className="flex items-end justify-between h-48 gap-4">
-            {dadosGrafico.map((d) => (
-              <div key={d.mes} className="flex-1 flex flex-col items-center gap-3 group">
-                <div className="text-[9px] font-bold text-n-suave opacity-0 group-hover:opacity-100 transition-opacity">
-                  R$ {d.total.toLocaleString('pt-BR')}
-                </div>
-                <div className="w-full bg-gray-100 rounded-t-xl relative overflow-hidden" 
-                     style={{ height: `${(d.total / Math.max(...dadosGrafico.map(g => g.total), 1)) * 100}%` }}>
-                  <div className="absolute inset-0 bg-primaria transition-all duration-1000" />
-                </div>
-                <span className="text-[10px] font-black text-n-suave">{d.mes}</span>
-              </div>
-            ))}
-          </div>
+    <div className="space-y-8">
+      
+      {/* --- GRÁFICO DE EVOLUÇÃO --- */}
+      <div className="bg-white p-8 rounded-[2.5rem] border border-slate-200 shadow-sm">
+         <div className="flex items-center gap-3 mb-8">
+            <div className="p-2 bg-emerald-50 rounded-lg text-emerald-600">
+               <TrendingUp size={24} />
+            </div>
+            <h3 className="font-display text-xl font-bold uppercase text-slate-800">Evolução Financeira Mensal</h3>
+         </div>
+
+         <div className="h-64 flex items-end justify-between gap-2 md:gap-4">
+            {monthlyData.map((d, index) => {
+               // Calcula altura em porcentagem (max 100%)
+               const altura = Math.round((d.valor / maxValor) * 100);
+               return (
+                 <div key={index} className="flex flex-col items-center gap-3 w-full group">
+                    <div className="relative w-full bg-slate-100 rounded-t-2xl rounded-b-lg overflow-hidden flex items-end h-48 group-hover:bg-slate-200 transition-colors">
+                       <div 
+                         style={{ height: `${altura}%` }} 
+                         className="w-full bg-emerald-500 rounded-t-xl transition-all duration-1000 group-hover:bg-emerald-400 relative"
+                       >
+                          {/* Tooltip de Valor */}
+                          <div className="absolute -top-10 left-1/2 -translate-x-1/2 bg-slate-800 text-white text-[10px] font-bold py-1 px-2 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
+                             R$ {d.valor.toLocaleString('pt-BR')}
+                          </div>
+                       </div>
+                    </div>
+                    <span className="text-[10px] font-black uppercase text-slate-400">{d.mes}</span>
+                 </div>
+               )
+            })}
+         </div>
+      </div>
+
+      {/* --- LISTA DE PENDÊNCIAS --- */}
+      <div className="bg-white p-8 rounded-[2.5rem] border border-slate-200 shadow-sm relative overflow-hidden">
+        <div className="flex items-center gap-3 mb-6 pb-6 border-b border-slate-100">
+           <div className="p-2 bg-amber-50 rounded-lg text-amber-600">
+              <AlertCircle size={24} />
+           </div>
+           <h3 className="font-display text-2xl font-bold uppercase text-slate-800">
+             Pendências <span className="bg-amber-100 text-amber-700 text-xs px-2 py-1 rounded-full ml-2 align-middle">{pendencias.length}</span>
+           </h3>
         </div>
 
-        {/* LISTA DE AUDITORIA (Visão da Tesouraria) */}
-        <div className="space-y-6">
-          <div className="flex items-center gap-4 border-l-4 border-primaria pl-6">
-            <h2 className="text-4xl font-black uppercase tracking-tighter text-n-texto">Pendências</h2>
-            <span className="bg-primaria text-white text-[10px] font-black px-3 py-1 rounded-full">{pendentes.length}</span>
-          </div>
+        {pendencias.length === 0 ? (
+           <div className="text-center py-10 opacity-50">
+             <p className="text-sm font-bold uppercase tracking-widest text-slate-400">Nenhuma pendência para análise</p>
+           </div>
+        ) : (
+          <div className="space-y-4">
+            {pendencias.map((item) => (
+              <div key={item.id} className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-6 bg-slate-50 border border-slate-200 rounded-3xl hover:border-slate-300 transition-colors">
+                
+                <div>
+                  <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1">{item.tipo || "Dízimo"}</p>
+                  <h4 className="text-lg font-bold text-slate-800">{item.nome}</h4>
+                  <p className="font-mono text-xl font-bold text-emerald-600 mt-1">
+                    R$ {parseFloat(item.valor).toLocaleString('pt-BR', {minimumFractionDigits: 2})}
+                  </p>
+                </div>
 
-          <div className="grid gap-4">
-            {pendentes.length === 0 ? (
-              <div className="p-20 text-center bg-white rounded-[3rem] border border-n-borda border-dashed opacity-40">
-                <p className="uppercase font-black text-xs tracking-widest">Tudo em ordem na Sede Fazenda Rio Grande</p>
-              </div>
-            ) : (
-              pendentes.map(item => (
-                <div key={item.id} className="bg-white p-8 rounded-[2.5rem] border border-n-borda flex flex-col md:flex-row justify-between items-center gap-6 shadow-sm hover:shadow-md transition-all">
-                  <div className="text-left space-y-1">
-                    <p className="text-[9px] uppercase font-black text-primaria tracking-widest">{item.tipo}</p>
-                    <h3 className="text-xl font-bold text-n-texto leading-none">{item.nome}</h3>
-                    <p className="text-2xl font-display font-black text-n-texto">
-                      R$ {parseFloat(item.valor).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-                    </p>
-                  </div>
-
-                  <div className="flex items-center gap-3 w-full md:w-auto">
+                <div className="flex items-center gap-3">
+                  {/* Botão Ver Anexo */}
+                  {item.comprovanteUrl && (
                     <a 
                       href={item.comprovanteUrl} 
                       target="_blank" 
-                      className="flex-1 md:flex-none p-4 bg-n-fundo border border-n-borda rounded-2xl hover:bg-gray-100 transition-all flex items-center justify-center gap-2 text-[10px] font-black uppercase text-n-texto"
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-2 px-4 py-3 bg-white border border-slate-200 rounded-xl text-[10px] font-black uppercase tracking-wider hover:bg-slate-100 transition-colors"
                     >
                       <Eye size={16} /> Ver Anexo
                     </a>
+                  )}
 
-                    <button 
-                      onClick={() => aprovarSemente(item.id)}
-                      className="flex-1 md:flex-none p-4 bg-n-texto text-white rounded-2xl hover:bg-primaria transition-all flex items-center justify-center gap-2 text-[10px] font-black uppercase shadow-lg shadow-n-texto/10"
-                    >
-                      <CheckCircle size={16} /> Aprovar
-                    </button>
-                  </div>
+                  {/* Botão Aprovar */}
+                  <button 
+                    onClick={() => handleAprovar(item.id)}
+                    className="flex items-center gap-2 px-6 py-3 bg-emerald-900 text-white rounded-xl text-[10px] font-black uppercase tracking-wider hover:bg-emerald-800 transition-colors shadow-lg shadow-emerald-900/20"
+                  >
+                    <Check size={16} /> Aprovar
+                  </button>
+
+                  {/* Botão Rejeitar (Excluir) */}
+                  <button 
+                    onClick={() => handleRejeitar(item.id)}
+                    title="Rejeitar e Excluir"
+                    className="flex items-center justify-center w-12 h-12 bg-red-50 text-red-500 border border-red-100 rounded-xl hover:bg-red-100 hover:border-red-200 transition-colors"
+                  >
+                    <X size={20} />
+                  </button>
                 </div>
-              ))
-            )}
+
+              </div>
+            ))}
           </div>
-        </div>
+        )}
       </div>
     </div>
   );

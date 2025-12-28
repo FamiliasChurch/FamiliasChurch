@@ -1,71 +1,60 @@
-import { StrictMode, useEffect, useState } from 'react'
-import { createRoot } from 'react-dom/client'
-import './index.css'
-import App from './App'
-import logoIgreja from "./assets/logo.jpg";
+import { StrictMode, useEffect, useState } from 'react';
+import { createRoot } from 'react-dom/client';
+import './index.css';
+import App from './App';
+
+// IMPORTAÇÃO FIREBASE
+// Certifique-se que o caminho ./lib/firebase está correto em relação a este arquivo
+import { auth, db } from "./lib/firebase"; 
+import { onAuthStateChanged } from "firebase/auth";
+import { doc, getDoc } from "firebase/firestore";
 
 const Root = () => {
   const [role, setRole] = useState("Visitante");
   const [name, setName] = useState("Convidado");
   const [loading, setLoading] = useState(true);
-  const [showWelcome, setShowWelcome] = useState(false); // NOVO: Controle do Alerta
+  const [showWelcome, setShowWelcome] = useState(false);
 
   useEffect(() => {
-    // @ts-ignore
-    const netlifyIdentity = window.netlifyIdentity;
-    if (!netlifyIdentity) {
-      setLoading(false);
-      return;
-    }
+    // Monitora o estado da autenticação (Login/Logout)
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      setLoading(true);
 
-    const fetchUserDataFromFirestore = async (user: any) => {
-  setLoading(true);
-  if (user) {
-    try {
-      // Adicionado setDoc e serverTimestamp para a automação
-      const { doc, getDoc, setDoc, serverTimestamp } = await import("firebase/firestore");
-      const { db } = await import("./lib/firebase");
+      if (user && user.email) {
+        try {
+          // Busca o perfil completo no Firestore usando o e-mail como ID
+          const userDocRef = doc(db, "contas_acesso", user.email);
+          const userDoc = await getDoc(userDocRef);
 
-      const userDocRef = doc(db, "contas_acesso", user.email);
-      const userDoc = await getDoc(userDocRef);
-
-      if (userDoc.exists()) {
-        const data = userDoc.data();
-        setRole(data.cargo || "Membro");
-        setName(data.nome || user.user_metadata?.full_name);
+          if (userDoc.exists()) {
+            const data = userDoc.data();
+            setRole(data.cargo || "Membro");
+            // Prioriza o nome do banco, senão usa do Google, senão "Membro"
+            setName(data.nome || user.displayName || "Membro");
+            setShowWelcome(true);
+          } else {
+            // Usuário logado no Auth, mas sem registro no Banco ainda
+            setRole("Membro");
+            setName(user.displayName || "Novo Membro");
+          }
+        } catch (error) {
+          console.error("Erro ao buscar perfil:", error);
+          setRole("Visitante");
+        }
       } else {
-        // AUTOMAÇÃO: Cria o perfil automaticamente se for o primeiro acesso
-        const novoPerfil = {
-          nome: user.user_metadata?.full_name || "Novo Membro",
-          cargo: "Membro",
-          email: user.email,
-          dataCadastro: serverTimestamp()
-        };
-
-        await setDoc(userDocRef, novoPerfil);
-        
-        setRole("Membro");
-        setName(novoPerfil.nome);
+        // Não logado
+        setRole("Visitante");
+        setName("Convidado");
+        setShowWelcome(false);
       }
-      setShowWelcome(true);
-    } catch (error) {
-      console.error("Erro na sincronização de perfil:", error);
-    }
-  }
-  setLoading(false);
-};
-
-    fetchUserDataFromFirestore(netlifyIdentity.currentUser());
-    netlifyIdentity.on('login', (user: any) => fetchUserDataFromFirestore(user));
-    netlifyIdentity.on('logout', () => {
-      setRole("Visitante");
-      setName("Convidado");
+      
       setLoading(false);
-      setShowWelcome(false);
     });
+
+    return () => unsubscribe();
   }, []);
 
-  // Timer para sumir o alerta após 5 segundos
+  // Timer para esconder o toast de boas-vindas após 5s
   useEffect(() => {
     if (showWelcome) {
       const timer = setTimeout(() => setShowWelcome(false), 5000);
@@ -73,27 +62,34 @@ const Root = () => {
     }
   }, [showWelcome]);
 
+  // TELA DE LOADING (Preto com animação CSS elegante)
   if (loading) {
     return (
-      <div className="min-h-screen bg-black flex flex-col items-center justify-center gap-6">
-        <div className="relative">
-          <img src={logoIgreja} className="w-24 h-24 rounded-full border-2 border-destaque animate-pulse" />
-          <div className="absolute -top-2 -left-2 w-28 h-28 border-t-2 border-destaque rounded-full animate-spin"></div>
+      <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center gap-8">
+        <div className="relative flex items-center justify-center">
+           {/* Círculo externo */}
+           <div className="w-24 h-24 rounded-full border-4 border-slate-800 animate-pulse"></div>
+           {/* Círculo interno girando */}
+           <div className="absolute w-24 h-24 border-t-4 border-emerald-500 rounded-full animate-spin"></div>
+           {/* Ícone ou Ponto central */}
+           <div className="absolute w-4 h-4 bg-emerald-500 rounded-full animate-ping"></div>
         </div>
-        <p className="text-destaque font-black uppercase tracking-[0.4em] text-[10px]">Sincronizando Altar...</p>
+        <p className="text-emerald-500 font-black uppercase tracking-[0.4em] text-xs animate-pulse">
+          Conectando ao Altar...
+        </p>
       </div>
     );
   }
 
   return (
     <StrictMode>
-      {/* ALERTA FLUTUANTE DE BOAS-VINDAS */}
+      {/* TOAST DE BOAS VINDAS */}
       {showWelcome && name !== "Convidado" && (
-        <div className="fixed bottom-10 left-1/2 -translate-x-1/2 z-[100] animate-in slide-in-from-bottom-10 duration-500">
-          <div className="glass px-8 py-4 rounded-full border border-destaque/30 flex items-center gap-4 shadow-2xl">
-            <div className="w-2 h-2 bg-destaque rounded-full animate-ping"></div>
-            <p className="text-xs uppercase font-black tracking-widest leading-none">
-              Bem-vindo de volta, <span className="text-destaque">{name}</span>
+        <div className="fixed bottom-10 left-1/2 -translate-x-1/2 z-[9999] animate-in slide-in-from-bottom-10 duration-500">
+          <div className="glass px-8 py-4 rounded-full border border-emerald-500/30 flex items-center gap-4 shadow-2xl bg-white/90 backdrop-blur-md">
+            <div className="w-2 h-2 bg-emerald-500 rounded-full animate-ping"></div>
+            <p className="text-xs uppercase font-black tracking-widest leading-none text-slate-800">
+              Paz seja convosco, <span className="text-emerald-700">{name}</span>
             </p>
           </div>
         </div>

@@ -1,0 +1,13 @@
+{
+  "type": "service_account",
+  "project_id": "familias-church",
+  "private_key_id": "49a4d25db81628ed498fdbf1119e26d1f99a60c6",
+  "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvgIBADANBgkqhkiG9w0BAQEFAASCBKgwggSkAgEAAoIBAQCQ3iW4gOhD58nt\nSFgXN5w1cYOKikIPOn1puPi3+ieO9sT9gJQcsqG3kwnQJU6qInokdJXYElCjcd5S\nMni0DHCpJT0vIA++tcOpJgaxVvtp+jZpPLVfnyfMkPjo3C80sccgdQImy+fHRccF\ntgbv5SL5EEmpD1fuMuD13QNWqV+9y+EcmDY8g0lsHjh6q6lbyQiLrQZk7ZebEUds\noFPobj6O2d4HkYsm9YT17/AYLoTKOhSluFpupUQOFm4tip8C5mUuY3Ve0XVuBC1d\nx2MnHudjDMDyktGuoYbEedScjFSmMumaltk1tbU3VE3Qk1ExU1wGaLeyarrqNHPT\nys2RpV0JAgMBAAECggEAEr4bBT7wTfDMKD3m38IbHLL+AMuYdl3r4eTDkRH1UkLN\nA7tB7mCSGa0VZO+euNZTFSpcRKNB+ZN+3wWWpjzByrB9tP4h61ua3+SCkykcx/5O\nUdk/4go2XPoYqg/qr5ecmq9owto4t4hokm2Vgi4UE0MvNIc+qhu9DTI1/11UfLqV\nJZlN02hMbnBrDJ9cbdYgF4rTQTdrHv/zzZUJ3q5inX5mOjIlPc8BLMiNMSxAhWSA\nP2A/2peevsKsfXQkOm/i4D1OdTAZSVrEduiLs/Eoj+aOekegvwgvCRrUJAVP11ue\nnNjsg7TccF1IrP8aDArSBqOp+83p4yA8Eat465Ia8QKBgQDAmPJKng2hwM7775xv\nQgP1zkeSKXdD5kWtRjxK6e2X7c8UIDyiDQiO9jdhI6u0kqGhiXUaxclF0z1dUUxD\nJlwHzbXUBJ6dd6FiT5XBpPNB81Qcg+CUiRDqGfMh2am9Q+0ltzGIY1qRza9vCKcv\nHyAIGCW9aduDxmZKJ+VReiRhjQKBgQDAjs4+kNbRhgbSHUSirj0PL+sAHJXeIAF4\nlxpprZwd7BmAL7iuxXC4acOrfr9y1+KsTFgLT6CBElE5MXzGmpEmCA76rR6w6QJV\nng9A8GBYvxAZCi7fI2xhFo7fewOQwGXj/6tw/NM9GXY41f+qiSG5Ra1yZ3q5Y1N8\nXvNDyDAkbQKBgQCMxP2K9lzmVkOzNt4zH6A/YEdFmJM4iK1yyXw2ESb8ve92OV23\n4CjaPTIbCPRuZiJHLG3wZJIJPC2E8G/6QKZRedSlo76/P3ownhTKVaMLGCvpL6bN\nSiWXxeHEYxBCasyBnZVRp7TCDwFj+YIg2fISmHu1JxMwDKolF2XwGINQ3QKBgEWg\n3e89zJADGOBNeQ4iVy3ws9dcfszNYfrLGN/xySwAvc/ecbew6Wulwv12XaAXdH29\nNXERoAZMK1a1EFt4dNf9vfzjMN/jwdZXy0g+I3izzgxf5EcHth79WzhwcP+csrtZ\nLhMzOOc1F8zBhSuTXsBx86AUzwnOYtfsNabi8pWZAoGBAINKS+CaCu3F2LCW9gz5\nO64as34jU7pE6tzsieqD6s3oNEhrIELZkCsyqtZTnO3dS2pG/UUeM0tiQ0GoqUDj\nE5Kw16LDzWQNMkUN5KBh5xhUy6EW3ThTg6N3bMr6or2YWcQp54MMGFspArhSPdYZ\njCAlC8Z+L8XfDJgAyHq67niB\n-----END PRIVATE KEY-----\n",
+  "client_email": "firebase-adminsdk-fbsvc@familias-church.iam.gserviceaccount.com",
+  "client_id": "103873941354140496517",
+  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+  "token_uri": "https://oauth2.googleapis.com/token",
+  "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+  "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/firebase-adminsdk-fbsvc%40familias-church.iam.gserviceaccount.com",
+  "universe_domain": "googleapis.com"
+}

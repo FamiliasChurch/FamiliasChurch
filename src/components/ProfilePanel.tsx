@@ -66,7 +66,7 @@ export default function ProfilePanel() {
             </Link>
 
             {/* ACESSOS POR CARGO */}
-            {(role === "Tesoureira" || role === "Apóstolo" || role === "Dev") && (
+            {(role === "Secretaria" || role === "Apóstolo" || role === "Dev") && (
               <Link to="/admin" className="flex items-center gap-3 bg-white/5 hover:bg-destaque hover:text-primaria p-3 rounded-xl text-[10px] font-bold uppercase transition-all">
                 <DollarSign size={14} /> Gestão Financeira
               </Link>

@@ -1,7 +1,8 @@
 import { initializeApp } from "firebase/app";
 import { getFirestore } from "firebase/firestore";
 import { getStorage } from "firebase/storage";
-import { getAuth } from "firebase/auth"; // NOVO: Importação para Autenticação
+import { getAuth } from "firebase/auth";
+import { getMessaging } from "firebase/messaging";
 
 const firebaseConfig = {
     apiKey: "AIzaSyBvFM13K0XadCnAHdHE0C5GtA2TH5DaqLg",
@@ -13,10 +14,9 @@ const firebaseConfig = {
     measurementId: "G-VHWLCPM3FR"
 };
 
-// Inicializa o Firebase
-const app = initializeApp(firebaseConfig);
-
 // Inicializa e exporta os serviços
+export const app = initializeApp(firebaseConfig);
 export const db = getFirestore(app);
+export const auth = getAuth(app); 
 export const storage = getStorage(app);
-export const auth = getAuth(app); // NOVO: Exportação para o sistema de Login
+export const messaging = getMessaging(app);
