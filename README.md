@@ -1,73 +1,45 @@
-# React + TypeScript + Vite
+# 🏛️ Famílias Church Web Platform
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Plataforma web oficial da **Famílias Church**, desenvolvida para conectar membros, gerenciar eventos, ministérios e facilitar a administração eclesiástica. O sistema inclui um painel administrativo robusto com controle de acesso baseado em cargos (RBAC).
 
-Currently, two official plugins are available:
+![Status](https://img.shields.io/badge/Status-Em_Produção-green)
+![Version](https://img.shields.io/badge/Version-1.0.0-blue)
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## 🚀 Funcionalidades
 
-## React Compiler
+### 🌐 Área Pública
+- **Home Page:** Apresentação da igreja, horários de cultos e localização (Maps).
+- **Devocionais:** Blog para estudos bíblicos e palavras do dia.
+- **Agenda:** Listagem de eventos futuros com detalhes.
+- **Doações:** Página informativa para dízimos e ofertas.
+- **Login Social:** Autenticação via Google.
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+### 🔒 Painel Administrativo (RBAC)
+O sistema possui níveis de acesso granulares:
+- **Dev/Apóstolo:** Acesso total (God Mode).
+- **Secretaria:** Gestão de membros e financeiro (sem permissão de alterar cargos de liderança).
+- **Mídia:** Gestão de eventos, ministérios e galeria.
+- **Pastor:** Visualização de intercessões e estudos.
 
-## Expanding the ESLint configuration
+### 🛠️ Módulos de Gestão
+- **Membresia:** Cadastro, edição e controle de cargos.
+- **Financeiro:** Auditoria de dízimos e ofertas com gráficos.
+- **Intercessão:** Sistema de pedidos de oração com contador de intercessores.
+- **Eventos:** CRUD completo com upload de capas e links de inscrição.
+- **Push Notifications:** Sistema de notificações para engajamento via Firebase Cloud Messaging.
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+## 💻 Tecnologias Utilizadas
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+- **Front-end:** React.js, TypeScript, Vite.
+- **Estilização:** Tailwind CSS.
+- **Banco de Dados & Auth:** Firebase (Firestore, Authentication).
+- **Armazenamento:** Firebase Storage & Cloudinary (Otimização de Imagens).
+- **Deploy:** Vercel.
+- **Ícones:** Lucide React.
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+## ⚙️ Instalação e Configuração
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
-
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
-
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+1. **Clone o repositório**
+   ```bash
+   git clone [https://github.com/FamiliasChurch/FamiliasChurch](https://github.com/FamiliasChurch/FamiliasChurch)
+   cd FamiliasChurch

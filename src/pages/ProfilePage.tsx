@@ -3,16 +3,49 @@ import { auth, db } from "../lib/firebase";
 import { doc, getDoc, updateDoc } from "firebase/firestore";
 import { onAuthStateChanged } from "firebase/auth";
 import { useNavigate } from "react-router-dom";
-import { User, Save, Camera, Loader2 } from "lucide-react";
+import { User, Save, Camera, Loader2, CheckCircle, AlertCircle, X } from "lucide-react";
 
 export default function ProfilePage() {
     const navigate = useNavigate();
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
-    const [uploading, setUploading] = useState(false); // Estado para o upload da foto
+    const [uploading, setUploading] = useState(false);
     const [userData, setUserData] = useState<any>({});
 
-    // --- CONFIGURAÇÃO DO CLOUDINARY (Mesma do Doacoes.tsx) ---
+    // --- ESTADO DA NOTIFICAÇÃO (TOAST) ---
+    const [notification, setNotification] = useState<{
+        show: boolean;
+        message: string;
+        type: 'error' | 'success';
+    }>({ show: false, message: "", type: 'success' });
+
+    // Função auxiliar para mostrar notificação
+    const showNotification = (message: string, type: 'error' | 'success') => {
+        setNotification({ show: true, message, type });
+        setTimeout(() => {
+            setNotification((prev) => ({ ...prev, show: false }));
+        }, 4000);
+    };
+
+    // --- MÁSCARA DE TELEFONE ---
+    const formatPhone = (value: string) => {
+        if (!value) return "";
+        
+        // Remove tudo que não é número
+        const numbers = value.replace(/\D/g, "");
+        
+        // Limita a 11 números
+        const limited = numbers.substring(0, 11);
+
+        // Aplica a formatação (XX) X XXXX-XXXX
+        if (limited.length <= 2) return `(${limited}`;
+        if (limited.length <= 3) return `(${limited.slice(0, 2)}) ${limited.slice(2)}`;
+        if (limited.length <= 7) return `(${limited.slice(0, 2)}) ${limited.slice(2, 3)} ${limited.slice(3)}`;
+        
+        return `(${limited.slice(0, 2)}) ${limited.slice(2, 3)} ${limited.slice(3, 7)}-${limited.slice(7)}`;
+    };
+
+    // --- CONFIGURAÇÃO DO CLOUDINARY ---
     const CLOUD_NAME = "ddndbv7do";
     const UPLOAD_PRESET = "ddndbv7do";
 
@@ -53,12 +86,12 @@ export default function ProfilePage() {
             const data = await response.json();
 
             if (data.secure_url) {
-                // Atualiza o estado local com a nova URL (o usuário ainda precisa clicar em Salvar para gravar no banco)
                 setUserData({ ...userData, foto: data.secure_url });
+                showNotification("Foto carregada! Clique em Salvar para confirmar.", "success");
             }
         } catch (error) {
             console.error("Erro no upload:", error);
-            alert("Erro ao enviar imagem. Verifique a conexão.");
+            showNotification("Erro ao enviar imagem. Verifique a conexão.", "error");
         } finally {
             setUploading(false);
         }
@@ -79,11 +112,11 @@ export default function ProfilePage() {
                     foto: userData.foto || ""
                 });
 
-                alert("Perfil atualizado com sucesso!");
+                showNotification("Perfil atualizado com sucesso!", "success");
             }
         } catch (error) {
             console.error("Erro ao salvar:", error);
-            alert("Erro ao atualizar perfil.");
+            showNotification("Erro ao atualizar perfil.", "error");
         } finally {
             setSaving(false);
         }
@@ -92,7 +125,35 @@ export default function ProfilePage() {
     if (loading) return <div className="min-h-screen flex items-center justify-center bg-slate-50"><div className="animate-spin w-10 h-10 border-4 border-emerald-600 rounded-full border-t-transparent"></div></div>;
 
     return (
-        <div className="min-h-screen bg-slate-50 pt-32 pb-10 px-6 font-body text-slate-900">
+        <div className="min-h-screen bg-slate-50 pt-32 pb-10 px-6 font-body text-slate-900 relative">
+            
+            {/* --- TOAST NOTIFICATION --- */}
+            <div 
+                className={`fixed top-24 right-5 z-50 transform transition-all duration-500 ease-out ${
+                notification.show ? "translate-x-0 opacity-100" : "translate-x-20 opacity-0 pointer-events-none"
+                }`}
+            >
+                <div className={`flex items-center gap-3 px-6 py-4 rounded-xl shadow-2xl border ${
+                    notification.type === 'error' 
+                        ? "bg-white border-red-100 text-red-600" 
+                        : "bg-white border-emerald-100 text-emerald-600"
+                }`}>
+                    {notification.type === 'error' ? <AlertCircle size={20} /> : <CheckCircle size={20} />}
+                    <div className="flex flex-col">
+                        <span className="font-bold text-sm uppercase tracking-wide">
+                            {notification.type === 'error' ? 'Atenção' : 'Sucesso'}
+                        </span>
+                        <span className="text-slate-600 text-sm">{notification.message}</span>
+                    </div>
+                    <button 
+                        onClick={() => setNotification(prev => ({ ...prev, show: false }))}
+                        className="ml-4 text-slate-400 hover:text-slate-600"
+                    >
+                        <X size={16} />
+                    </button>
+                </div>
+            </div>
+
             <div className="max-w-2xl mx-auto space-y-8">
 
                 <div className="flex items-center gap-4">
@@ -189,9 +250,14 @@ export default function ProfilePage() {
                             <label className="text-xs font-bold text-emerald-800 uppercase ml-2">WhatsApp / Telefone</label>
                             <input
                                 type="tel"
-                                placeholder="(00) 00000-0000"
+                                placeholder="(00) 0 0000-0000"
                                 value={userData.telefone || ""}
-                                onChange={e => setUserData({ ...userData, telefone: e.target.value })}
+                                onChange={e => {
+                                    // APLICA A MÁSCARA AQUI
+                                    const formatted = formatPhone(e.target.value);
+                                    setUserData({ ...userData, telefone: formatted });
+                                }}
+                                maxLength={16} // (XX) X XXXX-XXXX = 16 caracteres
                                 className="w-full bg-white border border-slate-300 p-4 rounded-xl outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100 transition-all font-bold text-slate-700"
                             />
                         </div>

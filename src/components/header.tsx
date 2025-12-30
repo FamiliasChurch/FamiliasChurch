@@ -5,7 +5,7 @@ import { db, auth } from "../lib/firebase";
 import { signOut } from "firebase/auth";
 import { collection, query, orderBy, limit, onSnapshot, doc } from "firebase/firestore";
 import { Menu, X, Bell, LogOut, Shield, UserPlus, MessageCircle, DollarSign, Sparkles, User, Cake, Trash2 } from "lucide-react";
-import logoIgreja from "../assets/logo.jpg";
+import logoIgreja from "../assets/logo.webp";
 
 interface Notificacao {
   id: string;
@@ -107,7 +107,7 @@ export default function Header({ userRole, userName }: { userRole: string, userN
     return () => unsubAuth();
   }, []);
 
-  const rolesRelevantes = ["Dev", "Apóstolo", "Pastor", "Secretaria"];
+  const rolesRelevantes = ["Dev", "Apóstolo", "Pastor", "Secretaria", "Mídia"];
   const mostrarMinisterio = !rolesRelevantes.includes(userRole);
   const displayPhoto = userPhoto || "https://www.w3schools.com/howto/img_avatar.png";
 
@@ -123,11 +123,15 @@ export default function Header({ userRole, userName }: { userRole: string, userN
           <ul className="flex gap-6 text-[11px] font-bold uppercase tracking-widest text-n-suave">
             {navLinks.map((link) => (
               <li key={link.name}>
+                {/* CORREÇÃO APLICADA AQUI: ClassName agora é uma função */}
                 <HashLink
                   smooth
                   to={link.href}
-                  // Não use props como isActive diretamente aqui se for um elemento customizado
-                  className="text-sm font-bold text-slate-600 hover:text-emerald-600 transition-all"
+                  className={({ isActive }) => 
+                    `text-sm font-bold transition-all ${
+                      isActive ? 'text-slate-600 hover:text-blue-600' : 'text-slate-600 hover:text-blue-600'
+                    }`
+                  }
                 >
                   {link.name}
                 </HashLink>
