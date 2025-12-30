@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+/*import { useEffect, useState } from "react";
 import { db } from "../lib/firebase";
 import { collection, onSnapshot, query, addDoc, orderBy, serverTimestamp } from "firebase/firestore";
 import { Clock, CheckCircle, Shield, Mail } from "lucide-react";
@@ -69,7 +69,7 @@ export default function VolunteerScales({ userRole }: { userRole: string }) {
     <div className="min-h-screen bg-background text-white p-6 pt-32 font-body">
       <div className="container mx-auto space-y-16">
         
-        {/* HEADER */}
+        {/* HEADER }
         <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 border-b border-white/5 pb-10">
           <div className="space-y-2">
             <h1 className="font-display text-7xl md:text-8xl tracking-tighter text-gradient uppercase leading-none">Escalas</h1>
@@ -83,7 +83,7 @@ export default function VolunteerScales({ userRole }: { userRole: string }) {
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
           
-          {/* FORMULÁRIO */}
+          {/* FORMULÁRIO}
           {podeGerenciar && (
             <div className="lg:col-span-1">
               <div className="glass p-10 rounded-[3.5rem] border border-destaque/20 sticky top-32">
@@ -124,7 +124,7 @@ export default function VolunteerScales({ userRole }: { userRole: string }) {
             </div>
           )}
 
-          {/* LISTAGEM */}
+          {/* LISTAGEM }
           <div className="lg:col-span-2 space-y-8">
             <h2 className="text-4xl font-black uppercase tracking-tighter flex items-center gap-4">
               <Clock className="text-destaque" /> Escalas Confirmadas
@@ -159,4 +159,4 @@ export default function VolunteerScales({ userRole }: { userRole: string }) {
       </div>
     </div>
   );
-}
+} */  

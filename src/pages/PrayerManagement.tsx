@@ -2,10 +2,15 @@ import { useState, useEffect } from "react";
 import { db } from "../lib/firebase";
 import { collection, query, orderBy, onSnapshot, doc, updateDoc, deleteDoc, where } from "firebase/firestore";
 import { CheckCircle2, XCircle, MessageSquare, ShieldAlert, HeartHandshake } from "lucide-react";
+// Import do Modal
+import { useConfirm } from "../context/ConfirmContext";
 
 export default function PrayerManagement() {
     const [pedidos, setPedidos] = useState<any[]>([]);
     const [notaEdicao, setNotaEdicao] = useState<{ [key: string]: string }>({});
+    
+    // Instância do Modal
+    const { confirm } = useConfirm();
 
     // Busca pedidos pendentes e aprovados
     useEffect(() => {
@@ -17,25 +22,52 @@ export default function PrayerManagement() {
     }, []);
 
     const handleAprovar = async (id: string, nota: string) => {
+        // --- SUBSTITUIÇÃO DO ALERT ---
+        const confirmou = await confirm({
+            title: "Tornar Público?",
+            message: "Ao aprovar, este pedido aparecerá na página inicial do site. A nota pública será o único detalhe visível.",
+            variant: "info",
+            confirmText: "Sim, Aprovar",
+            cancelText: "Cancelar"
+        });
+
+        if (!confirmou) return;
+
         try {
             await updateDoc(doc(db, "pedidos_oracao", id), {
                 status: "aprovado",
                 notaPublica: nota // Salva o detalhe que aparecerá na Home
             });
-            alert("Pedido aprovado e visível na Home!");
+            
+            // Feedback visual bonito
+            await confirm({
+                title: "Sucesso!",
+                message: "Pedido aprovado e visível na Home.",
+                variant: "success",
+                confirmText: "Ok"
+            });
         } catch (e) {
             alert("Erro ao aprovar.");
         }
     };
 
     const handleArquivar = async (id: string) => {
-        if(confirm("Deseja remover este pedido?")) {
+        // --- SUBSTITUIÇÃO DO CONFIRM NATIVO ---
+        const confirmou = await confirm({
+            title: "Excluir Pedido?",
+            message: "Tem certeza que deseja apagar este pedido de oração permanentemente?",
+            variant: "danger",
+            confirmText: "Sim, Excluir",
+            cancelText: "Manter"
+        });
+
+        if(confirmou) {
             await deleteDoc(doc(db, "pedidos_oracao", id));
         }
     };
 
     return (
-        <div className="max-w-5xl mx-auto space-y-8 pb-20 p-6">
+        <div className="max-w-5xl mx-auto space-y-8 pb-20 p-6 animate-in fade-in duration-500">
             <div className="flex items-center gap-4 border-b border-slate-200 pb-6">
                 <div className="p-3 bg-blue-900 text-white rounded-2xl shadow-lg"><HeartHandshake size={24} /></div>
                 <div>

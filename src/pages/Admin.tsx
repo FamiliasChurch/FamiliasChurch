@@ -5,7 +5,7 @@ import { useNavigate } from "react-router-dom";
 import { db, auth } from "../lib/firebase";
 import { 
   DollarSign, LogOut, LayoutDashboard, BookOpen, 
-  Calendar, Users, CheckCircle2, LayoutGrid, HeartHandshake // Importado o ícone HeartHandshake
+  Calendar, Users, CheckCircle2, LayoutGrid, HeartHandshake 
 } from "lucide-react";
 
 import AuditPanel from "./AuditPanel"; 
@@ -14,7 +14,7 @@ import BibleStudies from "./BibleStudies";
 import MembersManagement from "./MembersManagement";
 import EventsManagement from "./EventsManagement";
 import MinistriesManagement from "./MinistriesManagement";
-import PrayerManagement from "./PrayerManagement"; // Importe o novo componente
+import PrayerManagement from "./PrayerManagement";
 
 export default function AdminDashboard() {
   const [user, setUser] = useState<{nome: string, cargo: string, email: string} | null>(null);
@@ -58,13 +58,13 @@ export default function AdminDashboard() {
   if (!user) return null;
 
   const menuItens = [
-    { id: "dashboard", label: "Dashboard", icon: LayoutDashboard, roles: ["Dev", "Apóstolo", "Pastor", "Secretaria", "Mídia"] },
+    { id: "dashboard", label: "Dashboard", icon: LayoutDashboard, roles: ["Dev", "Apóstolo", "Secretaria"] },
     { id: "financeiro", label: "Financeiro", icon: DollarSign, roles: ["Dev", "Apóstolo", "Secretaria"] },
-    { id: "intercessao", label: "Intercessão", icon: HeartHandshake, roles: ["Dev", "Apóstolo", "Pastor"] }, // Nova Rota
+    { id: "intercessao", label: "Intercessão", icon: HeartHandshake, roles: ["Dev", "Apóstolo", "Pastor"] },
     { id: "estudos", label: "Estudos/Devocionais", icon: BookOpen, roles: ["Dev", "Apóstolo", "Pastor"] },
-    { id: "eventos", label: "Agenda/Eventos", icon: Calendar, roles: ["Dev", "Apóstolo", "Mídia"] },
+    { id: "eventos", label: "Agenda/Eventos", icon: Calendar, roles: ["Dev", "Apóstolo", "Mídia", "Secretaria"] }, 
     { id: "membros", label: "Membros", icon: Users, roles: ["Dev", "Apóstolo", "Secretaria"] },
-    { id: "ministerios", label: "Ministérios", icon: LayoutGrid, roles: ["Dev", "Apóstolo", "Mídia"] },
+    { id: "ministerios", label: "Ministérios", icon: LayoutGrid, roles: ["Dev", "Apóstolo", "Secretaria"] },
   ];
 
   const itensFiltrados = menuItens.filter(item => item.roles.includes(user.cargo));
@@ -126,9 +126,12 @@ export default function AdminDashboard() {
             </div>
           )}
 
-          {abaAtiva === "intercessao" && <PrayerManagement />} {/* Renderiza o novo componente */}
+          {abaAtiva === "intercessao" && <PrayerManagement />}
           {abaAtiva === "estudos" && <BibleStudies userRole={user.cargo} userName={user.nome} />}
-          {abaAtiva === "membros" && <MembersManagement />}
+          
+          {/* ALTERAÇÃO 2: Passando o userRole para MembersManagement */}
+          {abaAtiva === "membros" && <MembersManagement currentUserRole={user.cargo} />}
+          
           {abaAtiva === "eventos" && <EventsManagement userRole={user.cargo} />}
           {abaAtiva === "ministerios" && <MinistriesManagement userRole={user.cargo} />}
         </div>

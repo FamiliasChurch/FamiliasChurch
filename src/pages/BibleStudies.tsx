@@ -2,9 +2,10 @@ import { useState, useEffect } from "react";
 import { db } from "../lib/firebase";
 import { collection, addDoc, serverTimestamp, query, orderBy, onSnapshot, deleteDoc, doc, updateDoc } from "firebase/firestore";
 import { BookOpen, Send, Camera, Loader2, Link2, Layout, ScrollText, Quote, AlertCircle, Trash2, Edit2, List, PlusCircle } from "lucide-react";
+// Import do Modal
+import { useConfirm } from "../context/ConfirmContext";
 
 export default function BibleStudies({ userRole, userName }: { userRole: string, userName: string }) {
-  // Estado para controlar a aba ativa: 'form' (criar/editar) ou 'list' (gerenciar)
   const [activeTab, setActiveTab] = useState<'form' | 'list'>('form');
   
   const [estudo, setEstudo] = useState({ 
@@ -16,18 +17,18 @@ export default function BibleStudies({ userRole, userName }: { userRole: string,
   const [editingId, setEditingId] = useState<string | null>(null);
   const [limiteSugerido, setLimiteSugerido] = useState<number | null>(null);
 
+  // Instância do Modal
+  const { confirm } = useConfirm();
+
   const CLOUD_NAME = "ddndbv7do"; 
   const UPLOAD_PRESET = "ddndbv7do"; 
 
-  // Lista de Livros (Resumida para visualização, mantenha a completa de 66 livros)
   const livrosBiblia = [
     { id: "GEN", nome: "Gênesis", caps: 50 }, { id: "EXO", nome: "Êxodo", caps: 40 },
-    // ... adicione os outros livros aqui (LEV, NUM, DEU, etc...) ...
     { id: "MAT", nome: "Mateus", caps: 28 }, { id: "JHN", nome: "João", caps: 21 },
     { id: "REV", nome: "Apocalipse", caps: 22 }
   ];
 
-  // Carrega lista em tempo real
   useEffect(() => {
     const q = query(collection(db, "estudos_biblicos"), orderBy("data", "desc"));
     const unsub = onSnapshot(q, (snap) => {
@@ -36,7 +37,6 @@ export default function BibleStudies({ userRole, userName }: { userRole: string,
     return () => unsub();
   }, []);
 
-  // Sugestão de limite de versículos
   useEffect(() => {
     let slug = estudo.livro.toLowerCase();
     if (slug === "jhn") slug = "jn"; 
@@ -79,24 +79,36 @@ export default function BibleStudies({ userRole, userName }: { userRole: string,
 
       if (editingId) {
         await updateDoc(doc(db, "estudos_biblicos", editingId), dadosPost);
-        alert("Atualizado com sucesso!");
+        await confirm({ title: "Sucesso!", message: "Conteúdo atualizado.", variant: "success", confirmText: "Ok" });
         setEditingId(null);
       } else {
         await addDoc(collection(db, "estudos_biblicos"), dadosPost);
-        alert("Publicado com sucesso!");
+        await confirm({ title: "Publicado!", message: "Seu estudo já está online.", variant: "success", confirmText: "Amém" });
       }
 
       setEstudo({ titulo: "", conteudo: "", livro: "JHN", capitulo: 1, versiculo: 1, textoVersiculo: "", tipo: "devocional" });
       setImagem(null);
       
-      // Se estava editando, volta para a lista para ver o resultado
       if(editingId) setActiveTab('list');
 
-    } catch { alert("Erro ao salvar."); } finally { setLoading(false); }
+    } catch { 
+        alert("Erro ao salvar."); // Mantive alert aqui pra erro de rede rápido, mas pode trocar se quiser
+    } finally { 
+        setLoading(false); 
+    }
   };
 
   const handleExcluir = async (id: string) => {
-    if (confirm("Tem certeza que deseja excluir esta publicação?")) {
+    // --- SUBSTITUIÇÃO DO WINDOW.CONFIRM ---
+    const confirmou = await confirm({
+        title: "Excluir Publicação?",
+        message: "Tem certeza que deseja apagar este estudo? Ele será removido permanentemente do site e do aplicativo.",
+        variant: "danger",
+        confirmText: "Sim, Excluir",
+        cancelText: "Cancelar"
+    });
+
+    if (confirmou) {
       try {
         await deleteDoc(doc(db, "estudos_biblicos", id));
       } catch { alert("Erro ao excluir."); }
@@ -114,7 +126,7 @@ export default function BibleStudies({ userRole, userName }: { userRole: string,
       tipo: post.tipo
     });
     setEditingId(post.id);
-    setActiveTab('form'); // Muda automaticamente para a aba de formulário
+    setActiveTab('form'); 
   };
 
   const livroAtual = livrosBiblia.find(l => l.id === estudo.livro);
@@ -122,7 +134,7 @@ export default function BibleStudies({ userRole, userName }: { userRole: string,
   return (
     <div className="max-w-4xl mx-auto space-y-8 pb-20 animate-in fade-in duration-700">
       
-      {/* CABEÇALHO COM ABAS DE NAVEGAÇÃO */}
+      {/* CABEÇALHO */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 border-b border-slate-200 pb-6">
         <div className="flex items-center gap-4">
           <div className="p-3 bg-emerald-900 text-white rounded-2xl shadow-lg"><BookOpen size={24} /></div>
@@ -132,7 +144,6 @@ export default function BibleStudies({ userRole, userName }: { userRole: string,
           </div>
         </div>
 
-        {/* Botões de Alternância entre Criar e Listar */}
         <div className="flex bg-white p-1.5 rounded-xl border border-slate-200 shadow-sm self-start">
           <button 
             onClick={() => { setActiveTab('form'); setEditingId(null); setEstudo({ titulo: "", conteudo: "", livro: "JHN", capitulo: 1, versiculo: 1, textoVersiculo: "", tipo: "devocional" }); }}
@@ -149,14 +160,13 @@ export default function BibleStudies({ userRole, userName }: { userRole: string,
         </div>
       </div>
 
-      {/* ÁREA 1: FORMULÁRIO DE CRIAÇÃO/EDIÇÃO (SÓ APARECE SE A ABA FOR 'FORM') */}
+      {/* ÁREA 1: FORMULÁRIO */}
       {activeTab === 'form' && (
         <section className="bg-white p-8 md:p-12 rounded-[3rem] border border-slate-200 shadow-sm space-y-8 animate-in slide-in-from-left-4 duration-500">
           <div className="flex justify-between items-center">
             <h3 className="text-lg font-bold text-slate-700 flex items-center gap-2">
               {editingId ? <><Edit2 size={18} className="text-emerald-500"/> Editando Publicação</> : <><PlusCircle size={18} className="text-emerald-500"/> Nova Publicação</>}
             </h3>
-            {/* Seletor de Tipo */}
             <div className="flex bg-slate-100 p-1 rounded-xl">
               {["devocional", "estudo"].map(t => (
                 <button key={t} type="button" onClick={() => setEstudo({...estudo, tipo: t})} className={`px-4 py-2 rounded-lg text-[9px] font-black uppercase transition-all ${estudo.tipo === t ? "bg-white text-emerald-600 shadow-sm" : "text-slate-400"}`}>
@@ -177,7 +187,7 @@ export default function BibleStudies({ userRole, userName }: { userRole: string,
                 </select>
                 <div className="relative">
                   <input type="number" value={estudo.capitulo} onChange={e => setEstudo({...estudo, capitulo: Number(e.target.value)})} className="w-full bg-white p-4 rounded-xl border border-emerald-200 text-xs font-bold text-slate-600 outline-none" />
-                  <span className="absolute right-4 top-1/2 -translate-y-1/2 text-[8px] font-black text-slate-300 uppercase">Sugestão: 1-{livroAtual?.caps}</span>
+                  <span className="absolute right-4 top-1/2 -translate-y-1/2 text-[8px] font-black text-slate-300 uppercase">Capítulo</span>
                 </div>
                 <div className="relative group">
                   <input type="number" value={estudo.versiculo} onChange={e => setEstudo({...estudo, versiculo: Number(e.target.value)})} className={`w-full p-4 rounded-xl border text-xs font-bold outline-none transition-all ${limiteSugerido && estudo.versiculo > limiteSugerido ? 'border-amber-400 bg-amber-50 text-amber-700' : 'bg-white border-emerald-200 text-slate-600'}`} />
@@ -206,7 +216,7 @@ export default function BibleStudies({ userRole, userName }: { userRole: string,
         </section>
       )}
 
-      {/* ÁREA 2: LISTA DE GERENCIAMENTO (SÓ APARECE SE A ABA FOR 'LIST') */}
+      {/* ÁREA 2: LISTA */}
       {activeTab === 'list' && (
         <section className="space-y-6 animate-in slide-in-from-right-4 duration-500">
           <div className="grid gap-4">

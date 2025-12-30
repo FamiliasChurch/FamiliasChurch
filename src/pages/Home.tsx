@@ -11,7 +11,7 @@ import {
 } from "lucide-react"; // Adicionado ícone Check
 import { Link } from "react-router-dom";
 
-import fotoApostolo from "../assets/Ap.jpg";
+import fotoApostolo from "../assets/Ap.webp";
 
 export default function Home() {
     const [activeTab, setActiveTab] = useState(0);
@@ -27,8 +27,8 @@ export default function Home() {
     const [hojePalavra, setHojePalavra] = useState<any>(null);
 
     const linksMapas: { [key: string]: string } = {
-        pr: "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3596.5298154564883!2d-49.3039785!3d-25.6537385!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x94dcf97f536c4b2b%3A0x633390c58e0a84e2!2sFazenda%20Rio%20Grande%2C%20PR!5e0!3m2!1spt-BR!2sbr!4v1703615000000!5m2!1spt-BR!2sbr",
-        sc: "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d28345.543419363013!2d-48.6436665!3d-27.2355555!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x94d8ba9c99999999%3A0x999999999999999!2sTijucas%2C%20SC!5e0!3m2!1spt-BR!2sbr!4v1703615000000!5m2!1spt-BR!2sbr"
+        pr: "https://www.google.com/maps/embed?pb=!1m14!1m8!1m3!1d14388.27881543733!2d-49.293414!3d-25.635812!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x94dcff4864409997%3A0xf448de238c4c8eee!2sR.%20Cassuarina%2C%20219%20-%20Eucaliptos%2C%20Fazenda%20Rio%20Grande%20-%20PR%2C%2083820-710%2C%20Brasil!5e0!3m2!1spt-BR!2sus!4v1766925553201!5m2!1spt-BR!2sus",
+        sc: "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2109.206226955684!2d-48.63770238488049!3d-27.24275314203765!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x94d8a96303c235b1%3A0x7d230727e24660fc!2sR.%20Ant%C3%B4nio%20Leal%2C%2061%20-%20Centro%2C%20Tijucas%20-%20SC%2C%2088200-000%2C%20Brasil!5e0!3m2!1spt-BR!2sus!4v1766925729334!5m2!1spt-BR!2sus"
     };
 
     const ministerios = [
@@ -409,8 +409,8 @@ export default function Home() {
                         {/* FORMULÁRIO DE PEDIDO */}
                         <form onSubmit={enviarAoAltar} className="text-center space-y-12">
                             <div className="space-y-4">
-                                <h2 className="font-display text-6xl md:text-8xl uppercase tracking-tighter text-blue-900 leading-none">
-                                    Faça um pedido de <span className="opacity-20">Oração</span> <br /> você também
+                                <h2 className="font-display text-6xl md:text-8xl uppercase tracking-tighter text-blue-400 leading-none">
+                                    Faça um pedido de <span className="font-display text-6xl md:text-8xl uppercase tracking-tighter text-blue-900 leading-none">Oração</span> <br /> você também
                                 </h2>
                                 <p className="text-blue-400 uppercase tracking-[0.5em] text-[10px] font-black">Sua causa levada à presença do Pai</p>
                             </div>
@@ -423,8 +423,8 @@ export default function Home() {
                                     <input
                                         value={nome}
                                         onChange={(e) => setNome(e.target.value)}
-                                        className="w-full bg-transparent p-6 pl-20 rounded-[4rem] outline-none text-xl font-bold text-blue-900 placeholder:text-blue-600 placeholder:font-normal"
-                                        placeholder="Seu nome ou iniciais..."
+                                        className="w-full bg-transparent p-6 pl-20 rounded-[4rem] outline-none text-xl font-bold uppercase text-blue-600 placeholder:text-blue-600 placeholder:font-normal"
+                                        placeholder="insira aqui o seu nome"
                                         required
                                     />
                                 </div>

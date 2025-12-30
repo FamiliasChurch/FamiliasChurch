@@ -7,6 +7,8 @@ import {
 import {
   Shield, UserPlus, X, Users, LayoutGrid, ChevronRight, Briefcase, Phone, MessageCircle, Cake, PartyPopper
 } from "lucide-react";
+// Import do Modal
+import { useConfirm } from "../context/ConfirmContext";
 
 export default function MinistriesManagement({ userRole }: { userRole: string }) {
   const [ministerios, setMinisterios] = useState<any[]>([]);
@@ -17,6 +19,9 @@ export default function MinistriesManagement({ userRole }: { userRole: string })
   const listaMinisterios = ["Louvor", "Famílias", "Déboras", "Jovens", "Teens", "Kids", "Dança", "Teatro"];
   const cargosObreiros = ["Dev", "Apóstolo", "Secretaria", "Pastor", "Evangelista", "Presbítero", "Diácono", "Obreiro", "Servo", "Discípulo"];
   const cargosInternos = ["Líder", "Liderado", "Membro"];
+
+  // Instância do Modal
+  const { confirm } = useConfirm();
 
   const eMaster = ["Dev", "Apóstolo"].includes(userRole);
   const eSecretaria = userRole === "Secretaria";
@@ -82,9 +87,28 @@ export default function MinistriesManagement({ userRole }: { userRole: string })
 
   const removerMembro = async (minId: string, membroObj: any) => {
     if (eSecretaria && !["Diácono", "Presbítero"].includes(membroObj.cargoEclesia)) {
-      return alert("A Secretaria só tem permissão para remover Diáconos ou Presbíteros.");
+      // Usando o confirm como alerta de erro
+      await confirm({
+          title: "Acesso Negado",
+          message: "A Secretaria só tem permissão para remover Diáconos ou Presbíteros deste ministério.",
+          variant: "danger",
+          confirmText: "Entendi",
+          cancelText: "Fechar"
+      });
+      return;
     }
-    if (!window.confirm(`Remover ${membroObj.nome}?`)) return;
+
+    // --- SUBSTITUIÇÃO DO WINDOW.CONFIRM ---
+    const confirmou = await confirm({
+        title: "Remover Integrante?",
+        message: `Deseja remover ${membroObj.nome} do ministério ${minId}?`,
+        variant: "danger",
+        confirmText: "Sim, Remover",
+        cancelText: "Manter"
+    });
+
+    if (!confirmou) return;
+
     await updateDoc(doc(db, "ministerios_info", minId), { equipe: arrayRemove(membroObj) });
   };
 

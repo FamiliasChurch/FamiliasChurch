@@ -2,12 +2,14 @@ import { useEffect, useState } from "react";
 import { db } from "../lib/firebase";
 import { 
   collection, addDoc, query, orderBy, onSnapshot, 
-  serverTimestamp, deleteDoc, doc, getDocs, where, updateDoc, arrayUnion 
+  serverTimestamp, deleteDoc, doc, updateDoc 
 } from "firebase/firestore";
 import { 
   Calendar, Trash2, MapPin, Plus, Loader2, Image as ImageIcon, 
   Type, Layout, Sparkles, Camera, Tags, X, Edit3, Link2, Save
 } from "lucide-react";
+// Import do Modal
+import { useConfirm } from "../context/ConfirmContext";
 
 export default function EventsManagement({ userRole }: { userRole: string }) {
   const [eventos, setEventos] = useState<any[]>([]);
@@ -15,7 +17,10 @@ export default function EventsManagement({ userRole }: { userRole: string }) {
   const [uploadingFile, setUploadingFile] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
 
-  // Estados do Formulário (Usados para novo e edição)
+  // Instância do Modal
+  const { confirm } = useConfirm();
+
+  // Estados do Formulário
   const [titulo, setTitulo] = useState("");
   const [descricao, setDescricao] = useState("");
   const [tipo, setTipo] = useState("Cultos");
@@ -60,6 +65,7 @@ export default function EventsManagement({ userRole }: { userRole: string }) {
   const handleSaveEvent = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
+
     const dados = {
       titulo, descricao, tipo, 
       ministerio: tipo === "Conferências" ? ministerio : "Geral",
@@ -74,14 +80,36 @@ export default function EventsManagement({ userRole }: { userRole: string }) {
     try {
       if (editingId) {
         await updateDoc(doc(db, "agenda_eventos", editingId), dados);
-        alert("Evento atualizado com sucesso!");
+        await confirm({ title: "Evento Atualizado", message: "As informações foram salvas com sucesso.", variant: "success", confirmText: "Ok" });
       } else {
         await addDoc(collection(db, "agenda_eventos"), { ...dados, galeria: [], criado_em: serverTimestamp() });
-        alert("Evento publicado!");
+        await confirm({ title: "Evento Criado", message: "O evento já está visível na agenda.", variant: "success", confirmText: "Ok" });
       }
       limparCampos();
-    } catch (err) { alert("Erro ao salvar."); }
-    finally { setLoading(false); }
+    } catch (err) { 
+        alert("Erro ao salvar."); // Erro técnico mantém alert simples
+    } finally { 
+        setLoading(false); 
+    }
+  };
+
+  const handleDeleteEvent = async (id: string) => {
+    // --- SUBSTITUIÇÃO DO DELETE DIRETO ---
+    const confirmou = await confirm({
+        title: "Excluir Evento?",
+        message: "Tem certeza que deseja remover este evento da agenda? Isso não pode ser desfeito.",
+        variant: "danger",
+        confirmText: "Sim, Excluir",
+        cancelText: "Cancelar"
+    });
+
+    if (confirmou) {
+        try {
+            await deleteDoc(doc(db, "agenda_eventos", id));
+        } catch (e) {
+            alert("Erro ao excluir.");
+        }
+    }
   };
 
   const prepararEdicao = (ev: any) => {
@@ -94,7 +122,7 @@ export default function EventsManagement({ userRole }: { userRole: string }) {
     setImagemCapa(ev.capa);
     setPossuiInscricao(ev.possuiInscricao || false);
     setLinkInscricao(ev.linkInscricao || "");
-    // Converte timestamp para string de input datetime-local
+    
     if (ev.dataReal?.toDate) {
       const d = ev.dataReal.toDate();
       const formatada = new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
@@ -103,7 +131,7 @@ export default function EventsManagement({ userRole }: { userRole: string }) {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  if (!["Mídia", "Apóstolo", "Dev"].includes(userRole)) return <div className="h-screen flex items-center justify-center font-black text-red-600 uppercase">Acesso Negado</div>;
+  if (!["Mídia", "Apóstolo", "Pastor", "Dev"].includes(userRole)) return <div className="h-screen flex items-center justify-center font-black text-red-600 uppercase">Acesso Negado</div>;
 
   return (
     <div className="min-h-screen bg-blue-50/30 pt-32 pb-20 px-6 font-body">
@@ -209,7 +237,7 @@ export default function EventsManagement({ userRole }: { userRole: string }) {
               </div>
               <div className="flex gap-2">
                 <button onClick={() => prepararEdicao(ev)} className="p-4 bg-blue-50 text-blue-600 rounded-2xl hover:bg-blue-600 hover:text-white transition-all shadow-sm"><Edit3 size={20}/></button>
-                <button onClick={() => deleteDoc(doc(db, "agenda_eventos", ev.id))} className="p-4 bg-red-50 text-red-400 rounded-2xl hover:bg-red-500 hover:text-white transition-all shadow-sm"><Trash2 size={20}/></button>
+                <button onClick={() => handleDeleteEvent(ev.id)} className="p-4 bg-red-50 text-red-400 rounded-2xl hover:bg-red-500 hover:text-white transition-all shadow-sm"><Trash2 size={20}/></button>
               </div>
             </div>
           ))}
