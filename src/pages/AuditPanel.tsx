@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { db } from "../lib/firebase";
 import { collection, query, orderBy, limit, onSnapshot } from "firebase/firestore";
-import { ShieldCheck, AlertTriangle, Scale, RefreshCw, Download } from "lucide-react";
+import { ShieldCheck, AlertTriangle, Scale, RefreshCw, Download, FileSpreadsheet } from "lucide-react";
 
 export default function AuditPanel({ totalAtivo }: { totalAtivo: number }) {
   const [ultimoBackup, setUltimoBackup] = useState<any>(null);
@@ -21,17 +21,14 @@ export default function AuditPanel({ totalAtivo }: { totalAtivo: number }) {
     return () => unsub();
   }, [totalAtivo]);
 
-  // --- FUNÇÃO DE EXPORTAÇÃO (Melhorada para Excel/Acentos) ---
+  // --- FUNÇÃO DE EXPORTAÇÃO (Mantida Original) ---
   const exportarRelatorio = () => {
     if (!ultimoBackup) return alert("Aguarde o carregamento dos dados de backup.");
 
     const dataAtual = new Date().toLocaleString("pt-BR");
     const status = diferenca === 0 ? "INTEGRO" : "DIVERGENTE";
 
-    // Cabeçalho do CSV
     const headers = ["METRICA;VALOR;DETALHES;DATA_VERIFICACAO"];
-    
-    // Linhas de dados
     const rows = [
       `STATUS_GERAL;${status};${diferenca === 0 ? "Sincronizado" : "Requer Atencao"};${dataAtual}`,
       `VALOR_BACKUP;${ultimoBackup.valorTotalNoMomento};Referencia Backup: ${ultimoBackup.dataBackup || 'N/A'};${dataAtual}`,
@@ -39,14 +36,10 @@ export default function AuditPanel({ totalAtivo }: { totalAtivo: number }) {
       `DISCREPANCIA;${diferenca};${diferenca === 0 ? "Zero" : "Valor Pendente"};${dataAtual}`
     ];
 
-    // Adiciona BOM (\uFEFF) para o Excel reconhecer acentos
     const csvContent = "\uFEFF" + headers.concat(rows).join("\n");
-    
-    // Cria o Blob e o Link de download
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
-    
     link.setAttribute("href", url);
     link.setAttribute("download", `auditoria_financeira_${new Date().toISOString().split('T')[0]}.csv`);
     document.body.appendChild(link);
@@ -55,16 +48,19 @@ export default function AuditPanel({ totalAtivo }: { totalAtivo: number }) {
   };
 
   return (
-    <div className="bg-white p-10 rounded-[3rem] border border-gray-100 shadow-sm space-y-8 mt-10 transition-all">
+    <div className="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-all duration-300">
+      
       {/* HEADER DO PAINEL */}
-      <div className="flex flex-col md:flex-row items-start md:items-center justify-between border-b border-gray-100 pb-6 gap-4">
+      <div className="flex flex-col md:flex-row items-start md:items-center justify-between border-b border-slate-100 pb-6 mb-6 gap-4">
         <div className="flex items-center gap-4">
-          <Scale className="text-primaria" size={28} />
+          <div className="p-3 bg-blue-50 rounded-xl text-blue-600">
+             <Scale size={24} />
+          </div>
           <div>
-            <h2 className="text-3xl font-black uppercase tracking-tighter text-gray-900">
+            <h2 className="text-xl font-bold text-slate-800 tracking-tight">
                 Auditoria de Dados
             </h2>
-            <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">
+            <p className="text-sm text-slate-500 font-medium">
                 Painel de Integridade Financeira
             </p>
           </div>
@@ -74,82 +70,92 @@ export default function AuditPanel({ totalAtivo }: { totalAtivo: number }) {
             {/* BOTÃO DE EXPORTAR */}
             <button 
                 onClick={exportarRelatorio}
-                className="flex items-center gap-2 px-5 py-2 rounded-full border border-gray-200 text-gray-500 text-[10px] font-black uppercase tracking-widest hover:bg-gray-50 hover:text-primaria transition-all"
+                className="flex items-center gap-2 px-4 py-2 rounded-xl border border-slate-200 text-slate-600 text-xs font-bold uppercase tracking-wide hover:bg-blue-50 hover:text-blue-600 hover:border-blue-200 transition-all"
                 title="Baixar CSV para Excel"
             >
-                <Download size={14} /> Exportar Relatório
+                <Download size={14} /> Exportar CSV
             </button>
 
-            <div className={`px-4 py-2 rounded-full text-[9px] font-black uppercase tracking-widest flex items-center gap-2 ${
-            diferenca === 0 ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
+            <div className={`px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wide flex items-center gap-2 border ${
+              diferenca === 0 
+                ? 'bg-emerald-50 text-emerald-700 border-emerald-100' 
+                : 'bg-amber-50 text-amber-700 border-amber-100'
             }`}>
-            {diferenca === 0 ? (
-                <><ShieldCheck size={14} /> Integridade Confirmada</>
-            ) : (
-                <><AlertTriangle size={14} /> Discrepância Detectada</>
-            )}
+              {diferenca === 0 ? (
+                  <><ShieldCheck size={14} /> Integridade Confirmada</>
+              ) : (
+                  <><AlertTriangle size={14} /> Discrepância Detectada</>
+              )}
             </div>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
         {/* COMPARAÇÃO VISUAL */}
         <div className="space-y-6">
           {/* Barra Backup */}
-          <div className="space-y-2">
-            <div className="flex justify-between text-[10px] uppercase font-bold text-gray-500">
-                <span>Backup Estático ({ultimoBackup?.dataBackup || '--/--'})</span>
-                <span className="text-gray-900 font-black">
+          <div className="space-y-2 group">
+            <div className="flex justify-between text-xs font-semibold text-slate-500 uppercase tracking-wide">
+                <span className="flex items-center gap-1"><FileSpreadsheet size={12}/> Valores Estáticos ({ultimoBackup?.dataBackup || '--/--'})</span>
+                <span className="text-slate-700 font-bold">
                 R$ {Number(ultimoBackup?.valorTotalNoMomento || 0).toLocaleString('pt-BR', {minimumFractionDigits: 2})}
                 </span>
             </div>
-            <div className="w-full bg-gray-100 h-3 rounded-full overflow-hidden">
-                <div className="bg-gray-400 h-full transition-all" style={{ width: '100%' }} />
+            <div className="w-full bg-slate-100 h-2.5 rounded-full overflow-hidden">
+                <div className="bg-slate-400 h-full rounded-full transition-all duration-1000 w-full" />
             </div>
           </div>
           
           {/* Barra Real-Time */}
-          <div className="space-y-2">
-            <div className="flex justify-between text-[10px] uppercase font-bold text-gray-500">
-                <span>Banco de Dados Ativo (Tempo Real)</span>
-                <span className="text-primaria font-black">
+          <div className="space-y-2 group">
+            <div className="flex justify-between text-xs font-semibold text-slate-500 uppercase tracking-wide">
+                <span className="flex items-center gap-1"><RefreshCw size={12} className={diferenca !== 0 ? "animate-spin" : ""}/> Valores Atualizados (Ao Vivo)</span>
+                <span className="text-blue-600 font-bold">
                 R$ {totalAtivo.toLocaleString('pt-BR', {minimumFractionDigits: 2})}
                 </span>
             </div>
-            <div className="w-full bg-gray-100 h-3 rounded-full overflow-hidden relative">
-                <div className="absolute top-0 left-0 h-full bg-gray-200 w-full"></div>
+            <div className="w-full bg-slate-100 h-2.5 rounded-full overflow-hidden relative">
+                {/* Background bar */}
+                <div className="absolute top-0 left-0 h-full bg-slate-200 w-full"></div>
+                {/* Active bar */}
                 <div 
-                className={`h-full transition-all relative z-10 ${diferenca === 0 ? 'bg-primaria' : 'bg-red-600'}`} 
-                style={{ width: `${ultimoBackup ? Math.min((totalAtivo / (ultimoBackup.valorTotalNoMomento || 1)) * 100, 100) : 0}%` }} 
+                  className={`h-full rounded-full transition-all duration-1000 relative z-10 ${diferenca === 0 ? 'bg-blue-600' : 'bg-amber-500'}`} 
+                  style={{ width: `${ultimoBackup ? Math.min((totalAtivo / (ultimoBackup.valorTotalNoMomento || 1)) * 100, 100) : 0}%` }} 
                 />
             </div>
           </div>
         </div>
 
-        {/* STATUS DE AUDITORIA */}
-        <div className="bg-gray-50 p-6 rounded-[2rem] border border-gray-100 flex flex-col justify-center items-center text-center space-y-4">
+        {/* STATUS DE AUDITORIA (Card Direito) */}
+        <div className={`p-6 rounded-2xl border flex flex-col justify-center items-center text-center space-y-3 transition-colors ${
+            diferenca === 0 ? 'bg-slate-50 border-slate-100' : 'bg-amber-50 border-amber-100'
+        }`}>
           {diferenca === 0 ? (
             <>
-              <ShieldCheck className="text-green-600" size={48} />
+              <div className="p-3 bg-white rounded-full shadow-sm text-emerald-500 mb-1">
+                 <ShieldCheck size={32} />
+              </div>
               <div>
-                <p className="text-sm font-bold text-gray-800">Sincronização Perfeita</p>
-                <p className="text-[10px] text-gray-500 leading-relaxed mt-1">
+                <p className="text-sm font-bold text-slate-800">Sincronização Perfeita</p>
+                <p className="text-xs text-slate-500 leading-relaxed mt-1 max-w-[250px]">
                     O valor ativo em caixa corresponde exatamente ao último ponto de verificação seguro.
                 </p>
               </div>
             </>
           ) : (
             <>
-              <AlertTriangle className="text-red-600" size={48} />
+              <div className="p-3 bg-white rounded-full shadow-sm text-amber-500 mb-1">
+                <AlertTriangle size={32} />
+              </div>
               <div>
-                <p className="text-sm font-bold text-red-600 uppercase">Atenção Necessária</p>
-                <p className="text-2xl font-black text-gray-800 my-2">
+                <p className="text-xs font-bold text-amber-600 uppercase tracking-wider">Atenção Necessária</p>
+                <p className="text-3xl font-bold text-slate-800 my-1 tracking-tight">
                     {diferenca > 0 ? "+" : ""}{diferenca.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
                 </p>
-                <p className="text-[10px] text-gray-500">Diferença entre o backup e o valor atual.</p>
+                <p className="text-xs text-slate-500">Diferença entre backup e valor atual.</p>
               </div>
-              <button className="text-[10px] font-black uppercase text-primaria hover:underline flex items-center gap-2 transition-all mt-2">
-                <RefreshCw size={12} /> Forçar Reconciliação
+              <button className="text-xs font-bold uppercase text-blue-600 hover:text-blue-700 flex items-center gap-1 transition-all mt-2 bg-white px-3 py-1.5 rounded-lg border border-blue-100 hover:border-blue-300 shadow-sm">
+                <RefreshCw size={12} /> Reconciliar Sistema
               </button>
             </>
           )}
