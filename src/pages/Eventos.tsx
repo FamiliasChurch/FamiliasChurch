@@ -1,212 +1,180 @@
 import { useEffect, useState } from "react";
 import { db } from "../lib/firebase";
 import { collection, query, orderBy, onSnapshot } from "firebase/firestore";
-import { Calendar, MapPin, Sparkles, X, Image as ImageIcon, ChevronRight, History, Tags } from "lucide-react";
+import { 
+    Calendar, 
+    MapPin, 
+    ChevronDown, 
+    Search, 
+    Clock, 
+    ArrowRight,
+    ExternalLink
+} from "lucide-react";
+import { Link } from "react-router-dom";
 
-export default function Eventos() {
-    const [eventosFuturos, setEventosFuturos] = useState<any[]>([]);
-    const [eventosAntigos, setEventosAntigos] = useState<any[]>([]);
-    const [filtroAtivo, setFiltroAtivo] = useState("Todos");
-    const [subFiltroAtivo, setSubFiltroAtivo] = useState("Todos");
+export default function Events() {
+    // Estado do filtro começando com "Todos" por padrão
+    const [filtro, setFiltro] = useState("Todos");
+    const [eventos, setEventos] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
-    const [eventoSelecionado, setEventoSelecionado] = useState<any>(null);
 
     const categorias = ["Todos", "Cultos", "Encontros com Deus", "Conferências", "Encontro de Casais"];
-    const subCategorias = ["Todos", "Déboras", "Jovens", "Teens", "Kids"];
 
     useEffect(() => {
         const q = query(collection(db, "agenda_eventos"), orderBy("dataReal", "asc"));
         const unsub = onSnapshot(q, (snap) => {
-            const hoje = new Date();
-            hoje.setHours(0, 0, 0, 0);
-            const lista = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-            
-            // Separação rigorosa entre futuros e passados
-            setEventosFuturos(lista.filter((ev: any) => ev.dataReal?.toDate() >= hoje));
-            setEventosAntigos(lista.filter((ev: any) => ev.dataReal?.toDate() < hoje).reverse());
+            setEventos(snap.docs.map(d => ({ id: d.id, ...d.data() })));
             setLoading(false);
         });
         return () => unsub();
     }, []);
 
-    const filtrar = (lista: any[]) => lista.filter(ev => {
-        const matchPrincipal = filtroAtivo === "Todos" || ev.tipo === filtroAtivo;
-        const matchSub = filtroAtivo === "Conferências" 
-            ? (subFiltroAtivo === "Todos" || ev.ministerio === subFiltroAtivo)
-            : true;
-        return matchPrincipal && matchSub;
-    });
-
-    const futurosFiltrados = filtrar(eventosFuturos);
-    const passadosFiltrados = filtrar(eventosAntigos);
-
-    // --- LÓGICA DE DESTAQUE RECONFIGURADA ---
-    // Encontro com Deus para o destaque fixo (SOMENTE na aba 'Todos')
-    const encontroFixo = filtroAtivo === "Todos" 
-        ? futurosFiltrados.find(ev => ev.tipo === "Encontros com Deus") 
-        : null;
-
-    // Próximo evento (Se for aba Encontros com Deus, ele pega o primeiro. Se for Todos, ele pega o primeiro que não seja o fixo)
-    const proximoDestaque = futurosFiltrados.find(ev => ev.id !== encontroFixo?.id);
-
-    // Lista que vai para a grade 4x4
-    const gridFuturos = futurosFiltrados.filter(ev => ev.id !== encontroFixo?.id && ev.id !== proximoDestaque?.id);
-
-    if (loading) return <div className="min-h-screen flex items-center justify-center bg-blue-50/30"><div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div></div>;
-
-    const EventCard = ({ ev, isSmall = false }: { ev: any, isSmall?: boolean }) => (
-        <div className="bg-white rounded-[2.5rem] p-4 border border-blue-50 hover:shadow-2xl transition-all duration-500 group flex flex-col h-full italic">
-            <div className={`${isSmall ? 'h-40' : 'h-48'} rounded-[2rem] overflow-hidden relative mb-4`}>
-                <img src={ev.capa} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-1000" alt={ev.titulo} />
-                {ev.tipo !== "Cultos" && (
-                    <div className="absolute top-3 left-3 bg-blue-600 text-white px-3 py-1 rounded-full text-[8px] font-black uppercase shadow-sm italic">
-                        {ev.tipo}
-                    </div>
-                )}
-            </div>
-            <div className="px-2 pb-2 flex-1 flex flex-col">
-                <span className="text-[9px] font-bold text-blue-400 uppercase flex items-center gap-1 mb-2 italic">
-                    <Calendar size={10} /> {ev.dataReal?.toDate().toLocaleDateString('pt-BR')}
-                </span>
-                <h4 className={`font-bold text-blue-900 uppercase tracking-tighter leading-tight mb-4 ${isSmall ? 'text-sm line-clamp-2' : 'text-lg'}`}>{ev.titulo}</h4>
-                <button onClick={() => setEventoSelecionado(ev)} className="mt-auto w-full py-3 rounded-xl border border-blue-100 text-[9px] font-black uppercase text-blue-600 hover:bg-blue-600 hover:text-white transition-all">
-                    Ver Detalhes
-                </button>
-            </div>
-        </div>
-    );
+    // Lógica de filtragem
+    const eventosFiltrados = filtro === "Todos" 
+        ? eventos 
+        : eventos.filter(ev => ev.tipo === filtro);
 
     return (
-        <div className="min-h-screen bg-blue-50/30 pt-32 pb-20 px-6 font-body">
-            <div className="container mx-auto max-w-7xl space-y-16">
+        <div className="min-h-screen bg-blue-50/30 pt-32 pb-20 font-sans">
+            <div className="container mx-auto px-6">
                 
-                {/* CABEÇALHO E FILTROS */}
-                <div className="text-center space-y-8 max-w-4xl mx-auto">
-                    <h1 className="font-display text-7xl md:text-8xl text-blue-900 tracking-tighter uppercase leading-none text-center">Agenda <span className="text-blue-500">Igreja</span></h1>
-                    <div className="flex flex-wrap justify-center gap-3">
-                        {categorias.map(cat => (
-                            <button key={cat} onClick={() => { setFiltroAtivo(cat); setSubFiltroAtivo("Todos"); }}
-                                className={`px-8 py-3 rounded-full text-[10px] font-black uppercase tracking-widest transition-all border ${filtroAtivo === cat ? 'bg-blue-600 text-white border-blue-600 shadow-xl scale-105' : 'bg-white text-blue-400 border-blue-100 hover:bg-blue-50'}`}>
-                                {cat}
-                            </button>
-                        ))}
-                    </div>
-
-                    {/* CONFERÊNCIAS E SUB-FILTROS */}
-                    {filtroAtivo === "Conferências" && (
-                        <div className="animate-in slide-in-from-top-4 duration-500 bg-white/60 backdrop-blur-sm p-6 rounded-[2.5rem] border border-blue-100 space-y-4 shadow-sm">
-                            <div className="flex items-center justify-center gap-2 text-blue-900/40 italic">
-                                <Tags size={14} />
-                                <span className="text-[9px] font-black uppercase tracking-widest italic">Filtrar por Ministério</span>
-                            </div>
-                            <div className="flex flex-wrap justify-center gap-2">
-                                {subCategorias.map(sub => (
-                                    <button key={sub} onClick={() => setSubFiltroAtivo(sub)}
-                                        className={`px-5 py-2 rounded-xl text-[9px] font-bold uppercase transition-all ${subFiltroAtivo === sub ? 'bg-blue-900 text-white shadow-md' : 'bg-white/80 text-blue-400 border border-blue-50 hover:bg-white'}`}>
-                                        {sub}
-                                    </button>
-                                ))}
-                            </div>
-                        </div>
-                    )}
+                {/* CABEÇALHO DA PÁGINA */}
+                <div className="text-center mb-16 space-y-4">
+                    <h1 className="font-display text-6xl md:text-8xl uppercase tracking-tighter text-blue-900">
+                        Agenda <span className="text-blue-500">Igreja</span>
+                    </h1>
+                    <p className="text-blue-400 uppercase tracking-[0.3em] text-[10px] font-black">
+                        Fique por dentro de tudo que acontece
+                    </p>
                 </div>
 
-                {/* SEÇÃO DE DESTAQUES (DINÂMICO) */}
-                {futurosFiltrados.length > 0 && (
-                    <div className={`grid gap-8 ${encontroFixo ? 'lg:grid-cols-3' : 'grid-cols-1'}`}>
-                        {/* DESTAQUE PRINCIPAL (Esq se Todos, Full se Aba específica) */}
-                        <div className={encontroFixo ? 'lg:col-span-2' : 'w-full'}>
-                            {proximoDestaque && (
-                                <div className="bg-white rounded-[4rem] overflow-hidden border border-blue-100 shadow-2xl flex flex-col md:flex-row h-full relative group min-h-[450px]">
-                                    <div className="md:w-1/2 h-64 md:h-auto relative overflow-hidden">
-                                        <img src={proximoDestaque.capa} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-1000" alt="Destaque" />
-                                        <div className="absolute top-6 left-6 bg-blue-600 text-white px-5 py-2 rounded-2xl flex items-center gap-2 shadow-xl animate-pulse">
-                                            <Sparkles size={14} />
-                                            <span className="text-[10px] font-black uppercase">Próximo Evento</span>
-                                        </div>
-                                    </div>
-                                    <div className="md:w-1/2 p-10 lg:p-14 flex flex-col justify-center space-y-6 italic text-left">
-                                        <div>
-                                            <span className="text-blue-500 font-black text-[10px] uppercase tracking-widest italic">{proximoDestaque.tipo}</span>
-                                            <h2 className="text-4xl lg:text-5xl font-display font-bold text-blue-900 uppercase leading-[0.9] tracking-tighter text-left">{proximoDestaque.titulo}</h2>
-                                        </div>
-                                        <p className="text-slate-400 text-sm line-clamp-3 leading-relaxed">"{proximoDestaque.descricao}"</p>
-                                        <button onClick={() => setEventoSelecionado(proximoDestaque)} className="w-fit px-8 py-4 bg-blue-600 text-white rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-blue-700 transition-all shadow-lg shadow-blue-600/20 italic">Ver Mensagem Completa</button>
-                                    </div>
-                                </div>
-                            )}
-                        </div>
+                {/* FILTROS - MOBILE (DROPDOWN) */}
+                <div className="md:hidden relative max-w-xs mx-auto mb-12 group">
+                    <div className="absolute inset-y-0 right-4 flex items-center pointer-events-none text-blue-500">
+                        <ChevronDown size={20} />
+                    </div>
+                    <select 
+                        value={filtro}
+                        onChange={(e) => setFiltro(e.target.value)}
+                        className="w-full appearance-none bg-white border-2 border-blue-100 text-blue-900 px-6 py-4 rounded-2xl font-black uppercase text-[11px] tracking-widest cursor-pointer outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-100 transition-all shadow-lg text-center"
+                    >
+                        {categorias.map((cat) => (
+                            <option key={cat} value={cat}>{cat}</option>
+                        ))}
+                    </select>
+                </div>
 
-                        {/* ENCONTRO COM DEUS FIXO (APENAS NA ABA TODOS) */}
-                        {encontroFixo && (
-                            <div className="bg-blue-600 rounded-[3.5rem] p-10 text-white flex flex-col justify-between relative overflow-hidden shadow-2xl border-4 border-white/20 group h-full italic animate-in slide-in-from-right duration-700">
-                                <img src={encontroFixo.capa} className="absolute inset-0 w-full h-full object-cover opacity-20 group-hover:scale-110 transition-transform duration-1000" alt="Encontro" />
-                                <div className="relative z-10 space-y-6">
-                                    <div className="bg-white/20 backdrop-blur w-fit px-4 py-1 rounded-full text-[9px] font-black uppercase">Encontro com Deus</div>
-                                    <h2 className="text-4xl lg:text-5xl font-display font-bold uppercase tracking-tighter leading-tight text-left">{encontroFixo.titulo}</h2>
-                                    <div className="flex flex-col gap-3 text-white/80">
-                                        <span className="flex items-center gap-2 text-xs font-bold font-body uppercase"><Calendar size={14}/> {encontroFixo.dataReal?.toDate().toLocaleDateString('pt-BR')}</span>
-                                        <span className="flex items-center gap-2 text-xs font-bold font-body uppercase"><MapPin size={14}/> {encontroFixo.local}</span>
+                {/* FILTROS - DESKTOP (BOTÕES) */}
+                <div className="hidden md:flex flex-wrap justify-center gap-3 mb-16">
+                    {categorias.map((cat) => (
+                        <button
+                            key={cat}
+                            onClick={() => setFiltro(cat)}
+                            className={`px-8 py-3 rounded-full font-black text-[10px] uppercase tracking-widest transition-all border ${
+                                filtro === cat 
+                                ? 'bg-blue-600 text-white shadow-xl scale-110 border-blue-600' 
+                                : 'bg-white text-blue-400 hover:bg-blue-50 border-blue-100'
+                            }`}
+                        >
+                            {cat}
+                        </button>
+                    ))}
+                </div>
+
+                {/* GRID DE EVENTOS */}
+                {loading ? (
+                    <div className="flex justify-center py-20">
+                        <Loader2 className="animate-spin text-blue-500" size={40} />
+                    </div>
+                ) : (
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                        {eventosFiltrados.length > 0 ? (
+                            eventosFiltrados.map((ev) => (
+                                <div key={ev.id} className="bg-white rounded-[3rem] overflow-hidden border border-blue-50 shadow-sm hover:shadow-2xl transition-all group flex flex-col">
+                                    <div className="relative h-64 overflow-hidden">
+                                        <img 
+                                            src={ev.capa || "https://images.unsplash.com/photo-1438232992991-995b7058bbb3?q=80&w=2073"} 
+                                            className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" 
+                                            alt={ev.titulo} 
+                                        />
+                                        <div className="absolute top-4 left-4 bg-white/90 backdrop-blur px-4 py-1 rounded-full shadow-sm">
+                                            <span className="text-[10px] font-black text-blue-600 uppercase tracking-widest">{ev.tipo}</span>
+                                        </div>
+                                    </div>
+                                    
+                                    <div className="p-8 flex-1 flex flex-col space-y-4">
+                                        <div className="flex items-center gap-4 text-blue-400 text-[10px] font-black uppercase tracking-widest">
+                                            <div className="flex items-center gap-1.5">
+                                                <Calendar size={14} />
+                                                {ev.dataReal?.toDate().toLocaleDateString('pt-BR')}
+                                            </div>
+                                            <div className="flex items-center gap-1.5">
+                                                <Clock size={14} />
+                                                {ev.dataReal?.toDate().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
+                                            </div>
+                                        </div>
+                                        
+                                        <h3 className="text-2xl font-black text-blue-900 uppercase tracking-tight leading-tight">
+                                            {ev.titulo}
+                                        </h3>
+                                        
+                                        <p className="text-slate-500 text-sm italic line-clamp-3">
+                                            {ev.descricao}
+                                        </p>
+
+                                        <div className="pt-4 mt-auto">
+                                            <div className="flex items-center gap-2 text-slate-400 text-xs mb-6">
+                                                <MapPin size={14} className="text-blue-300" />
+                                                {ev.local}
+                                            </div>
+                                            
+                                            {ev.possuiInscricao && ev.linkInscricao ? (
+                                                <a 
+                                                    href={ev.linkInscricao} 
+                                                    target="_blank" 
+                                                    className="w-full bg-blue-600 text-white py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest flex items-center justify-center gap-2 hover:bg-blue-700 transition-all shadow-lg shadow-blue-600/20"
+                                                >
+                                                    Fazer Inscrição <ExternalLink size={14} />
+                                                </a>
+                                            ) : (
+                                                <div className="w-full bg-blue-50 text-blue-400 py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest flex items-center justify-center gap-2">
+                                                    Entrada Livre
+                                                </div>
+                                            )}
+                                        </div>
                                     </div>
                                 </div>
-                                <button onClick={() => setEventoSelecionado(encontroFixo)} className="relative z-10 w-full py-5 bg-white text-blue-600 rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-blue-50 transition-all mt-10 shadow-lg italic">Inscrições & Informações</button>
+                            ))
+                        ) : (
+                            <div className="col-span-full py-32 text-center border-2 border-dashed border-blue-100 rounded-[4rem] bg-blue-50/20">
+                                <p className="uppercase tracking-widest font-black text-xs text-blue-300">
+                                    Nenhum evento encontrado nesta categoria
+                                </p>
                             </div>
                         )}
                     </div>
                 )}
-
-                {/* GRADE 4X4 FUTUROS */}
-                {gridFuturos.length > 0 && (
-                    <div className="space-y-8 pt-10 border-t border-blue-100">
-                        <h3 className="text-xl font-display font-bold text-blue-900/40 uppercase tracking-widest italic">Próximas Datas</h3>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 italic">
-                            {gridFuturos.map(ev => <EventCard key={ev.id} ev={ev} isSmall />)}
-                        </div>
-                    </div>
-                )}
-
-                {/* EVENTOS ANTIGOS */}
-                {passadosFiltrados.length > 0 && (
-                    <div className="space-y-8 pt-20 border-t border-blue-100 opacity-60 grayscale hover:grayscale-0 transition-all duration-700 italic">
-                        <div className="flex items-center gap-4 text-slate-400">
-                            <History size={24} />
-                            <h3 className="text-xl font-display font-bold uppercase tracking-widest italic">Veja nossos Eventos que já passaram</h3>
-                        </div>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 italic">
-                            {passadosFiltrados.map(ev => <EventCard key={ev.id} ev={ev} isSmall />)}
-                        </div>
-                    </div>
-                )}
             </div>
-
-            {/* MODAL DETALHES */}
-            {eventoSelecionado && (
-                <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 animate-in fade-in duration-300">
-                    <div className="absolute inset-0 bg-blue-900/40 backdrop-blur-md" onClick={() => setEventoSelecionado(null)} />
-                    <div className="bg-white w-full max-w-4xl max-h-[85vh] rounded-[4rem] relative z-10 overflow-hidden shadow-2xl flex flex-col italic">
-                        <button onClick={() => setEventoSelecionado(null)} className="absolute top-8 right-8 p-3 bg-blue-50 text-blue-600 rounded-full hover:bg-red-50 hover:text-red-500 transition-all z-20"><X size={24} /></button>
-                        <div className="p-10 lg:p-16 overflow-y-auto custom-scrollbar space-y-8">
-                            <div className="space-y-2 text-left">
-                                <span className="text-blue-500 font-black text-xs uppercase tracking-widest">{eventoSelecionado.tipo} {eventoSelecionado.ministerio !== 'Geral' && `• ${eventoSelecionado.ministerio}`}</span>
-                                <h2 className="text-4xl lg:text-6xl font-display font-bold text-blue-900 uppercase tracking-tighter leading-none text-left">{eventoSelecionado.titulo}</h2>
-                                <p className="text-slate-500 text-lg leading-relaxed pt-4 border-t border-blue-50 mt-4">"{eventoSelecionado.descricao}"</p>
-                            </div>
-                            {eventoSelecionado.galeria?.length > 0 && (
-                                <div className="space-y-6">
-                                    <h3 className="text-[10px] font-black uppercase text-slate-300 tracking-[0.3em] italic text-left">Galeria de Recordações</h3>
-                                    <div className="grid grid-cols-2 md:grid-cols-3 gap-4 italic">
-                                        {eventoSelecionado.galeria.map((img: string, i: number) => (
-                                            <div key={i} className="aspect-square rounded-[2rem] overflow-hidden border-4 border-blue-50 shadow-sm transition-transform hover:scale-105">
-                                                <img src={img} className="w-full h-full object-cover" alt="Galeria" />
-                                            </div>
-                                        ))}
-                                    </div>
-                                </div>
-                            )}
-                        </div>
-                    </div>
-                </div>
-            )}
         </div>
+    );
+}
+
+// Componente auxiliar Loader (caso não tenha importado)
+function Loader2({ className, size }: { className?: string, size?: number }) {
+    return (
+        <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width={size || 24}
+            height={size || 24}
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            className={`animate-spin ${className}`}
+        >
+            <path d="M21 12a9 9 0 1 1-6.219-8.56" />
+        </svg>
     );
 }
