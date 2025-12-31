@@ -26,10 +26,15 @@ export default function Home() {
     const [eventos, setEventos] = useState<any[]>([]);
     const [hojePalavra, setHojePalavra] = useState<any>(null);
 
-    // DICA: Substitua esses links pelos links reais de "Compartilhar Local" do Google Maps
-    const linksMapas: { [key: string]: string } = {
-        pr: "https://maps.google.com/?q=Fazenda+Rio+Grande", // Link de exemplo
-        sc: "https://maps.google.com/?q=Tijucas" // Link de exemplo
+    // Links reais para redirecionamento no Google Maps
+    const linksMapasInternos: { [key: string]: string } = {
+        pr: "https://www.google.com/maps/search/?api=1&query=Fazenda+Rio+Grande+PR",
+        sc: "https://www.google.com/maps/search/?api=1&query=Tijucas+SC"
+    };
+
+    const linksMapasEmbed: { [key: string]: string } = {
+        pr: "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3598.675!2d-49.30!3d-25.65!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2zMjXCsDM5JzAwLjAiUyA0OcKwMTgnMDAuMCJX!5e0!3m2!1spt-BR!2sbr!4v123456789",
+        sc: "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3536.0!2d-48.6!3d-27.2!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2zMjfCsDEyJzAwLjAiUyA0OMKwMzYnMDAuMCJX!5e0!3m2!1spt-BR!2sbr!4v123456789"
     };
 
     const ministerios = [
@@ -253,17 +258,17 @@ export default function Home() {
                     </div>
                 </section>
 
-                {/* SEÇÃO DE CULTOS E MAPA (ALTERADO PARA MOBILE) */}
+                {/* SEÇÃO DE CULTOS E MAPA (AJUSTADO PARA MOBILE) */}
                 <section id="cultos" className="py-24 bg-blue-50/50">
                     <div className="container mx-auto px-6 space-y-12">
                         <div className="text-center space-y-6">
-                            <h2 className="font-display text-7xl uppercase tracking-tighter text-blue-900">Nossas Sedes</h2>
+                            <h2 className="font-display text-5xl md:text-7xl uppercase tracking-tighter text-blue-900 text-center">Nossas Sedes</h2>
                             <div className="flex justify-center gap-3">
                                 {['pr', 'sc'].map((state) => (
                                     <button
                                         key={state}
                                         onClick={() => setActiveState(state)}
-                                        className={`px-10 py-3 rounded-full font-black uppercase text-[10px] tracking-[0.2em] transition-all ${activeState === state ? 'bg-blue-600 text-white shadow-xl shadow-blue-600/30 scale-105' : 'bg-white text-blue-400 hover:bg-blue-50 border border-blue-100'
+                                        className={`px-6 md:px-10 py-3 rounded-full font-black uppercase text-[9px] md:text-[10px] tracking-[0.2em] transition-all ${activeState === state ? 'bg-blue-600 text-white shadow-xl scale-105' : 'bg-white text-blue-400 border border-blue-100'
                                             }`}
                                     >
                                         {state === 'pr' ? 'Paraná' : 'Santa Catarina'}
@@ -272,12 +277,13 @@ export default function Home() {
                             </div>
                         </div>
 
-                        <div className="grid md:grid-cols-2 gap-10">
+                        <div className="grid md:grid-cols-2 gap-10 items-start">
                             <div className="space-y-6">
-                                <h3 className="font-display text-5xl text-blue-600 uppercase tracking-tighter mb-8 text-center md:text-left">
+                                <h3 className="font-display text-4xl md:text-5xl text-blue-600 uppercase tracking-tighter mb-4 text-center md:text-left">
                                     {activeState === 'pr' ? 'Fazenda Rio Grande' : 'Tijucas'}
                                 </h3>
-                                {/* ALTERAÇÃO 1: Grid ajustado para mobile (um ao lado do outro) */}
+                                
+                                {/* Grid ajustado para mobile: lado a lado em telas pequenas */}
                                 <div className="grid grid-cols-2 md:grid-cols-1 gap-3 md:gap-4">
                                     <div className="bg-white p-4 md:p-8 rounded-[2rem] md:rounded-[3rem] flex flex-col md:flex-row justify-between items-center border border-blue-50 shadow-sm group hover:border-blue-400 transition-all hover:shadow-xl text-center md:text-left">
                                         <div className="flex flex-col md:flex-row items-center gap-3 md:gap-6">
@@ -285,11 +291,11 @@ export default function Home() {
                                                 <Calendar size={20} className="md:w-6 md:h-6" />
                                             </div>
                                             <div>
-                                                <p className="font-black text-blue-400 text-[8px] md:text-[10px] tracking-widest uppercase italic mb-1">Domingo</p>
-                                                <p className="text-sm md:text-xl font-bold text-blue-900 uppercase">Culto da Família</p>
+                                                <p className="font-black text-blue-400 text-[8px] md:text-[10px] tracking-widest uppercase italic">Domingo</p>
+                                                <p className="text-xs md:text-xl font-bold text-blue-900 uppercase leading-tight">Culto da Família</p>
                                             </div>
                                         </div>
-                                        <span className="text-2xl md:text-4xl font-display text-blue-900 mt-2 md:mt-0 opacity-80 md:opacity-30 group-hover:opacity-100 transition-opacity">19:00</span>
+                                        <span className="text-2xl md:text-4xl font-display text-blue-900 opacity-60 md:opacity-30 group-hover:opacity-100 mt-2 md:mt-0">19:00</span>
                                     </div>
                                     <div className="bg-white p-4 md:p-8 rounded-[2rem] md:rounded-[3rem] flex flex-col md:flex-row justify-between items-center border border-blue-50 shadow-sm group hover:border-blue-400 transition-all hover:shadow-xl text-center md:text-left">
                                         <div className="flex flex-col md:flex-row items-center gap-3 md:gap-6">
@@ -297,69 +303,82 @@ export default function Home() {
                                                 <Clock size={20} className="md:w-6 md:h-6" />
                                             </div>
                                             <div>
-                                                <p className="font-black text-blue-400 text-[8px] md:text-[10px] tracking-widest uppercase italic mb-1">Quinta-Feira</p>
-                                                <p className="text-sm md:text-xl font-bold text-blue-900 uppercase">Ensino Bíblico</p>
+                                                <p className="font-black text-blue-400 text-[8px] md:text-[10px] tracking-widest uppercase italic">Quinta-Feira</p>
+                                                <p className="text-xs md:text-xl font-bold text-blue-900 uppercase leading-tight">Ensino Bíblico</p>
                                             </div>
                                         </div>
-                                        <span className="text-2xl md:text-4xl font-display text-blue-900 mt-2 md:mt-0 opacity-80 md:opacity-30 group-hover:opacity-100 transition-opacity">20:00</span>
+                                        <span className="text-2xl md:text-4xl font-display text-blue-900 opacity-60 md:opacity-30 group-hover:opacity-100 mt-2 md:mt-0">20:00</span>
                                     </div>
                                 </div>
                             </div>
 
-                            {/* ALTERAÇÃO 2: Mapa com redirecionamento no mobile */}
-                            <a
-                                href={linksMapas[activeState]}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="block relative group rounded-[4rem] overflow-hidden h-[300px] md:h-[450px] shadow-2xl border border-blue-100 cursor-pointer"
-                            >
-                                <iframe
-                                    src={linksMapas[activeState].replace("https://maps.google.com/?q=", "https://maps.google.com/maps?output=embed&q=")} // Ajuste técnico para iframe funcionar com a string de busca simples, se necessário, ou mantenha seu link de embed original
-                                    title="Localização Famílias Church"
-                                    className="w-full h-full grayscale brightness-110 opacity-80 group-hover:opacity-100 group-hover:grayscale-0 transition-all duration-700 pointer-events-none md:pointer-events-auto"
-                                    loading="lazy"
-                                    referrerPolicy="no-referrer-when-downgrade"
-                                />
-                                {/* Botão overlay visível apenas no mobile para indicar clique */}
-                                <div className="absolute bottom-6 right-6 md:hidden bg-blue-600 text-white px-4 py-2 rounded-full text-xs font-bold uppercase shadow-lg flex items-center gap-2 animate-pulse">
-                                    <ExternalLink size={14} /> Abrir no GPS
-                                </div>
-                            </a>
+                            {/* Mapa com redirecionamento no Mobile */}
+                            <div className="space-y-4">
+                                <a 
+                                    href={linksMapasInternos[activeState]} 
+                                    target="_blank" 
+                                    rel="noopener noreferrer"
+                                    className="block relative bg-white p-3 rounded-[3rem] md:rounded-[4rem] overflow-hidden h-[300px] md:h-[450px] border border-blue-100 shadow-2xl group"
+                                >
+                                    <iframe
+                                        src={linksMapasEmbed[activeState]}
+                                        title="Localização Famílias Church"
+                                        className="w-full h-full rounded-[2rem] md:rounded-[3rem] grayscale brightness-110 opacity-80 group-hover:opacity-100 group-hover:grayscale-0 transition-all duration-700 pointer-events-none md:pointer-events-auto"
+                                        loading="lazy"
+                                    />
+                                    {/* Overlay interativo visível apenas no Mobile */}
+                                    <div className="absolute inset-0 bg-blue-900/10 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity md:hidden">
+                                        <div className="bg-white/90 px-6 py-3 rounded-full flex items-center gap-2 shadow-xl">
+                                            <ExternalLink size={18} className="text-blue-600" />
+                                            <span className="font-bold text-blue-900 text-xs uppercase">Ver no Maps</span>
+                                        </div>
+                                    </div>
+                                </a>
+                                <a 
+                                    href={linksMapasInternos[activeState]}
+                                    target="_blank"
+                                    className="flex md:hidden items-center justify-center gap-2 w-full bg-blue-600 text-white py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest shadow-lg active:scale-95 transition-all"
+                                >
+                                    <MapPin size={16} /> Como Chegar (Google Maps)
+                                </a>
+                            </div>
                         </div>
                     </div>
                 </section>
 
+                {/* SEÇÃO MINISTÉRIOS COM MENU SUSPENSO */}
                 <section id="ministerios" className="py-24 bg-white">
                     <div className="container mx-auto px-6 text-center">
-                        <h2 className="font-display text-7xl mb-12 uppercase tracking-tighter text-blue-900">Minis<span className="text-blue-500">térios</span></h2>
-
-                        {/* ALTERAÇÃO 3: Menu Suspenso (Select) Bonitão */}
-                        <div className="relative max-w-md mx-auto mb-16 group">
-                            <div className="absolute right-4 top-1/2 -translate-y-1/2 text-blue-500 pointer-events-none group-hover:translate-y-0 transition-transform">
-                                <ChevronDown size={24} />
+                        <h2 className="font-display text-6xl md:text-7xl mb-12 uppercase tracking-tighter text-blue-900">Minis<span className="text-blue-500">térios</span></h2>
+                        
+                        {/* MENU SUSPENSO (Dropdown moderno) */}
+                        <div className="relative max-w-xs md:max-w-md mx-auto mb-16 group">
+                            <div className="absolute inset-y-0 right-6 flex items-center pointer-events-none text-blue-500">
+                                <ChevronDown size={24} className="group-hover:translate-y-0.5 transition-transform" />
                             </div>
                             <select
                                 value={activeTab}
                                 onChange={(e) => setActiveTab(Number(e.target.value))}
-                                className="w-full appearance-none bg-blue-50 border-2 border-blue-100 text-blue-900 text-center font-black uppercase text-sm tracking-widest py-4 px-8 rounded-full cursor-pointer outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-100 transition-all shadow-lg hover:bg-white"
+                                className="w-full appearance-none bg-blue-50 border-2 border-blue-100 text-blue-900 text-center font-black uppercase text-xs md:text-sm tracking-widest py-5 px-10 rounded-full cursor-pointer outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-100 transition-all shadow-xl hover:bg-white"
                             >
                                 {ministerios.map((m, index) => (
-                                    <option key={m.titulo} value={index} className="text-slate-700 bg-white">
+                                    <option key={m.titulo} value={index} className="text-slate-700 font-sans">
                                         {m.titulo}
                                     </option>
                                 ))}
                             </select>
                         </div>
 
-                        <div className="bg-white rounded-[4rem] overflow-hidden grid md:grid-cols-2 min-h-[600px] border border-blue-100 shadow-2xl animate-in fade-in zoom-in duration-500 key={activeTab}">
+                        {/* Conteúdo do Ministério */}
+                        <div className="bg-white rounded-[4rem] overflow-hidden grid md:grid-cols-2 min-h-[600px] border border-blue-100 shadow-2xl animate-in fade-in zoom-in duration-700">
                             <div className="relative overflow-hidden">
                                 <img src={ministerios[activeTab].img} className="h-full w-full object-cover transition-transform duration-1000 hover:scale-110" alt="Ministério" />
                                 <div className="absolute inset-0 bg-blue-900/10" />
                             </div>
-                            <div className="p-16 flex flex-col justify-center text-left space-y-8 bg-blue-50/20">
-                                <h3 className="text-6xl font-black uppercase tracking-tighter text-blue-900 leading-none">{ministerios[activeTab].titulo}</h3>
+                            <div className="p-10 md:p-16 flex flex-col justify-center text-left space-y-8 bg-blue-50/20">
+                                <h3 className="text-5xl md:text-6xl font-black uppercase tracking-tighter text-blue-900 leading-none">{ministerios[activeTab].titulo}</h3>
                                 <div className="w-24 h-2 bg-blue-500 rounded-full" />
-                                <p className="text-xl text-slate-600 leading-relaxed font-light italic">{ministerios[activeTab].desc}</p>
+                                <p className="text-lg md:text-xl text-slate-600 leading-relaxed font-light italic">{ministerios[activeTab].desc}</p>
                             </div>
                         </div>
                     </div>
@@ -381,7 +400,6 @@ export default function Home() {
 
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     {oracoesAprovadas.map((oracao) => {
-                                        // Verifica se o usuário atual já intercedeu neste pedido
                                         const jaIntercedeu = user && oracao.intercessores && oracao.intercessores.includes(user.uid);
 
                                         return (
@@ -400,15 +418,14 @@ export default function Home() {
                                                     </div>
                                                 </div>
 
-                                                {/* BOTÃO DE INTERCESSÃO (Interação Única) */}
                                                 <button
                                                     onClick={() => handleInterceder(oracao.id, oracao.intercessores)}
                                                     disabled={!user || jaIntercedeu}
                                                     className={`flex items-center gap-1 px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-wide transition-all ${!user
-                                                            ? 'bg-slate-100 text-slate-400 cursor-not-allowed opacity-70' // Deslogado
+                                                            ? 'bg-slate-100 text-slate-400 cursor-not-allowed opacity-70' 
                                                             : jaIntercedeu
-                                                                ? 'bg-blue-600 text-white cursor-default' // Já clicou
-                                                                : 'bg-blue-100 text-blue-600 hover:bg-blue-600 hover:text-white cursor-pointer' // Pode clicar
+                                                                ? 'bg-blue-600 text-white cursor-default' 
+                                                                : 'bg-blue-100 text-blue-600 hover:bg-blue-600 hover:text-white cursor-pointer' 
                                                         }`}
                                                     title={!user ? "Faça login para interceder" : jaIntercedeu ? "Você já intercedeu" : "Clique para interceder"}
                                                 >
@@ -425,8 +442,8 @@ export default function Home() {
                         {/* FORMULÁRIO DE PEDIDO */}
                         <form onSubmit={enviarAoAltar} className="text-center space-y-12">
                             <div className="space-y-4">
-                                <h2 className="font-display text-6xl md:text-8xl uppercase tracking-tighter text-blue-400 leading-none">
-                                    Faça um pedido de <span className="font-display text-6xl md:text-8xl uppercase tracking-tighter text-blue-900 leading-none">Oração</span> <br /> você também
+                                <h2 className="font-display text-6xl md:text-8xl uppercase tracking-tighter text-blue-400 leading-none text-center">
+                                    Faça um pedido de <span className="font-display text-blue-900">Oração</span> <br className="hidden md:block" /> você também
                                 </h2>
                                 <p className="text-blue-400 uppercase tracking-[0.5em] text-[10px] font-black">Sua causa levada à presença do Pai</p>
                             </div>
