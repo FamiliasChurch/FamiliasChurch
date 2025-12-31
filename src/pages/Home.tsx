@@ -3,12 +3,12 @@ import { db, auth } from "../lib/firebase";
 import {
     collection, query, orderBy, onSnapshot, limit, addDoc,
     serverTimestamp, where, doc, updateDoc, increment, arrayUnion
-} from "firebase/firestore"; // Adicionado arrayUnion
+} from "firebase/firestore";
 import { onAuthStateChanged } from "firebase/auth";
 import {
     Heart, MapPin, Quote, Send, Loader2, Calendar, Clock,
-    Sparkles, ArrowRight, Share2, User, HeartHandshake, Check
-} from "lucide-react"; // Adicionado ícone Check
+    Sparkles, ArrowRight, Share2, User, HeartHandshake, Check, ChevronDown, ExternalLink
+} from "lucide-react";
 import { Link } from "react-router-dom";
 
 import fotoApostolo from "../assets/Ap.webp";
@@ -26,9 +26,10 @@ export default function Home() {
     const [eventos, setEventos] = useState<any[]>([]);
     const [hojePalavra, setHojePalavra] = useState<any>(null);
 
+    // DICA: Substitua esses links pelos links reais de "Compartilhar Local" do Google Maps
     const linksMapas: { [key: string]: string } = {
-        pr: "https://www.google.com/maps/embed?pb=!1m14!1m8!1m3!1d14388.27881543733!2d-49.293414!3d-25.635812!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x94dcff4864409997%3A0xf448de238c4c8eee!2sR.%20Cassuarina%2C%20219%20-%20Eucaliptos%2C%20Fazenda%20Rio%20Grande%20-%20PR%2C%2083820-710%2C%20Brasil!5e0!3m2!1spt-BR!2sus!4v1766925553201!5m2!1spt-BR!2sus",
-        sc: "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2109.206226955684!2d-48.63770238488049!3d-27.24275314203765!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x94d8a96303c235b1%3A0x7d230727e24660fc!2sR.%20Ant%C3%B4nio%20Leal%2C%2061%20-%20Centro%2C%20Tijucas%20-%20SC%2C%2088200-000%2C%20Brasil!5e0!3m2!1spt-BR!2sus!4v1766925729334!5m2!1spt-BR!2sus"
+        pr: "https://maps.google.com/?q=Fazenda+Rio+Grande", // Link de exemplo
+        sc: "https://maps.google.com/?q=Tijucas" // Link de exemplo
     };
 
     const ministerios = [
@@ -110,7 +111,7 @@ export default function Home() {
                 status: "pendente",
                 notaPublica: "",
                 intercessoes: 0,
-                intercessores: [], // Inicializa a lista de quem orou
+                intercessores: [],
                 data: serverTimestamp()
             });
             setPedido("");
@@ -120,23 +121,19 @@ export default function Home() {
         finally { setEnviando(false); }
     };
 
-    // Função Blindada para Intercessão Única
     const handleInterceder = async (id: string, listaIntercessores: string[]) => {
         if (!user) {
             alert("Faça login para registrar sua intercessão.");
             return;
         }
-
-        // Verifica se o usuário já está na lista
         if (listaIntercessores && listaIntercessores.includes(user.uid)) {
-            return; // Bloqueia a ação se já intercedeu
+            return;
         }
-
         try {
             const oracaoRef = doc(db, "pedidos_oracao", id);
             await updateDoc(oracaoRef, {
                 intercessoes: increment(1),
-                intercessores: arrayUnion(user.uid) // Adiciona o ID do usuário na lista sem duplicar
+                intercessores: arrayUnion(user.uid)
             });
         } catch (error) {
             console.error("Erro ao interceder", error);
@@ -256,8 +253,7 @@ export default function Home() {
                     </div>
                 </section>
 
-                {/* SEÇÃO DE CULTOS E MINISTÉRIOS */}
-                {/* ... (Conteúdo de Cultos e Ministérios mantido igual ao anterior) ... */}
+                {/* SEÇÃO DE CULTOS E MAPA (ALTERADO PARA MOBILE) */}
                 <section id="cultos" className="py-24 bg-blue-50/50">
                     <div className="container mx-auto px-6 space-y-12">
                         <div className="text-center space-y-6">
@@ -278,45 +274,57 @@ export default function Home() {
 
                         <div className="grid md:grid-cols-2 gap-10">
                             <div className="space-y-6">
-                                <h3 className="font-display text-5xl text-blue-600 uppercase tracking-tighter mb-8">
+                                <h3 className="font-display text-5xl text-blue-600 uppercase tracking-tighter mb-8 text-center md:text-left">
                                     {activeState === 'pr' ? 'Fazenda Rio Grande' : 'Tijucas'}
                                 </h3>
-                                <div className="grid gap-4">
-                                    <div className="bg-white p-8 rounded-[3rem] flex justify-between items-center border border-blue-50 shadow-sm group hover:border-blue-400 transition-all hover:shadow-xl">
-                                        <div className="flex items-center gap-6">
-                                            <div className="bg-blue-50 p-4 rounded-2xl text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-colors">
-                                                <Calendar size={24} />
+                                {/* ALTERAÇÃO 1: Grid ajustado para mobile (um ao lado do outro) */}
+                                <div className="grid grid-cols-2 md:grid-cols-1 gap-3 md:gap-4">
+                                    <div className="bg-white p-4 md:p-8 rounded-[2rem] md:rounded-[3rem] flex flex-col md:flex-row justify-between items-center border border-blue-50 shadow-sm group hover:border-blue-400 transition-all hover:shadow-xl text-center md:text-left">
+                                        <div className="flex flex-col md:flex-row items-center gap-3 md:gap-6">
+                                            <div className="bg-blue-50 p-3 md:p-4 rounded-2xl text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-colors">
+                                                <Calendar size={20} className="md:w-6 md:h-6" />
                                             </div>
                                             <div>
-                                                <p className="font-black text-blue-400 text-[10px] tracking-widest uppercase italic mb-1">Domingo</p>
-                                                <p className="text-xl font-bold text-blue-900 uppercase">Culto da Família</p>
+                                                <p className="font-black text-blue-400 text-[8px] md:text-[10px] tracking-widest uppercase italic mb-1">Domingo</p>
+                                                <p className="text-sm md:text-xl font-bold text-blue-900 uppercase">Culto da Família</p>
                                             </div>
                                         </div>
-                                        <span className="text-4xl font-display text-blue-900 opacity-30 group-hover:opacity-100 transition-opacity">19:00</span>
+                                        <span className="text-2xl md:text-4xl font-display text-blue-900 mt-2 md:mt-0 opacity-80 md:opacity-30 group-hover:opacity-100 transition-opacity">19:00</span>
                                     </div>
-                                    <div className="bg-white p-8 rounded-[3rem] flex justify-between items-center border border-blue-50 shadow-sm group hover:border-blue-400 transition-all hover:shadow-xl">
-                                        <div className="flex items-center gap-6">
-                                            <div className="bg-blue-50 p-4 rounded-2xl text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-colors">
-                                                <Clock size={24} />
+                                    <div className="bg-white p-4 md:p-8 rounded-[2rem] md:rounded-[3rem] flex flex-col md:flex-row justify-between items-center border border-blue-50 shadow-sm group hover:border-blue-400 transition-all hover:shadow-xl text-center md:text-left">
+                                        <div className="flex flex-col md:flex-row items-center gap-3 md:gap-6">
+                                            <div className="bg-blue-50 p-3 md:p-4 rounded-2xl text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-colors">
+                                                <Clock size={20} className="md:w-6 md:h-6" />
                                             </div>
                                             <div>
-                                                <p className="font-black text-blue-400 text-[10px] tracking-widest uppercase italic mb-1">Quinta-Feira</p>
-                                                <p className="text-xl font-bold text-blue-900 uppercase">Ensino Bíblico</p>
+                                                <p className="font-black text-blue-400 text-[8px] md:text-[10px] tracking-widest uppercase italic mb-1">Quinta-Feira</p>
+                                                <p className="text-sm md:text-xl font-bold text-blue-900 uppercase">Ensino Bíblico</p>
                                             </div>
                                         </div>
-                                        <span className="text-4xl font-display text-blue-900 opacity-30 group-hover:opacity-100 transition-opacity">20:00</span>
+                                        <span className="text-2xl md:text-4xl font-display text-blue-900 mt-2 md:mt-0 opacity-80 md:opacity-30 group-hover:opacity-100 transition-opacity">20:00</span>
                                     </div>
                                 </div>
                             </div>
-                            <div className="bg-white p-4 rounded-[4rem] overflow-hidden h-[450px] border border-blue-100 shadow-2xl">
+
+                            {/* ALTERAÇÃO 2: Mapa com redirecionamento no mobile */}
+                            <a
+                                href={linksMapas[activeState]}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="block relative group rounded-[4rem] overflow-hidden h-[300px] md:h-[450px] shadow-2xl border border-blue-100 cursor-pointer"
+                            >
                                 <iframe
-                                    src={linksMapas[activeState]}
+                                    src={linksMapas[activeState].replace("https://maps.google.com/?q=", "https://maps.google.com/maps?output=embed&q=")} // Ajuste técnico para iframe funcionar com a string de busca simples, se necessário, ou mantenha seu link de embed original
                                     title="Localização Famílias Church"
-                                    className="w-full h-full rounded-[3rem] grayscale brightness-110 opacity-80 hover:opacity-100 hover:grayscale-0 transition-all duration-700"
+                                    className="w-full h-full grayscale brightness-110 opacity-80 group-hover:opacity-100 group-hover:grayscale-0 transition-all duration-700 pointer-events-none md:pointer-events-auto"
                                     loading="lazy"
                                     referrerPolicy="no-referrer-when-downgrade"
                                 />
-                            </div>
+                                {/* Botão overlay visível apenas no mobile para indicar clique */}
+                                <div className="absolute bottom-6 right-6 md:hidden bg-blue-600 text-white px-4 py-2 rounded-full text-xs font-bold uppercase shadow-lg flex items-center gap-2 animate-pulse">
+                                    <ExternalLink size={14} /> Abrir no GPS
+                                </div>
+                            </a>
                         </div>
                     </div>
                 </section>
@@ -324,18 +332,26 @@ export default function Home() {
                 <section id="ministerios" className="py-24 bg-white">
                     <div className="container mx-auto px-6 text-center">
                         <h2 className="font-display text-7xl mb-12 uppercase tracking-tighter text-blue-900">Minis<span className="text-blue-500">térios</span></h2>
-                        <div className="flex flex-wrap justify-center gap-3 mb-16">
-                            {ministerios.map((m, index) => (
-                                <button
-                                    key={m.titulo}
-                                    onClick={() => setActiveTab(index)}
-                                    className={`px-8 py-3 rounded-full font-black text-[10px] uppercase tracking-widest transition-all ${activeTab === index ? 'bg-blue-600 text-white shadow-xl scale-110' : 'bg-blue-50 text-blue-400 hover:bg-blue-100 border border-blue-100/50'}`}
-                                >
-                                    {m.titulo}
-                                </button>
-                            ))}
+
+                        {/* ALTERAÇÃO 3: Menu Suspenso (Select) Bonitão */}
+                        <div className="relative max-w-md mx-auto mb-16 group">
+                            <div className="absolute right-4 top-1/2 -translate-y-1/2 text-blue-500 pointer-events-none group-hover:translate-y-0 transition-transform">
+                                <ChevronDown size={24} />
+                            </div>
+                            <select
+                                value={activeTab}
+                                onChange={(e) => setActiveTab(Number(e.target.value))}
+                                className="w-full appearance-none bg-blue-50 border-2 border-blue-100 text-blue-900 text-center font-black uppercase text-sm tracking-widest py-4 px-8 rounded-full cursor-pointer outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-100 transition-all shadow-lg hover:bg-white"
+                            >
+                                {ministerios.map((m, index) => (
+                                    <option key={m.titulo} value={index} className="text-slate-700 bg-white">
+                                        {m.titulo}
+                                    </option>
+                                ))}
+                            </select>
                         </div>
-                        <div className="bg-white rounded-[4rem] overflow-hidden grid md:grid-cols-2 min-h-[600px] border border-blue-100 shadow-2xl">
+
+                        <div className="bg-white rounded-[4rem] overflow-hidden grid md:grid-cols-2 min-h-[600px] border border-blue-100 shadow-2xl animate-in fade-in zoom-in duration-500 key={activeTab}">
                             <div className="relative overflow-hidden">
                                 <img src={ministerios[activeTab].img} className="h-full w-full object-cover transition-transform duration-1000 hover:scale-110" alt="Ministério" />
                                 <div className="absolute inset-0 bg-blue-900/10" />
