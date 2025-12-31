@@ -41,6 +41,8 @@ export default function Header({ userRole, userName }: { userRole: string, userN
     { name: "Doações", href: "/doacoes" },
   ];
 
+  const rolesRelevantes = ["Dev", "Apóstolo", "Pastor", "Secretaria", "Mídia"];
+
   const handleLogout = async () => {
     try {
       await signOut(auth);
@@ -76,7 +78,6 @@ export default function Header({ userRole, userName }: { userRole: string, userN
   useEffect(() => {
     const unsubAuth = auth.onAuthStateChanged((user) => {
       if (user && user.email) {
-        // Monitora o Perfil (Foto e Idade)
         const unsubDoc = onSnapshot(doc(db, "contas_acesso", user.email), (docSnap) => {
           if (docSnap.exists()) {
             const data = docSnap.data();
@@ -85,7 +86,6 @@ export default function Header({ userRole, userName }: { userRole: string, userN
           }
         });
 
-        // Monitora os Ministérios
         const unsubMin = onSnapshot(collection(db, "ministerios_info"), (snap) => {
           let minEncontrado = null;
           snap.docs.forEach(docMin => {
@@ -107,7 +107,6 @@ export default function Header({ userRole, userName }: { userRole: string, userN
     return () => unsubAuth();
   }, []);
 
-  const rolesRelevantes = ["Dev", "Apóstolo", "Pastor", "Secretaria", "Mídia"];
   const mostrarMinisterio = !rolesRelevantes.includes(userRole);
   const displayPhoto = userPhoto || "https://www.w3schools.com/howto/img_avatar.png";
 
@@ -115,23 +114,19 @@ export default function Header({ userRole, userName }: { userRole: string, userN
     <header className="fixed top-0 w-full z-50 bg-white/95 backdrop-blur-md h-20 flex items-center border-b border-n-borda">
       <div className="container mx-auto px-6 flex justify-between items-center">
         <Link to="/" className="flex items-center gap-3">
-          <img src={logoIgreja} className="w-10 h-10 rounded-full border-2 border-primaria object-cover" alt="Logo" />
+          <img src={logoIgreja} className="w-10 h-10 rounded-full border-2 border-blue-600 object-cover" alt="Logo" />
           <span className="font-display text-2xl font-bold text-n-texto uppercase tracking-tighter">FAMÍLIAS CHURCH</span>
         </Link>
 
+        {/* VERSÃO DESKTOP */}
         <nav className="hidden lg:flex items-center gap-8">
           <ul className="flex gap-6 text-[11px] font-bold uppercase tracking-widest text-n-suave">
             {navLinks.map((link) => (
               <li key={link.name}>
-                {/* CORREÇÃO APLICADA AQUI: ClassName agora é uma função */}
                 <HashLink
                   smooth
                   to={link.href}
-                  className={({ isActive }) => 
-                    `text-sm font-bold transition-all ${
-                      isActive ? 'text-slate-600 hover:text-blue-600' : 'text-slate-600 hover:text-blue-600'
-                    }`
-                  }
+                  className="text-sm font-bold transition-all text-slate-600 hover:text-blue-600"
                 >
                   {link.name}
                 </HashLink>
@@ -140,7 +135,6 @@ export default function Header({ userRole, userName }: { userRole: string, userN
           </ul>
 
           <div className="flex items-center gap-4 pl-4 border-l border-n-borda relative">
-            {/* BOTÃO DE NOTIFICAÇÕES */}
             <div className="relative">
               <button
                 onClick={(e) => {
@@ -156,7 +150,6 @@ export default function Header({ userRole, userName }: { userRole: string, userN
                 )}
               </button>
 
-              {/* LISTA DE NOTIFICAÇÕES FLUTUANTE */}
               {notificacoesAberto && (
                 <div className="absolute right-0 top-full mt-4 w-80 bg-white rounded-[2rem] border border-n-borda shadow-2xl z-[60] overflow-hidden animate-in fade-in zoom-in duration-200">
                   <div className="p-5 border-b border-n-borda bg-gray-50/50 flex justify-between items-center">
@@ -167,7 +160,7 @@ export default function Header({ userRole, userName }: { userRole: string, userN
                     {notificacoesVisiveis.length > 0 ? (
                       notificacoesVisiveis.map((n) => (
                         <div key={n.id} className="p-4 border-b border-n-borda/40 flex gap-4 hover:bg-gray-50 transition-colors">
-                          <div className={`p-2 rounded-full h-fit ${n.valor ? 'bg-blue-50 text-blue-600' : 'bg-blue-50 text-blue-600'}`}>
+                          <div className={`p-2 rounded-full h-fit bg-blue-50 text-blue-600`}>
                             {n.valor ? <DollarSign size={14} /> : <MessageCircle size={14} />}
                           </div>
                           <div className="flex-1">
@@ -193,7 +186,6 @@ export default function Header({ userRole, userName }: { userRole: string, userN
               )}
             </div>
 
-            {/* BOTÃO DE PERFIL */}
             <div className="relative">
               <button
                 onClick={(e) => {
@@ -206,7 +198,6 @@ export default function Header({ userRole, userName }: { userRole: string, userN
                 <img src={displayPhoto} className="w-full h-full object-cover rounded-full" alt="Perfil" />
               </button>
 
-              {/* MENU FLUTUANTE DE PERFIL (CORRIGIDO) */}
               {menuAberto && (
                 <div className="absolute right-0 top-full mt-4 w-72 bg-white p-6 rounded-[2.5rem] border border-n-borda shadow-2xl z-[60] animate-in fade-in zoom-in duration-200">
                   {userName === "Convidado" ? (
@@ -278,22 +269,46 @@ export default function Header({ userRole, userName }: { userRole: string, userN
 
       {/* MOBILE MENU */}
       {isOpen && (
-        <div className="absolute top-20 left-0 w-full bg-white border-b border-n-borda py-10 flex flex-col items-center gap-6 lg:hidden animate-in slide-in-from-top duration-300 shadow-xl z-[40]">
+        <div className="absolute top-20 left-0 w-full bg-white border-b border-n-borda py-8 flex flex-col items-center gap-5 lg:hidden animate-in slide-in-from-top duration-300 shadow-xl z-[40]">
           {navLinks.map((link) => (
-            <HashLink key={link.name} smooth to={link.href} onClick={() => setIsOpen(false)} className="text-lg font-bold uppercase tracking-widest text-n-texto hover:text-blue-600 transition-colors">
+            <HashLink 
+              key={link.name} 
+              smooth to={link.href} 
+              onClick={() => setIsOpen(false)} 
+              className="text-lg font-bold uppercase tracking-widest text-n-texto hover:text-blue-600 transition-colors"
+            >
               {link.name}
             </HashLink>
           ))}
+
+          {/* Link Admin para Mobile */}
+          {rolesRelevantes.includes(userRole) && (
+            <Link 
+              to="/admin" 
+              onClick={() => setIsOpen(false)} 
+              className="flex items-center gap-2 text-lg font-black uppercase tracking-widest text-blue-600 bg-blue-50 px-6 py-2 rounded-xl border border-blue-100"
+            >
+              <Shield size={18} /> Painel Admin
+            </Link>
+          )}
+
           {userName === "Convidado" ? (
             <Link to="/login" onClick={() => setIsOpen(false)} className="mt-4 bg-blue-600 text-white px-8 py-4 rounded-full text-[10px] font-black uppercase tracking-[0.2em] shadow-lg">
               Entrar na Conta
             </Link>
           ) : (
-            <div className="flex flex-col gap-4 w-full px-10 items-center border-t border-n-borda pt-6 mt-4">
-              <img src={displayPhoto} className="w-20 h-20 rounded-full border-4 border-blue-500 object-cover shadow-lg" alt="Mobile Perfil" />
-              <p className="font-display text-xl text-n-texto">{userName}</p>
-              <Link to="/perfil" onClick={() => setIsOpen(false)} className="bg-blue-50 text-blue-600 w-full text-center py-4 rounded-full text-[10px] font-black uppercase tracking-widest">Editar Perfil</Link>
-              <button onClick={handleLogout} className="bg-red-50 text-red-500 w-full py-4 rounded-full text-[10px] font-black uppercase tracking-[0.2em] border border-red-100">Sair</button>
+            <div className="flex flex-col gap-4 w-full px-10 items-center border-t border-n-borda pt-6 mt-2">
+              <div className="flex items-center gap-4 w-full justify-center">
+                <img src={displayPhoto} className="w-12 h-12 rounded-full border-2 border-blue-500 object-cover" alt="Mobile Perfil" />
+                <div className="text-left">
+                  <p className="text-[9px] font-black text-blue-500 uppercase tracking-widest">{userRole}</p>
+                  <p className="font-display text-lg text-n-texto leading-none">{userName}</p>
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-3 w-full">
+                <Link to="/perfil" onClick={() => setIsOpen(false)} className="bg-blue-50 text-blue-600 text-center py-4 rounded-full text-[10px] font-black uppercase tracking-widest">Meu Perfil</Link>
+                <button onClick={handleLogout} className="bg-red-50 text-red-500 py-4 rounded-full text-[10px] font-black uppercase tracking-[0.2em] border border-red-100">Sair</button>
+              </div>
             </div>
           )}
         </div>
