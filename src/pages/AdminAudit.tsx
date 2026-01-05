@@ -75,7 +75,7 @@ export default function AdminAudit({ userRole }: { userRole: string }) {
   const maxValor = Math.max(...monthlyData.map(d => d.valor), 100); // Mínimo 100 para não dividir por zero
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-10 -p-16 -pt-24 bg-background min-h-screen text-white">
       
       {/* --- GRÁFICO DE EVOLUÇÃO --- */}
       <div className="bg-white p-8 rounded-[2.5rem] border border-slate-200 shadow-sm">

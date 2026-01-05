@@ -15,7 +15,7 @@ export default function Doacoes() {
   const CLOUD_NAME = "ddndbv7do"; 
   const UPLOAD_PRESET = "ddndbv7do"; 
 
-  const cnpj = "00.000.000/0001-00";
+  const cnpj = "33.206.513/0001-02";
 
   const handleIdentificacao = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -57,7 +57,7 @@ export default function Doacoes() {
 
   if (passo === "sucesso") {
     return (
-      <div className="min-h-screen bg-blue-50 flex items-center justify-center p-6 animate-in fade-in duration-500">
+      <div className="min-h-screen bg-blue-50/30 flex items-center justify-center p-6 animate-in fade-in duration-500 font-body">
         <div className="bg-white w-full max-w-md rounded-[3.5rem] border border-blue-100 shadow-2xl p-10 text-center space-y-8">
           <div className="flex justify-center">
             <div className="bg-blue-100 text-blue-600 p-6 rounded-full">
@@ -90,10 +90,10 @@ export default function Doacoes() {
   }
 
   return (
-    <div className="min-h-screen bg-blue-50 text-blue-900 font-body pt-32 pb-20 selection:bg-blue-200">
+    <div className="min-h-screen bg-blue-50/30 text-blue-900 font-body pt-5 pb-20 selection:bg-blue-200">
       <div className="container mx-auto px-6 max-w-6xl">
-        <div className="text-center mb-16 space-y-4">
-          <h1 className="font-display text-8xl md:text-[10rem] uppercase tracking-tighter leading-none text-blue-900">
+        <div className="text-center mb-12 space-y-4">
+          <h1 className="font-display text-9xl md:text-9xl uppercase tracking-tighter leading-none text-blue-900">
             CONTRI<span className="text-blue-500">BUA</span>
           </h1>
           <p className="text-blue-400 font-black uppercase tracking-[0.4em] text-[10px]">Participe da obra de Deus em nossa casa</p>
@@ -101,20 +101,21 @@ export default function Doacoes() {
 
         <div className="grid lg:grid-cols-5 gap-8 items-stretch">
           {/* ÁREA PIX */}
-          <div className="lg:col-span-3 bg-white p-10 md:p-14 rounded-[3.5rem] border border-blue-100 shadow-sm flex flex-col justify-between relative overflow-hidden">
-            <div className="absolute top-0 right-0 w-64 h-64 bg-blue-50 rounded-full blur-3xl -mr-32 -mt-32 opacity-50" />
+          <div className="lg:col-span-3 bg-white p-10 md:p-14 rounded-[3.5rem] border border-blue-100 shadow-xl flex flex-col justify-between relative overflow-hidden group">
+            <div className="absolute top-0 right-0 w-64 h-64 bg-blue-50 rounded-full blur-3xl -mr-32 -mt-32 opacity-50 group-hover:scale-110 transition-transform duration-1000" />
             
             <div className="space-y-8 relative z-10">
               <div className="flex items-center gap-4">
                 <div className="bg-blue-50 p-4 rounded-2xl text-blue-600"><Wallet size={28} /></div>
                 <h2 className="font-display text-5xl uppercase tracking-tighter text-blue-900">PIX Oficial</h2>
               </div>
+              <div className="bg-blue-50 p-4 rounded-2xl text-blue-600"><h2>IEAD Ministério Famílias</h2></div>
               
               <div className="space-y-4">
-                <div className="flex-1 bg-blue-50/50 border border-blue-100 p-6 rounded-[2rem] font-mono text-2xl flex items-center justify-between text-blue-800">
-                  {cnpj}
+                <div className="flex-1 bg-blue-50/30 border border-blue-100 p-6 rounded-[2rem] font-mono text-xl md:text-2xl flex flex-col md:flex-row gap-4 items-center justify-between text-blue-800">
+                  <span className="tracking-widest">{cnpj}</span>
                   <button onClick={() => {navigator.clipboard.writeText(cnpj); setCopiado(true); setTimeout(()=>setCopiado(false), 2000)}} className="p-3 bg-white rounded-xl shadow-sm hover:text-blue-600 transition-colors">
-                    {copiado ? <Check size={24} className="text-green-600" /> : <Copy size={24} />}
+                    {copiado ? <Check size={20} className="text-green-600" /> : <Copy size={20} />}
                   </button>
                 </div>
               </div>
@@ -140,21 +141,21 @@ export default function Doacoes() {
                 <input 
                   type="text" value={nome} onChange={(e) => setNome(e.target.value)} 
                   placeholder="Seu nome completo" required
-                  className="w-full bg-blue-50/50 border border-blue-100 p-5 rounded-2xl outline-none focus:border-blue-400 text-blue-900 placeholder:text-blue-300 transition-all font-bold"
+                  className="w-full bg-blue-50/30 border border-blue-100 p-5 rounded-2xl outline-none focus:border-blue-400 text-blue-900 placeholder:text-blue-300 transition-all font-bold uppercase text-xs tracking-wide"
                 />
                 <div className="relative">
                   <span className="absolute left-5 top-1/2 -translate-y-1/2 font-display text-blue-300 text-xl font-bold">R$</span>
                   <input 
                     type="number" value={valor} onChange={(e) => setValor(e.target.value)} 
                     placeholder="0,00" required
-                    className="w-full bg-blue-50/50 border border-blue-100 p-5 pl-12 rounded-2xl outline-none focus:border-blue-400 text-blue-900 text-2xl font-black transition-all"
+                    className="w-full bg-blue-50/30 border border-blue-100 p-5 pl-12 rounded-2xl outline-none focus:border-blue-400 text-blue-900 text-2xl font-black transition-all"
                   />
                 </div>
 
                 <div className="space-y-2">
                   <p className="text-[9px] font-black uppercase tracking-widest text-blue-300 ml-2">Anexo obrigatório</p>
                   {!arquivo ? (
-                    <label className="flex flex-col items-center justify-center w-full h-36 border-2 border-dashed border-blue-100 rounded-[2rem] cursor-pointer hover:bg-blue-50/50 hover:border-blue-300 transition-all group">
+                    <label className="flex flex-col items-center justify-center w-full h-36 border-2 border-dashed border-blue-100 rounded-[2rem] cursor-pointer hover:bg-blue-50/50 hover:border-blue-300 transition-all group bg-blue-50/20">
                       <div className="flex flex-col items-center justify-center pt-5 pb-6">
                         <Paperclip className="text-blue-200 mb-2 group-hover:text-blue-400 transition-colors" size={24} />
                         <p className="text-[10px] text-blue-300 font-black uppercase tracking-widest">Anexar Comprovante</p>
@@ -165,16 +166,16 @@ export default function Doacoes() {
                     <div className="flex items-center justify-between bg-blue-600 p-4 rounded-2xl text-white shadow-lg">
                       <div className="flex items-center gap-3">
                         <FileText size={20} />
-                        <span className="text-[10px] font-bold truncate max-w-[120px]">{arquivo.name}</span>
+                        <span className="text-[10px] font-bold truncate max-w-[120px] uppercase">{arquivo.name}</span>
                       </div>
-                      <button type="button" onClick={() => setArquivo(null)} className="bg-white/20 hover:bg-white/40 p-1.5 rounded-full"><X size={14} /></button>
+                      <button type="button" onClick={() => setArquivo(null)} className="bg-white/20 hover:bg-white/40 p-1.5 rounded-full transition-colors"><X size={14} /></button>
                     </div>
                   )}
                 </div>
 
                 <button 
                   disabled={enviando || !arquivo}
-                  className="w-full bg-blue-600 text-white py-6 rounded-full font-black text-[11px] uppercase tracking-[0.3em] flex items-center justify-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-blue-700 transition-all shadow-xl shadow-blue-600/30"
+                  className="w-full bg-blue-600 text-white py-5 rounded-2xl font-black text-[10px] uppercase tracking-[0.3em] flex items-center justify-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-blue-700 transition-all shadow-xl shadow-blue-600/30 hover:scale-[1.02]"
                 >
                   {enviando ? <Loader2 className="animate-spin" size={18} /> : <Send size={18} />}
                   Confirmar Semente

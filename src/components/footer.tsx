@@ -1,4 +1,4 @@
-import { Instagram, Facebook, Youtube, MapPin, Phone, Church, FileText, Shield } from "lucide-react";
+import { Instagram, Facebook, Youtube, Mail, MapPin, Phone, Church, FileText, Shield } from "lucide-react";
 import { Link } from "react-router-dom";
 
 const redesSociais = [
@@ -46,13 +46,27 @@ export default function Footer() {
               <h3 className="font-black text-blue-600 uppercase tracking-widest text-[10px]">Contato</h3>
               <div className="flex flex-col gap-3 text-slate-600 text-xs font-medium">
                 <div className="flex items-center justify-center lg:justify-start gap-2">
-                  <MapPin size={14} className="text-blue-400" />
-                  <span>Fazenda Rio Grande, PR</span>
+                  <span>Rua Cassuarina, 219 | Eucaliptos</span>
                 </div>
                 <div className="flex items-center justify-center lg:justify-start gap-2">
-                  <Phone size={14} className="text-blue-400" />
-                  <span>(41) 99999-9999</span>
+                  <span>Fazenda Rio Grande, PR</span>
                 </div>
+
+                {/* Link para ligação */}
+                <a
+                  href="tel:+55 41 9 9999-9999"
+                  className="flex items-center justify-center lg:justify-start gap-2 hover:text-blue-600 transition-colors cursor-pointer"
+                >
+                  <Phone size={14} className="text-blue-400" />
+                  <span>(41) 9 8748-1002</span>
+                </a>
+                <a
+                  href="mailto:adfamiliaigreja@gmail.com?subject=Dúvida%20do%20Site"
+                  className="flex items-center justify-center lg:justify-start gap-2 hover:text-blue-600 transition-colors cursor-pointer"
+                >
+                  <Mail size={14} className="text-blue-400" />
+                  <span>adfamiliaigreja@gmail.com</span>
+                </a>
               </div>
             </div>
           </div>
