@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { db } from "../lib/firebase";
 import { collection, query, orderBy, limit, onSnapshot } from "firebase/firestore";
-import { ShieldCheck, AlertTriangle, Scale, RefreshCw, Download, FileSpreadsheet, FileSpreadsheet, Activity } from "lucide-react";
+import { ShieldCheck, AlertTriangle, Scale, RefreshCw, Download, FileSpreadsheet, Activity } from "lucide-react";
 
 export default function AuditPanel({ totalAtivo }: { totalAtivo: number }) {
   const [ultimoBackup, setUltimoBackup] = useState<any>(null);
