@@ -96,7 +96,7 @@ export default function AuditPanel({ totalAtivo }: { totalAtivo: number }) {
             {/* Barra Backup */}
             <div className="space-y-2 group">
               <div className="flex justify-between text-xs font-bold text-slate-400 uppercase tracking-widest">
-                <span className="flex items-center gap-1.5"><FileSpreadsheet size={12} /> Backup Estático ({ultimoBackup?.dataBackup || '--/--'})</span>
+                <span className="flex items-center gap-1.5"><FileSpreadsheet size={12} /> Valores Salvos ({ultimoBackup?.dataBackup || '--/--'})</span>
                 <span className="text-slate-600">
                   R$ {Number(ultimoBackup?.valorTotalNoMomento || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                 </span>
@@ -109,7 +109,7 @@ export default function AuditPanel({ totalAtivo }: { totalAtivo: number }) {
             {/* Barra Real-Time */}
             <div className="space-y-2 group">
               <div className="flex justify-between text-xs font-bold text-slate-400 uppercase tracking-widest">
-                <span className="flex items-center gap-1.5"><Activity size={12} className={diferenca !== 0 ? "text-blue-500 animate-pulse" : ""} /> Banco de Dados (Ao Vivo)</span>
+                <span className="flex items-center gap-1.5"><Activity size={12} className={diferenca !== 0 ? "text-blue-500 animate-pulse" : ""} /> Valores (Ao Vivo)</span>
                 <span className={`font-bold ${diferenca === 0 ? 'text-emerald-600' : 'text-amber-600'}`}>
                   R$ {totalAtivo.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                 </span>

@@ -15,7 +15,7 @@ export default function Doacoes() {
   const CLOUD_NAME = "ddndbv7do"; 
   const UPLOAD_PRESET = "ddndbv7do"; 
 
-  const cnpj = "00.000.000/0001-00";
+  const cnpj = "33.206.513/0001-02";
 
   const handleIdentificacao = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -109,6 +109,7 @@ export default function Doacoes() {
                 <div className="bg-blue-50 p-4 rounded-2xl text-blue-600"><Wallet size={28} /></div>
                 <h2 className="font-display text-5xl uppercase tracking-tighter text-blue-900">PIX Oficial</h2>
               </div>
+              <div className="bg-blue-50 p-4 rounded-2xl text-blue-600"><h2>IEAD Ministério Famílias</h2></div>
               
               <div className="space-y-4">
                 <div className="flex-1 bg-blue-50/30 border border-blue-100 p-6 rounded-[2rem] font-mono text-xl md:text-2xl flex flex-col md:flex-row gap-4 items-center justify-between text-blue-800">
