@@ -7,14 +7,18 @@ import {
 import { onAuthStateChanged } from "firebase/auth";
 import {
     Heart, MapPin, Quote, Send, Loader2, Calendar, Clock,
-    Sparkles, ArrowRight, Share2, User, HeartHandshake, Check, ChevronDown, ChevronUp, ExternalLink
+    Sparkles, ArrowRight, Share2, User, HeartHandshake, Check, 
+    ExternalLink, CheckCircle, AlertCircle, X 
 } from "lucide-react";
 import { Link } from "react-router-dom";
+import HighlightPopup from "../components/HighlightPopup"; 
+
+// SERVIÇO DE NOTIFICAÇÃO (SININHO)
+import { notifyRoles, GROUPS } from "../lib/notificationService";
 
 import fotoApostolo from "../assets/Ap.webp";
 
 export default function Home() {
-    const [activeTab, setActiveTab] = useState(0);
     const [activeState, setActiveState] = useState('pr');
     const [user, setUser] = useState<any>(null);
 
@@ -26,10 +30,19 @@ export default function Home() {
     const [eventos, setEventos] = useState<any[]>([]);
     const [hojePalavra, setHojePalavra] = useState<any>(null);
     
-    // Novo estado para controlar o dropdown visual
-    const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+    // --- ESTADO DA NOTIFICAÇÃO VISUAL (TOAST) ---
+    const [notification, setNotification] = useState<{
+        show: boolean;
+        message: string;
+        type: 'success' | 'error';
+    }>({ show: false, message: "", type: 'success' });
 
-    // Links reais para redirecionamento no Google Maps
+    const showNotification = (message: string, type: 'success' | 'error') => {
+        setNotification({ show: true, message, type });
+        setTimeout(() => setNotification(prev => ({ ...prev, show: false })), 4000);
+    };
+
+    // Links de Mapas
     const linksMapasInternos: { [key: string]: string } = {
         pr: "https://maps.app.goo.gl/DA8DkCYrG65Bs1U5A",
         sc: "https://maps.app.goo.gl/aASBavLhgZ7SbS6e7"
@@ -40,17 +53,6 @@ export default function Home() {
         sc: "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d1829530.128245692!2d-50.33183777500007!3d-26.413760440466728!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x94d8a96303c235b1%3A0x7d230727e24660fc!2sR.%20Ant%C3%B4nio%20Leal%2C%2061%20-%20Centro%2C%20Tijucas%20-%20SC%2C%2088200-000%2C%20Brasil!5e0!3m2!1spt-BR!2sus!4v1767456373957!5m2!1spt-BR!2sus"
     };
 
-    const ministerios = [
-        { titulo: "Louvor", desc: "Levando a igreja à presença de Deus através da adoração profunda.", img: "https://images.unsplash.com/photo-1516280440614-6697288d5d38?q=80&w=2070" },
-        { titulo: "Famílias", desc: "Edificando lares sobre a Rocha, fortalecendo casamentos.", img: "https://images.unsplash.com/photo-1511895426328-dc8714191300?q=80&w=2070" },
-        { titulo: "Déboras", desc: "Mulheres de intercessão que se levantam em oração fervorosa.", img: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?q=80&w=1888" },
-        { titulo: "Jovens", desc: "Uma geração de força, santidade e propósito.", img: "https://images.unsplash.com/photo-1523580494863-6f3031224c94?q=80&w=2070" },
-        { titulo: "Teens", desc: "Novas promessas para essa geração.", img: "https://images.unsplash.com/photo-1523580494863-6f3031224c94?q=80&w=2070" },
-        { titulo: "Kids", desc: "Ensinando a próxima geração com amor e a pureza da Palavra.", img: "https://images.unsplash.com/photo-1485546246426-74dc88dec4d9?q=80&w=2069" },
-        { titulo: "Teatro", desc: "Formando Jovens a buscar a Deus com seus talentos.", img: "https://images.unsplash.com/photo-1485546246426-74dc88dec4d9?q=80&w=2069" },
-        { titulo: "Dança", desc: "Incentivando a adoração a Deus com nossos corpos.", img: "https://images.unsplash.com/photo-1485546246426-74dc88dec4d9?q=80&w=2069" },
-    ];
-
     useEffect(() => {
         const unsub = onAuthStateChanged(auth, (currentUser) => {
             setUser(currentUser);
@@ -58,6 +60,7 @@ export default function Home() {
         return () => unsub();
     }, []);
 
+    // Carregar Eventos
     useEffect(() => {
         const q = query(
             collection(db, "agenda_eventos"),
@@ -71,6 +74,7 @@ export default function Home() {
         return () => unsub();
     }, []);
 
+    // Carregar Palavra do Dia
     useEffect(() => {
         const q = query(collection(db, "estudos_biblicos"), orderBy("data", "desc"), limit(1));
         const unsub = onSnapshot(q, (snap) => {
@@ -81,6 +85,7 @@ export default function Home() {
         return () => unsub();
     }, []);
 
+    // Carregar Orações Aprovadas
     useEffect(() => {
         const q = query(
             collection(db, "pedidos_oracao"),
@@ -103,16 +108,25 @@ export default function Home() {
             if (navigator.share) { await navigator.share(shareData); }
             else {
                 await navigator.clipboard.writeText(`${shareData.text}\n${shareData.url}`);
-                alert("Link copiado!");
+                // ATUALIZADO: Toast em vez de alert
+                showNotification("Link copiado para área de transferência!", "success");
             }
         } catch (err) { console.error(err); }
     };
 
+    // --- ENVIAR PEDIDO AO ALTAR (ATUALIZADO) ---
     const enviarAoAltar = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!pedido.trim() || !nome.trim()) return;
+        
+        // Validação com Toast
+        if (!pedido.trim() || !nome.trim()) {
+            showNotification("Por favor, preencha seu nome e o pedido.", "error");
+            return;
+        }
+
         setEnviando(true);
         try {
+            // 1. Salvar no Banco
             await addDoc(collection(db, "pedidos_oracao"), {
                 nome,
                 conteudo: pedido,
@@ -122,20 +136,40 @@ export default function Home() {
                 intercessores: [],
                 data: serverTimestamp()
             });
+
+            // 2. Notificar Pastores (Sininho) - Tenta, mas não trava se falhar
+            try {
+                await notifyRoles(
+                    GROUPS.ORACAO,
+                    "Novo Clamor no Altar",
+                    `${nome} enviou um novo pedido de oração.`,
+                    "devocional",
+                    "/admin?tab=intercessao"
+                );
+            } catch (error) { console.error("Erro ao notificar admin", error); }
+
             setPedido("");
             setNome("");
-            alert("Pedido enviado ao altar!");
-        } catch (err) { alert("Erro ao enviar."); }
-        finally { setEnviando(false); }
+            
+            // 3. Feedback Visual Bonito (Substituindo o alert)
+            showNotification("Seu clamor foi entregue no altar.", "success");
+
+        } catch (err) {
+            console.error(err);
+            showNotification("Erro ao enviar. Tente novamente.", "error");
+        } finally {
+            setEnviando(false);
+        }
     };
 
     const handleInterceder = async (id: string, listaIntercessores: string[]) => {
         if (!user) {
-            alert("Faça login para registrar sua intercessão.");
+            // ATUALIZADO: Toast de erro
+            showNotification("Faça login para interceder.", "error");
             return;
         }
         if (listaIntercessores && listaIntercessores.includes(user.uid)) {
-            return;
+            return; // Já intercedeu, não faz nada
         }
         try {
             const oracaoRef = doc(db, "pedidos_oracao", id);
@@ -143,13 +177,47 @@ export default function Home() {
                 intercessoes: increment(1),
                 intercessores: arrayUnion(user.uid)
             });
+            // ATUALIZADO: Toast de sucesso
+            showNotification("Sua intercessão foi registrada!", "success");
         } catch (error) {
             console.error("Erro ao interceder", error);
+            showNotification("Não foi possível registrar a intercessão.", "error");
         }
     };
 
     return (
-        <div className="min-h-screen bg-blue-50/30 text-slate-900 font-body selection:bg-blue-500/10">
+        <div className="min-h-screen bg-blue-50/30 text-slate-900 font-body selection:bg-blue-500/10 relative">
+            
+            {/* --- COMPONENTE POPUP DE DESTAQUE --- */}
+            <HighlightPopup />
+
+            {/* --- COMPONENTE DE NOTIFICAÇÃO (TOAST BONITO) --- */}
+            <div 
+                className={`fixed top-24 right-5 z-[9999] transform transition-all duration-500 ease-out ${
+                notification.show ? "translate-x-0 opacity-100" : "translate-x-20 opacity-0 pointer-events-none"
+                }`}
+            >
+                <div className={`flex items-center gap-3 px-6 py-4 rounded-2xl shadow-2xl border backdrop-blur-md ${
+                notification.type === 'error' 
+                    ? "bg-white/95 border-red-100 text-red-600" 
+                    : "bg-white/95 border-emerald-100 text-emerald-600"
+                }`}>
+                    {notification.type === 'error' ? <AlertCircle size={24} /> : <CheckCircle size={24} />}
+                    <div className="flex flex-col">
+                        <span className="font-black text-[10px] uppercase tracking-widest opacity-60">
+                        {notification.type === 'error' ? 'Atenção' : 'Sucesso'}
+                        </span>
+                        <span className="text-slate-700 text-xs font-bold mt-0.5">{notification.message}</span>
+                    </div>
+                    <button 
+                        onClick={() => setNotification(prev => ({ ...prev, show: false }))}
+                        className="ml-4 text-slate-400 hover:text-slate-600 p-1 bg-slate-50 rounded-full hover:bg-slate-100 transition-colors"
+                    >
+                        <X size={16} />
+                    </button>
+                </div>
+            </div>
+
             <main id="inicio">
                 {/* HERO SECTION */}
                 <section className="relative h-screen flex items-center justify-center overflow-hidden">
@@ -158,7 +226,7 @@ export default function Home() {
                         <h1 className="text-slate-900 font-display text-7xl md:text-[10rem] leading-none uppercase tracking-tighter">
                             FAMÍLIAS <span className="text-blue-500">CHURCH</span>
                         </h1>
-                        <p className="text-xl md:text-3xl text-blue-900/60 font-light italic tracking-widest italic">"Restaurar, Cuidar e Amar"</p>
+                        <p className="text-xl md:text-3xl text-blue-900/60 font-light tracking-widest italic">"Restaurar, Cuidar e Amar"</p>
                         <div className="flex flex-col md:flex-row gap-4 justify-center pt-4">
                             <a href="#cultos" className="bg-blue-600 text-white px-10 py-4 rounded-full font-bold text-lg hover:bg-blue-700 transition-all flex items-center justify-center gap-2 shadow-xl shadow-blue-600/20">
                                 <MapPin size={20} /> Venha nos Visitar
@@ -261,7 +329,7 @@ export default function Home() {
                     </div>
                 </section>
 
-                {/* SEÇÃO DE CULTOS E MAPA (AJUSTADO PARA MOBILE) */}
+                {/* SEÇÃO DE CULTOS */}
                 <section id="cultos" className="py-24 bg-blue-50/50">
                     <div className="container mx-auto px-6 space-y-12">
                         <div className="text-center space-y-6">
@@ -286,7 +354,6 @@ export default function Home() {
                                     {activeState === 'pr' ? 'Fazenda Rio Grande' : 'Tijucas'}
                                 </h3>
                                 
-                                {/* Grid ajustado para mobile: lado a lado em telas pequenas */}
                                 <div className="grid grid-cols-2 md:grid-cols-1 gap-3 md:gap-4">
                                     <div className="bg-white p-4 md:p-8 rounded-[2rem] md:rounded-[3rem] flex flex-col md:flex-row justify-between items-center border border-blue-50 shadow-sm group hover:border-blue-400 transition-all hover:shadow-xl text-center md:text-left">
                                         <div className="flex flex-col md:flex-row items-center gap-3 md:gap-6">
@@ -315,7 +382,6 @@ export default function Home() {
                                 </div>
                             </div>
 
-                            {/* Mapa com redirecionamento no Mobile */}
                             <div className="space-y-4">
                                 <a 
                                     href={linksMapasInternos[activeState]} 
@@ -329,7 +395,6 @@ export default function Home() {
                                         className="w-full h-full rounded-[2rem] md:rounded-[3rem] grayscale brightness-110 opacity-80 group-hover:opacity-100 group-hover:grayscale-0 transition-all duration-700 pointer-events-none md:pointer-events-auto"
                                         loading="lazy"
                                     />
-                                    {/* Overlay interativo visível apenas no Mobile */}
                                     <div className="absolute inset-0 bg-blue-900/10 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity md:hidden">
                                         <div className="bg-white/90 px-6 py-3 rounded-full flex items-center gap-2 shadow-xl">
                                             <ExternalLink size={18} className="text-blue-600" />
@@ -349,66 +414,8 @@ export default function Home() {
                     </div>
                 </section>
 
-                {/* SEÇÃO MINISTÉRIOS COM MENU SUSPENSO CUSTOMIZADO */}
-                <section id="ministerios" className="py-24 bg-white">
-                    <div className="container mx-auto px-6 text-center">
-                        <h2 className="font-display text-6xl md:text-7xl mb-12 uppercase tracking-tighter text-blue-900">Minis<span className="text-blue-500">térios</span></h2>
-                        
-                        {/* MENU SUSPENSO CUSTOMIZADO */}
-                        <div className="relative max-w-xs md:max-w-md mx-auto mb-16 z-20">
-                            <button 
-                                onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                                className={`w-full flex items-center justify-between bg-white border-2 ${isDropdownOpen ? 'border-blue-500 ring-2 ring-blue-100' : 'border-blue-100'} text-blue-900 px-6 py-3 rounded-full font-black uppercase text-xs md:text-sm tracking-widest shadow-xl transition-all active:scale-95`}
-                            >
-                                <span className="flex-1 text-center">{ministerios[activeTab].titulo}</span>
-                                {isDropdownOpen ? <ChevronUp size={20} className="text-blue-500" /> : <ChevronDown size={20} className="text-blue-500" />}
-                            </button>
-
-                            {/* LISTA FLUTUANTE */}
-                            {isDropdownOpen && (
-                                <>
-                                    <div className="fixed inset-0 z-10" onClick={() => setIsDropdownOpen(false)}></div>
-                                    
-                                    <div className="absolute top-full mt-2 left-0 w-full bg-white rounded-3xl border border-blue-100 shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-200 z-20">
-                                        {ministerios.map((m, index) => (
-                                            <button
-                                                key={m.titulo}
-                                                onClick={() => {
-                                                    setActiveTab(index);
-                                                    setIsDropdownOpen(false);
-                                                }}
-                                                className={`w-full py-3 text-xs font-bold uppercase tracking-widest transition-colors border-b border-blue-50 last:border-0 ${
-                                                    activeTab === index 
-                                                    ? 'bg-blue-600 text-white' 
-                                                    : 'text-slate-500 hover:bg-blue-50 hover:text-blue-600'
-                                                }`}
-                                            >
-                                                {m.titulo}
-                                            </button>
-                                        ))}
-                                    </div>
-                                </>
-                            )}
-                        </div>
-
-                        {/* Conteúdo do Ministério */}
-                        <div className="bg-white rounded-[4rem] overflow-hidden grid md:grid-cols-2 min-h-[600px] border border-blue-100 shadow-2xl animate-in fade-in zoom-in duration-700">
-                            <div className="relative overflow-hidden">
-                                <img src={ministerios[activeTab].img} className="h-full w-full object-cover transition-transform duration-1000 hover:scale-110" alt="Ministério" />
-                                <div className="absolute inset-0 bg-blue-900/10" />
-                            </div>
-                            <div className="p-10 md:p-16 flex flex-col justify-center text-left space-y-8 bg-blue-50/20">
-                                <h3 className="text-5xl md:text-6xl font-black uppercase tracking-tighter text-blue-900 leading-none">{ministerios[activeTab].titulo}</h3>
-                                <div className="w-24 h-2 bg-blue-500 rounded-full" />
-                                <p className="text-lg md:text-xl text-slate-600 leading-relaxed font-light italic">{ministerios[activeTab].desc}</p>
-                            </div>
-                        </div>
-                    </div>
-                </section>
-
                 {/* PEDIDOS DE ORAÇÃO */}
                 <section className="py-32 bg-blue-50 relative overflow-hidden">
-                    {/* ... (Conteúdo de Oração permanece igual) ... */}
                     <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-blue-200 to-transparent" />
 
                     <div className="container mx-auto px-6 max-w-4xl relative z-10 space-y-16">
@@ -462,7 +469,7 @@ export default function Home() {
                             </div>
                         )}
 
-                        {/* FORMULÁRIO DE PEDIDO */}
+                        {/* FORMULÁRIO DE PEDIDO - CORREÇÃO DO AUTOCOMPLETE AQUI */}
                         <form onSubmit={enviarAoAltar} className="text-center space-y-12">
                             <div className="space-y-4">
                                 <h2 className="font-display text-6xl md:text-8xl uppercase tracking-tighter text-blue-400 leading-none text-center">
@@ -477,22 +484,28 @@ export default function Home() {
                                         <User size={24} />
                                     </div>
                                     <input
+                                        name="nome_oracao" // Adicionado
+                                        id="nome_oracao"   // Adicionado
                                         value={nome}
                                         onChange={(e) => setNome(e.target.value)}
                                         className="w-full bg-transparent p-6 pl-20 rounded-[4rem] outline-none text-xl font-bold uppercase text-blue-600 placeholder:text-blue-600 placeholder:font-normal"
-                                        placeholder="insira aqui o seu nome"
+                                        placeholder="nome completo"
                                         required
+                                        autoComplete="name" // Ajuda o navegador
                                     />
                                 </div>
 
                                 <div className="h-[1px] w-full bg-blue-50 mx-auto max-w-[90%]"></div>
 
                                 <textarea
+                                    name="pedido_oracao" // Adicionado
+                                    id="pedido_oracao"   // Adicionado
                                     value={pedido}
                                     onChange={(e) => setPedido(e.target.value)}
                                     className="w-full bg-transparent p-8 rounded-[4rem] outline-none text-xl text-blue-900 min-h-[250px] placeholder:text-blue-300 resize-none text-center italic"
                                     placeholder="Descreva aqui o seu motivo de clamor em detalhes (isso ficará restrito aos pastores)..."
                                     required
+                                    autoComplete="off"
                                 />
 
                                 <div className="flex justify-center w-full">

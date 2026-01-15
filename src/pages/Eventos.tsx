@@ -74,7 +74,7 @@ export default function Eventos() {
     );
 
     return (
-        <div className="min-h-screen bg-blue-50/30 pt-5 pb-20 font-body">
+        <div className="min-h-screen bg-blue-50/30 pt-40 md:pt-20 px-6 font-body relative">
             <div className="container mx-auto max-w-7xl space-y-16">
                 
                 {/* CABEÇALHO E FILTROS */}

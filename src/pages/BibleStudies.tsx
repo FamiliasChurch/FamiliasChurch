@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { db } from "../lib/firebase";
 import { collection, addDoc, serverTimestamp, query, orderBy, onSnapshot, deleteDoc, doc, updateDoc } from "firebase/firestore";
-import { BookOpen, Send, Camera, Loader2, Link2, Layout, ScrollText, Quote, AlertCircle, Trash2, Edit2, List, PlusCircle, CheckCircle } from "lucide-react";
+import { BookOpen, Send, Camera, Loader2, Link2, Quote, AlertCircle, Trash2, Edit2, List, PlusCircle, CheckCircle } from "lucide-react";
 // Import do Modal
 import { useConfirm } from "../context/ConfirmContext";
 
@@ -29,13 +29,17 @@ export default function BibleStudies({ userRole, userName }: { userRole: string,
     { id: "REV", nome: "Apocalipse", caps: 22 }
   ];
 
+  // Regra de Segurança Interna (Redundância)
+  const isAllowed = ["dev", "admin", "publicador"].includes(userRole.toLowerCase());
+
   useEffect(() => {
+    if (!isAllowed) return;
     const q = query(collection(db, "estudos_biblicos"), orderBy("data", "desc"));
     const unsub = onSnapshot(q, (snap) => {
       setHistorico(snap.docs.map(d => ({ id: d.id, ...d.data() })));
     });
     return () => unsub();
-  }, []);
+  }, [isAllowed]);
 
   useEffect(() => {
     let slug = estudo.livro.toLowerCase();
@@ -128,7 +132,7 @@ export default function BibleStudies({ userRole, userName }: { userRole: string,
     setActiveTab('form'); 
   };
 
-  const livroAtual = livrosBiblia.find(l => l.id === estudo.livro);
+  if (!isAllowed) return null;
 
   return (
     <div className="max-w-5xl mx-auto space-y-6 pb-20 animate-in fade-in duration-500 mt-6">

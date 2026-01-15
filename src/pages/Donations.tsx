@@ -1,7 +1,9 @@
 import { useState } from "react";
 import { db } from "../lib/firebase";
 import { collection, addDoc, serverTimestamp } from "firebase/firestore";
-import { Copy, Check, Wallet, Heart, Send, Loader2, ShieldCheck, ArrowLeft, Paperclip, FileText, X } from "lucide-react";
+import { Copy, Check, Wallet, Heart, Send, Loader2, ArrowLeft, Paperclip, FileText, X } from "lucide-react";
+// Importar Serviço de Notificação
+import { notifyRoles, GROUPS, logNotificationBatch } from "../lib/notificationService";
 
 export default function Doacoes() {
   const [passo, setPasso] = useState<"form" | "sucesso">("form");
@@ -19,7 +21,7 @@ export default function Doacoes() {
 
   const handleIdentificacao = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!nome || !valor || !arquivo) return alert("O comprovante é obrigatório para identificação.");
+    if (!nome || !valor || !arquivo) return;
 
     setEnviando(true);
     try {
@@ -45,55 +47,63 @@ export default function Doacoes() {
         status: "Pendente Verificação",
         data: serverTimestamp()
       });
+
+      await notifyRoles(
+        GROUPS.FINANCEIRO,
+        "Novo Registro Financeiro",
+        `${nome} registrou um dízimo/oferta de R$ ${parseFloat(valor).toLocaleString('pt-BR', {minimumFractionDigits: 2})}.`,
+        "financeiro",
+        "/admin?tab=financeiro"
+      );
+
+      await logNotificationBatch("Entrada Financeira Registrada", 1, "Sucesso");
       
       setPasso("sucesso");
     } catch (error) {
       console.error(error);
-      alert("Erro ao enviar comprovante.");
     } finally {
       setEnviando(false);
     }
   };
 
+  // --- TELA DE SUCESSO ---
   if (passo === "sucesso") {
     return (
-      <div className="min-h-screen bg-blue-50/30 flex items-center justify-center p-6 animate-in fade-in duration-500 font-body">
-        <div className="bg-white w-full max-w-md rounded-[3.5rem] border border-blue-100 shadow-2xl p-10 text-center space-y-8">
-          <div className="flex justify-center">
-            <div className="bg-blue-100 text-blue-600 p-6 rounded-full">
-              <ShieldCheck size={48} />
+      <div className="min-h-screen bg-blue-50/30 pt-40 md:pt-48 px-6 font-body relative flex flex-col items-center">
+          <div className="max-w-md w-full space-y-8 text-center">
+            <div className="space-y-2">
+                <h2 className="font-display text-5xl uppercase tracking-tighter text-blue-900 leading-none">Recebido!</h2>
+                <p className="text-blue-400 text-[10px] font-black uppercase tracking-widest">Semente Registrada com Sucesso</p>
             </div>
-          </div>
-          <div className="space-y-2">
-            <h2 className="font-display text-4xl uppercase tracking-tighter text-blue-900 leading-none">Recebido!</h2>
-            <p className="text-blue-400 text-[10px] font-black uppercase tracking-widest">Semente Registrada com Sucesso</p>
-          </div>
-          <div className="bg-blue-50/50 rounded-[2.5rem] p-6 text-left space-y-4 border border-blue-100">
-            <div className="flex justify-between border-b border-blue-100 pb-2">
-              <span className="text-[10px] uppercase font-black text-blue-300">Doador</span>
-              <span className="text-sm font-bold text-blue-900 truncate ml-4">{nome}</span>
+            
+            <div className="bg-white rounded-[2.5rem] p-8 text-left space-y-6 border border-blue-100 shadow-xl">
+                <div className="flex justify-between border-b border-blue-50 pb-4">
+                    <span className="text-[10px] uppercase font-black text-blue-300 tracking-widest">Doador</span>
+                    <span className="text-sm font-bold text-blue-900 truncate ml-4">{nome}</span>
+                </div>
+                <div className="flex justify-between">
+                    <span className="text-[10px] uppercase font-black text-blue-300 tracking-widest">Valor</span>
+                    <span className="text-2xl font-black text-blue-600">R$ {parseFloat(valor).toLocaleString('pt-BR', {minimumFractionDigits: 2})}</span>
+                </div>
             </div>
-            <div className="flex justify-between pb-2">
-              <span className="text-[10px] uppercase font-black text-blue-300">Valor</span>
-              <span className="text-sm font-bold text-blue-600">R$ {parseFloat(valor).toLocaleString('pt-BR', {minimumFractionDigits: 2})}</span>
-            </div>
+
+            <button 
+                onClick={() => { setPasso("form"); setNome(""); setValor(""); setArquivo(null); }}
+                className="w-full bg-blue-600 text-white py-5 rounded-2xl font-black text-[10px] uppercase tracking-widest flex items-center justify-center gap-3 hover:bg-blue-700 transition-all shadow-xl shadow-blue-600/20 active:scale-95"
+            >
+                <ArrowLeft size={16} /> Voltar para doações
+            </button>
           </div>
-          <button 
-            onClick={() => { setPasso("form"); setNome(""); setValor(""); setArquivo(null); }}
-            className="w-full bg-blue-600 text-white py-5 rounded-full font-black text-[10px] uppercase tracking-widest flex items-center justify-center gap-2 hover:bg-blue-700 transition-all shadow-xl shadow-blue-600/20"
-          >
-            <ArrowLeft size={14} /> Voltar para doações
-          </button>
-        </div>
       </div>
     );
-  }
+  } // <--- ESSA CHAVE ESTAVA FALTANDO E CAUSAVA A TELA BRANCA!
 
+  // --- TELA DO FORMULÁRIO ---
   return (
-    <div className="min-h-screen bg-blue-50/30 text-blue-900 font-body pt-5 pb-20 selection:bg-blue-200">
+    <div className="min-h-screen bg-blue-50/30 text-blue-900 font-body pt-40 md:pt-48 pb-20 selection:bg-blue-200">
       <div className="container mx-auto px-6 max-w-6xl">
         <div className="text-center mb-12 space-y-4">
-          <h1 className="font-display text-9xl md:text-9xl uppercase tracking-tighter leading-none text-blue-900">
+          <h1 className="font-display text-7xl md:text-9xl uppercase tracking-tighter leading-none text-blue-900">
             CONTRI<span className="text-blue-500">BUA</span>
           </h1>
           <p className="text-blue-400 font-black uppercase tracking-[0.4em] text-[10px]">Participe da obra de Deus em nossa casa</p>
@@ -107,12 +117,12 @@ export default function Doacoes() {
             <div className="space-y-8 relative z-10">
               <div className="flex items-center gap-4">
                 <div className="bg-blue-50 p-4 rounded-2xl text-blue-600"><Wallet size={28} /></div>
-                <h2 className="font-display text-5xl uppercase tracking-tighter text-blue-900">PIX Oficial</h2>
+                <h2 className="font-display text-4xl md:text-5xl uppercase tracking-tighter text-blue-900">PIX Oficial</h2>
               </div>
-              <div className="bg-blue-50 p-4 rounded-2xl text-blue-600"><h2>IEAD Ministério Famílias</h2></div>
+              <div className="bg-blue-50 p-4 rounded-2xl text-blue-600 font-bold text-sm uppercase tracking-wide">IEAD Ministério Famílias</div>
               
               <div className="space-y-4">
-                <div className="flex-1 bg-blue-50/30 border border-blue-100 p-6 rounded-[2rem] font-mono text-xl md:text-2xl flex flex-col md:flex-row gap-4 items-center justify-between text-blue-800">
+                <div className="flex-1 bg-blue-50/30 border border-blue-100 p-6 rounded-[2rem] font-mono text-lg md:text-2xl flex flex-col md:flex-row gap-4 items-center justify-between text-blue-800">
                   <span className="tracking-widest">{cnpj}</span>
                   <button onClick={() => {navigator.clipboard.writeText(cnpj); setCopiado(true); setTimeout(()=>setCopiado(false), 2000)}} className="p-3 bg-white rounded-xl shadow-sm hover:text-blue-600 transition-colors">
                     {copiado ? <Check size={20} className="text-green-600" /> : <Copy size={20} />}
@@ -122,7 +132,7 @@ export default function Doacoes() {
 
               <div className="p-8 bg-blue-900 rounded-[2.5rem] flex items-start gap-5 shadow-2xl shadow-blue-900/20">
                 <Heart className="text-blue-400 shrink-0 fill-blue-400/20" size={24} />
-                <p className="text-blue-100 text-sm leading-relaxed italic">
+                <p className="text-blue-100 text-xs md:text-sm leading-relaxed italic">
                   Para <strong>Ofertas</strong>, não é necessário identificar. Use o PIX acima e sua semente será registrada como oferta voluntária anônima.
                 </p>
               </div>

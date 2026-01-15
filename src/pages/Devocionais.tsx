@@ -1,13 +1,34 @@
 import { useEffect, useState } from "react";
-import { db } from "../lib/firebase";
-import { collection, query, orderBy, onSnapshot, where } from "firebase/firestore";
-import { ExternalLink, Sparkles, Share2, BookOpen, ScrollText, Layout, Quote, ChevronRight } from "lucide-react";
+import { db, auth } from "../lib/firebase";
+import { collection, query, orderBy, onSnapshot, where, doc, getDoc } from "firebase/firestore";
+import { onAuthStateChanged } from "firebase/auth";
+import { 
+  ExternalLink, Sparkles, Share2, BookOpen, ScrollText, Layout, 
+  Quote, ChevronRight, CheckCircle, AlertCircle, X
+} from "lucide-react";
 
 export default function Devocionais() {
     const [publicacoes, setPublicacoes] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [activeTab, setActiveTab] = useState<"devocional" | "estudo">("devocional");
     const [selectedId, setSelectedId] = useState<string | null>(null);
+
+    // --- ESTADO DO USUÁRIO ---
+    const [user, setUser] = useState<any>(null);
+    const [userData, setUserData] = useState<any>(null);
+    const [isInMinistry, setIsInMinistry] = useState(false);
+    
+    // --- ESTADO PARA NOTIFICAÇÃO (TOAST) ---
+    const [notification, setNotification] = useState<{
+        show: boolean;
+        message: string;
+        type: 'success' | 'error';
+    }>({ show: false, message: "", type: 'success' });
+
+    const showNotification = (message: string, type: 'success' | 'error') => {
+        setNotification({ show: true, message, type });
+        setTimeout(() => setNotification(prev => ({ ...prev, show: false })), 3000);
+    };
 
     const infoLivros: { [key: string]: { nome: string } } = {
         "GEN": { nome: "Gênesis" }, "EXO": { nome: "Êxodo" }, "LEV": { nome: "Levítico" },
@@ -17,9 +38,61 @@ export default function Devocionais() {
         "ROM": { nome: "Romanos" }, "REV": { nome: "Apocalipse" },
     };
 
+    // 1. Monitora Autenticação e Dados do Usuário
+    useEffect(() => {
+        const unsubAuth = onAuthStateChanged(auth, async (currentUser) => {
+            setUser(currentUser);
+            
+            if (currentUser && currentUser.email) {
+                // Busca Cargo/Permissão
+                const userDoc = await getDoc(doc(db, "contas_acesso", currentUser.email));
+                if (userDoc.exists()) {
+                    setUserData(userDoc.data());
+                }
+
+                // Verifica se está em algum ministério
+                const qMin = query(collection(db, "ministerios_info"));
+                onSnapshot(qMin, (snap) => {
+                    let found = false;
+                    snap.docs.forEach(doc => {
+                        const equipe = doc.data().equipe || [];
+                        if (equipe.some((m: any) => m.id === currentUser.email)) {
+                            found = true;
+                        }
+                    });
+                    setIsInMinistry(found);
+                });
+            } else {
+                setUserData(null);
+                setIsInMinistry(false);
+            }
+        });
+        return () => unsubAuth();
+    }, []);
+
+    // --- LÓGICA DE PERMISSÃO ---
+    const canAccessStudies = () => {
+        if (!user || !userData) return false;
+        
+        const cargo = (userData.cargo || "").toLowerCase();
+        const permissao = (userData.permissao || "").toLowerCase();
+        
+        // Se for apenas membro simples e não tiver permissão especial
+        const isJustMember = cargo === "membro" && !permissao; 
+        
+        // Regra: Logado AND (Cargo != Membro OR Permissão Especial) AND Inscrito em Ministério
+        return !isJustMember && isInMinistry;
+    };
+
+    // 2. Busca Publicações
     useEffect(() => {
         setLoading(true);
         setSelectedId(null);
+
+        // Se por acaso a aba ativa for 'estudo' mas perdeu permissão, força voltar para devocional
+        if (activeTab === "estudo" && !canAccessStudies() && userData) {
+            setActiveTab("devocional");
+        }
 
         const q = query(
             collection(db, "estudos_biblicos"),
@@ -33,7 +106,7 @@ export default function Devocionais() {
             setLoading(false);
         });
         return () => unsub();
-    }, [activeTab]);
+    }, [activeTab, user, userData, isInMinistry]);
 
     const selectedData = publicacoes.find(p => p.id === selectedId);
 
@@ -42,40 +115,64 @@ export default function Devocionais() {
         : "#";
 
     return (
-        <div className="min-h-screen bg-blue-50/30 pt-32 md:pt-5 px-6 font-body">
+        <div className="min-h-screen bg-blue-50/30 pt-40 md:pt-20 px-6 font-body relative">
+            
+            {/* --- TOAST NOTIFICATION --- */}
+            <div className={`fixed top-24 right-5 z-[9999] transform transition-all duration-500 ease-out ${notification.show ? 'translate-x-0 opacity-100' : 'translate-x-10 opacity-0 pointer-events-none'}`}>
+                <div className={`flex items-center gap-3 px-4 py-3 rounded-xl shadow-lg border backdrop-blur-md ${notification.type === 'error' ? 'bg-white/95 border-red-100 text-red-600' : 'bg-white/95 border-emerald-100 text-emerald-600'}`}>
+                    {notification.type === 'error' ? <AlertCircle size={18}/> : <CheckCircle size={18}/>}
+                    <span className="text-xs font-bold text-slate-700">{notification.message}</span>
+                    <button onClick={() => setNotification(prev => ({ ...prev, show: false }))} className="ml-2 hover:opacity-50"><X size={14}/></button>
+                </div>
+            </div>
+
             <div className="container mx-auto max-w-7xl space-y-12">
 
                 {/* CABEÇALHO */}
                 <div className="text-center space-y-4">
-                    <h1 className="font-display text-9xl md:text-9xl uppercase tracking-tighter leading-none text-blue-900">
+                    <h1 className="font-display text-8xl md:text-9xl uppercase tracking-tighter leading-none text-blue-900">
                         Palavra <span className="text-blue-500">Viva</span>
                     </h1>
 
                     {/* SELETOR DE ABAS */}
                     <div className="flex justify-center mt-8">
                         <div className="flex flex-wrap justify-center gap-3">
-                            {["devocional", "estudo"].map((tab) => (
+                            <button
+                                onClick={() => { setActiveTab("devocional"); setSelectedId(null); }}
+                                className={`px-8 py-3 rounded-full text-[10px] font-black uppercase tracking-widest transition-all border flex items-center gap-2 ${activeTab === "devocional"
+                                    ? 'bg-blue-600 text-white border-blue-600 shadow-xl scale-105'
+                                    : 'bg-white text-blue-400 border-blue-100 hover:bg-blue-50'
+                                }`}
+                            >
+                                <ScrollText size={14} /> Devocionais
+                            </button>
+
+                            {/* SÓ MOSTRA O BOTÃO SE TIVER PERMISSÃO */}
+                            {canAccessStudies() && (
                                 <button
-                                    key={tab}
-                                    onClick={() => { setActiveTab(tab as any); setSelectedId(null); }}
-                                    className={`px-8 py-3 rounded-full text-[10px] font-black uppercase tracking-widest transition-all border flex items-center gap-2 ${activeTab === tab
-                                            ? 'bg-blue-600 text-white border-blue-600 shadow-xl scale-105'
-                                            : 'bg-white text-blue-400 border-blue-100 hover:bg-blue-50'
-                                        }`}
+                                    onClick={() => { setActiveTab("estudo"); setSelectedId(null); }}
+                                    className={`px-8 py-3 rounded-full text-[10px] font-black uppercase tracking-widest transition-all border flex items-center gap-2 ${activeTab === "estudo"
+                                        ? 'bg-blue-600 text-white border-blue-600 shadow-xl scale-105'
+                                        : 'bg-white text-blue-400 border-blue-100 hover:bg-blue-50'
+                                    }`}
                                 >
-                                    {tab === "devocional" ? <ScrollText size={14} /> : <Layout size={14} />}
-                                    {tab === "devocional" ? "Devocionais" : "Estudos Bíblicos"}
+                                    <Layout size={14} /> Estudos Bíblicos
                                 </button>
-                            ))}
+                            )}
                         </div>
                     </div>
                 </div>
 
+                {/* CONTEÚDO PRINCIPAL (LISTA) */}
                 <div className="grid grid-cols-1 xl:grid-cols-12 gap-8">
                     {/* ESQUERDA: LISTA */}
                     <main className="xl:col-span-7 space-y-6">
                         {loading ? (
                             <div className="flex justify-center py-20 animate-pulse"><div className="h-10 w-10 bg-blue-200 rounded-full"></div></div>
+                        ) : publicacoes.length === 0 ? (
+                            <div className="text-center py-20 text-slate-400 text-sm font-bold uppercase tracking-widest">
+                                Nenhum conteúdo encontrado.
+                            </div>
                         ) : (
                             publicacoes.map((e) => (
                                 <div key={e.id} className="space-y-4">
@@ -121,7 +218,7 @@ export default function Devocionais() {
 
                     {/* DIREITA: DESKTOP (STICKY) */}
                     <aside className="xl:col-span-5 hidden xl:block">
-                        <div className="sticky top-28">
+                        <div className="sticky top-32 transition-all">
                             {selectedData ? (
                                 <div className="bg-white rounded-[3.5rem] border border-blue-100 shadow-2xl overflow-hidden flex flex-col min-h-[500px] relative animate-in fade-in slide-in-from-right-8 duration-700">
                                     <div className="absolute top-0 right-0 w-64 h-64 bg-blue-50 rounded-full blur-3xl -mr-20 -mt-20 opacity-50" />
@@ -164,7 +261,7 @@ export default function Devocionais() {
                                                 const ref = `${infoLivros[selectedData.livroRef]?.nome} ${selectedData.capituloRef}:${selectedData.versiculoRef || '1'}`;
                                                 const txt = selectedData.textoVersiculo ? `"${selectedData.textoVersiculo}"` : "";
                                                 navigator.clipboard.writeText(`📖 ${ref} (NAA)\n${txt}\nLeia em: ${linkLifeChurch(selectedData)}`);
-                                                alert("Copiado!");
+                                                showNotification("Copiado!", "success");
                                             }}
                                         >
                                             <Share2 size={20} />
@@ -174,7 +271,7 @@ export default function Devocionais() {
                             ) : (
                                 <div className="bg-white/50 rounded-[3.5rem] border border-blue-100 border-dashed shadow-sm flex flex-col items-center justify-center p-20 text-center text-blue-300 animate-in fade-in duration-700 h-[500px]">
                                     <BookOpen size={48} className="mb-4 opacity-50" />
-                                    <p className="text-xs font-black uppercase tracking-widest">Selecione um devocional</p>
+                                    <p className="text-xs font-black uppercase tracking-widest">Selecione um conteúdo</p>
                                 </div>
                             )}
                         </div>
