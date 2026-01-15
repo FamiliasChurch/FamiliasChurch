@@ -69,8 +69,8 @@ export default function Doacoes() {
   // --- TELA DE SUCESSO ---
   if (passo === "sucesso") {
     return (
-      <div className="min-h-screen bg-blue-50/30 pt-40 md:pt-48 px-6 font-body relative flex flex-col items-center">
-          <div className="max-w-md w-full space-y-8 text-center">
+      <div className="min-h-screen bg-blue-50/30 pt-32 md:pt-48 px-6 font-body relative flex flex-col items-center">
+          <div className="max-w-md w-full space-y-8 text-center animate-in fade-in slide-in-from-bottom-4 duration-700">
             <div className="space-y-2">
                 <h2 className="font-display text-5xl uppercase tracking-tighter text-blue-900 leading-none">Recebido!</h2>
                 <p className="text-blue-400 text-[10px] font-black uppercase tracking-widest">Semente Registrada com Sucesso</p>
@@ -96,22 +96,22 @@ export default function Doacoes() {
           </div>
       </div>
     );
-  } // <--- ESSA CHAVE ESTAVA FALTANDO E CAUSAVA A TELA BRANCA!
+  } 
 
   // --- TELA DO FORMULÁRIO ---
   return (
-    <div className="min-h-screen bg-blue-50/30 text-blue-900 font-body pt-40 md:pt-48 pb-20 selection:bg-blue-200">
+    <div className="min-h-screen bg-blue-50/30 text-blue-900 font-body pt-32 md:pt-40 pb-20 selection:bg-blue-200"> {/* Ajustei padding-top para mobile */}
       <div className="container mx-auto px-6 max-w-6xl">
-        <div className="text-center mb-12 space-y-4">
-          <h1 className="font-display text-7xl md:text-9xl uppercase tracking-tighter leading-none text-blue-900">
+        <div className="text-center mb-12 space-y-4 animate-in fade-in duration-700">
+          <h1 className="font-display text-8xl md:text-9xl uppercase tracking-tighter leading-none text-blue-900">
             CONTRI<span className="text-blue-500">BUA</span>
           </h1>
           <p className="text-blue-400 font-black uppercase tracking-[0.4em] text-[10px]">Participe da obra de Deus em nossa casa</p>
         </div>
 
-        <div className="grid lg:grid-cols-5 gap-8 items-stretch">
+        <div className="grid lg:grid-cols-5 gap-8 items-stretch animate-in slide-in-from-bottom-8 duration-1000 delay-100">
           {/* ÁREA PIX */}
-          <div className="lg:col-span-3 bg-white p-10 md:p-14 rounded-[3.5rem] border border-blue-100 shadow-xl flex flex-col justify-between relative overflow-hidden group">
+          <div className="lg:col-span-3 bg-white p-8 md:p-14 rounded-[3.5rem] border border-blue-100 shadow-xl flex flex-col justify-between relative overflow-hidden group">
             <div className="absolute top-0 right-0 w-64 h-64 bg-blue-50 rounded-full blur-3xl -mr-32 -mt-32 opacity-50 group-hover:scale-110 transition-transform duration-1000" />
             
             <div className="space-y-8 relative z-10">
@@ -122,13 +122,20 @@ export default function Doacoes() {
               <div className="bg-blue-50 p-4 rounded-2xl text-blue-600 font-bold text-sm uppercase tracking-wide">IEAD Ministério Famílias</div>
               
               <div className="space-y-4">
-                <div className="flex-1 bg-blue-50/30 border border-blue-100 p-6 rounded-[2rem] font-mono text-lg md:text-2xl flex flex-col md:flex-row gap-4 items-center justify-between text-blue-800">
-                  <span className="tracking-widest">{cnpj}</span>
-                  <button onClick={() => {navigator.clipboard.writeText(cnpj); setCopiado(true); setTimeout(()=>setCopiado(false), 2000)}} className="p-3 bg-white rounded-xl shadow-sm hover:text-blue-600 transition-colors">
-                    {copiado ? <Check size={20} className="text-green-600" /> : <Copy size={20} />}
-                  </button>
-                </div>
-              </div>
+  <div className="flex-1 bg-blue-50/30 border border-blue-100 p-4 rounded-[1.5rem] font-mono flex items-center justify-between gap-3 text-blue-800">
+    {/* AQUI: Ajustei para text-sm no mobile e md:text-xl no desktop, removi quebras desnecessárias */}
+    <span className="tracking-widest text-sm md:text-xl font-bold truncate">
+      {cnpj}
+    </span>
+    
+    <button 
+      onClick={() => {navigator.clipboard.writeText(cnpj); setCopiado(true); setTimeout(()=>setCopiado(false), 2000)}} 
+      className="p-2 bg-white rounded-lg shadow-sm hover:text-blue-600 transition-colors shrink-0 active:scale-95"
+      title="Copiar Chave Pix">
+      {copiado ? <Check size={18} className="text-green-600" /> : <Copy size={18} />}
+    </button>
+  </div>
+</div>
 
               <div className="p-8 bg-blue-900 rounded-[2.5rem] flex items-start gap-5 shadow-2xl shadow-blue-900/20">
                 <Heart className="text-blue-400 shrink-0 fill-blue-400/20" size={24} />
@@ -140,10 +147,10 @@ export default function Doacoes() {
           </div>
 
           {/* FORMULÁRIO */}
-          <div className="lg:col-span-2 bg-white p-10 md:p-12 rounded-[3.5rem] border border-blue-100 shadow-xl relative overflow-hidden">
+          <div className="lg:col-span-2 bg-white p-8 md:p-12 rounded-[3.5rem] border border-blue-100 shadow-xl relative overflow-hidden">
             <div className="space-y-8 relative z-10">
               <div className="space-y-1">
-                <h3 className="font-display text-4xl uppercase tracking-tighter text-blue-900 leading-none">Identificar</h3>
+                <h3 className="font-display text-3xl md:text-4xl uppercase tracking-tighter text-blue-900 leading-none">Identificar</h3>
                 <p className="text-blue-400 text-[9px] font-black uppercase tracking-widest">Dízimos e Ofertas com Comprovante</p>
               </div>
 

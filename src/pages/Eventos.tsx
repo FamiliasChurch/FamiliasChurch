@@ -74,12 +74,12 @@ export default function Eventos() {
     );
 
     return (
-        <div className="min-h-screen bg-blue-50/30 pt-40 md:pt-20 px-6 font-body relative">
+        <div className="min-h-screen bg-blue-50/30 pt-32 md:pt-40 px-6 font-body relative">
             <div className="container mx-auto max-w-7xl space-y-16">
                 
                 {/* CABEÇALHO E FILTROS */}
                 <div className="text-center space-y-8 max-w-4xl mx-auto">
-          <h1 className="font-display text-9xl md:text-9xl uppercase tracking-tighter leading-none text-blue-900">Agenda <span className="text-blue-500">Igreja</span></h1>
+          <h1 className="font-display text-8xl md:text-9xl uppercase tracking-tighter leading-none text-blue-900">Nossa <span className="text-blue-500">Agenda</span></h1>
                     
                     {/* FILTROS - MOBILE (DROPDOWN) */}
                     <div className="md:hidden relative max-w-xs mx-auto z-30">

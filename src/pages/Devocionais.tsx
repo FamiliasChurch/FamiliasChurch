@@ -115,7 +115,7 @@ export default function Devocionais() {
         : "#";
 
     return (
-        <div className="min-h-screen bg-blue-50/30 pt-40 md:pt-20 px-6 font-body relative">
+        <div className="min-h-screen bg-blue-50/30 pt-32 md:pt-40 px-6 font-body relative">
             
             {/* --- TOAST NOTIFICATION --- */}
             <div className={`fixed top-24 right-5 z-[9999] transform transition-all duration-500 ease-out ${notification.show ? 'translate-x-0 opacity-100' : 'translate-x-10 opacity-0 pointer-events-none'}`}>
