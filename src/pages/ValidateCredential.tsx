@@ -4,7 +4,6 @@ import { auth, db } from "../lib/firebase";
 import { collection, query, where, getDocs, doc, getDoc } from "firebase/firestore";
 import { onAuthStateChanged } from "firebase/auth";
 import { ShieldCheck, Loader2, ArrowLeft, CalendarX, Lock, UserX, UserMinus, CheckCircle, Fingerprint } from "lucide-react";
-import logoIgreja from "../assets/logo.webp";
 
 export default function ValidateCredential() {
   const { ra } = useParams();
@@ -169,7 +168,8 @@ export default function ValidateCredential() {
         
         <div className="mb-8 flex flex-col items-center">
             <div className="w-20 h-20 bg-white/80 backdrop-blur-md rounded-3xl shadow-xl flex items-center justify-center mb-6 border border-white/50">
-                {logoIgreja ? <img src={logoIgreja} alt="Logo" className="w-12 h-12 object-contain" /> : <ShieldCheck size={32} className="text-emerald-600"/>}
+                {/* CORREÇÃO AQUI: Caminho string direto */}
+                <img src="/logo.webp" alt="Logo" className="w-12 h-12 object-contain" />
             </div>
             
             <div className="inline-flex items-center gap-2 px-6 py-2 bg-white/60 backdrop-blur-sm rounded-full border border-white/50 shadow-sm mb-2">

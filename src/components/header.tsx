@@ -6,7 +6,6 @@ import { db, auth } from "../lib/firebase";
 import { signOut } from "firebase/auth";
 import { collection, onSnapshot, doc, query, orderBy } from "firebase/firestore";
 import { Menu, X, LogOut, Shield, UserPlus, User, Calendar, ChevronRight } from "lucide-react";
-import logoIgreja from "../assets/logo.webp";
 import NotificationBell from "./NotificationBell"; 
 import InstallPWA from "./InstallPWA";
 
@@ -372,7 +371,7 @@ export default function Header({ userRole, userName }: { userRole: string, userN
       <div className="w-full max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 flex justify-between items-center relative z-50">
         
         <Link to="/" className="flex items-center gap-3 shrink-0 relative z-[60]">
-          <img src={logoIgreja} className="w-10 h-10 rounded-full border-2 border-blue-600 object-cover" alt="Logo" />
+          <img src="/logo.webp" className="w-10 h-10 rounded-full border-2 border-blue-600 object-cover" alt="Logo" />
           <span className="font-display text-xl md:text-2xl font-bold text-n-texto uppercase tracking-tighter hidden sm:block">FAMÍLIAS CHURCH</span>
         </Link>
 

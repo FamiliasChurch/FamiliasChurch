@@ -1,8 +1,9 @@
 import React, { useEffect } from 'react';
 import { Routes, Route, useLocation } from "react-router-dom"; 
-import { messaging, db } from './lib/firebase'; 
+import { messaging, db, auth } from './lib/firebase'; 
 import { getToken } from 'firebase/messaging';
-import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
+import { doc, updateDoc, arrayUnion } from 'firebase/firestore'; // Changed to updateDoc/arrayUnion
+import { onAuthStateChanged } from 'firebase/auth';
 import { ConfirmProvider } from "./context/ConfirmContext";
 
 import Layout from "./components/layout";
@@ -18,7 +19,7 @@ import Privacy from "./pages/Privacy";
 import Terms from "./pages/Terms";
 import AdminDashboard from "./pages/Admin";
 import ValidateCredential from "./pages/ValidateCredential";
-import ScaleDetails from "./pages/ScaleDetails"; // <--- IMPORTAÇÃO ADICIONADA
+import ScaleDetails from "./pages/ScaleDetails";
 
 function ScrollToTop() {
   const { pathname } = useLocation();
@@ -33,7 +34,37 @@ interface AppProps {
 
 export default function App({ userRole, userName }: AppProps) {
 
-  // (useEffect de notificações mantido igual...)
+  useEffect(() => {
+    const requestPermission = async () => {
+      try {
+        const permission = await Notification.requestPermission();
+        if (permission === 'granted') {
+          // Get the token
+          const currentToken = await getToken(messaging, { 
+            vapidKey: 'BM_YOUR_VAPID_KEY_HERE' // You need to generate a VAPID key in Firebase Console -> Cloud Messaging -> Web Configuration
+          });
+
+          if (currentToken) {
+            console.log('Token FCM:', currentToken);
+            // Save token to user profile if logged in
+            const user = auth.currentUser;
+            if (user) {
+                const userRef = doc(db, "contas_acesso", user.email!);
+                await updateDoc(userRef, {
+                    fcmTokens: arrayUnion(currentToken)
+                });
+            }
+          } else {
+            console.log('No registration token available. Request permission to generate one.');
+          }
+        }
+      } catch (err) {
+        console.log('An error occurred while retrieving token. ', err);
+      }
+    };
+
+    requestPermission();
+  }, []);
 
   return (
     <ConfirmProvider>
@@ -72,7 +103,6 @@ export default function App({ userRole, userName }: AppProps) {
           <Route path="/escala/:id" element={<ScaleDetails />} />
 
           {/* ROTA ADMIN BLINDADA, MAS INCLUSIVA */}
-          {/* ATUALIZAÇÃO V2: Agora permite Cargos Eclesiásticos de Liderança entrarem no painel */}
           <Route path="admin" element={
             <ProtectedRoute 
                 userRole={userRole} 

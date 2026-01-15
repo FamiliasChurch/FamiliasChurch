@@ -2,7 +2,6 @@ import { useEffect, useState } from "react";
 import { db } from "../lib/firebase";
 import { doc, updateDoc, addDoc, collection, serverTimestamp, query, where, getDocs } from "firebase/firestore";
 import { ShieldCheck, Loader2, UserCheck, Lock, Fingerprint, ScanLine, CheckCircle, AlertTriangle } from "lucide-react";
-import logoIgreja from "../assets/logo.webp";
 import QRCode from "react-qr-code";
 import { notifyRoles, GROUPS } from "../lib/notificationService";
 import { useConfirm } from "../context/ConfirmContext"; // Importando o modal bonito
@@ -217,7 +216,7 @@ export default function MembershipCard({ user }: { user: UserData }) {
           <div className="flex justify-between items-start">
             <div className="flex items-center gap-3">
               <div className="p-0.5 bg-white/20 backdrop-blur-md rounded-full border border-white/30 shadow-lg">
-                 <img src={logoIgreja} alt="Logo" className="w-10 h-10 rounded-full object-cover" />
+                 <img src="/logo.webp" alt="Logo" className="w-10 h-10 rounded-full object-cover" />
               </div>
               <div className="flex flex-col">
                 <h3 className={`font-serif font-black tracking-wide text-lg leading-none ${theme.text} drop-shadow-sm`}>
