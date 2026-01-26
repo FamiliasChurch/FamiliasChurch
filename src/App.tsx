@@ -42,7 +42,7 @@ export default function App({ userRole, userName }: AppProps) {
         if (permission === 'granted') {
           // Get the token
           const currentToken = await getToken(messaging, { 
-            vapidKey: 'BMQvahXVL6HdP-ZxwHcTp-9mPVCPpPsPz9wYIfdI0Ga6OsyD_cQh7t_3LVdzhCTHJNKO7refM4AFL38j5K2Fvfw' // You need to generate a VAPID key in Firebase Console -> Cloud Messaging -> Web Configuration
+            vapidKey: 'BAi4Y5sN9NMC4gn9626R4934k2qIRJCIKeBvPOG8hlOx7vvUtKvvx1hKBjnTBAlzg_VsLbHDaShWegvjHb4fqmA'
           });
 
           if (currentToken) {
