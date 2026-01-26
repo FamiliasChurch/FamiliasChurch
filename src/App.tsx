@@ -15,6 +15,7 @@ import Login from "./pages/Login";
 import ProfilePage from "./pages/ProfilePage";
 import Devocionais from "./pages/Devocionais";
 import Eventos from "./pages/Eventos";
+import EncontroComDeus from "./pages/EncontroComDeus";
 import Privacy from "./pages/Privacy";
 import Terms from "./pages/Terms";
 import AdminDashboard from "./pages/Admin";
@@ -41,7 +42,7 @@ export default function App({ userRole, userName }: AppProps) {
         if (permission === 'granted') {
           // Get the token
           const currentToken = await getToken(messaging, { 
-            vapidKey: 'BM_YOUR_VAPID_KEY_HERE' // You need to generate a VAPID key in Firebase Console -> Cloud Messaging -> Web Configuration
+            vapidKey: 'BMQvahXVL6HdP-ZxwHcTp-9mPVCPpPsPz9wYIfdI0Ga6OsyD_cQh7t_3LVdzhCTHJNKO7refM4AFL38j5K2Fvfw' // You need to generate a VAPID key in Firebase Console -> Cloud Messaging -> Web Configuration
           });
 
           if (currentToken) {
@@ -78,6 +79,7 @@ export default function App({ userRole, userName }: AppProps) {
           <Route path="login" element={<Login />} />
           <Route path="devocionais" element={<Devocionais />} />
           <Route path="eventos" element={<Eventos />} />
+          <Route path="encontro" element={<EncontroComDeus />} />
           <Route path="politica" element={<Privacy />} />
           <Route path="termos" element={<Terms />} />
 
