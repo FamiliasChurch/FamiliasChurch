@@ -37,7 +37,11 @@ except Exception as e:
 app = FastAPI()
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=[
+        "https://www.familiaschurch.com.br", 
+        "https://familias-church.vercel.app", # Link de preview da Vercel
+        "http://localhost:5173"              # Para você continuar testando no seu PC
+    ],
     allow_methods=["*"],
     allow_headers=["*"],
 )

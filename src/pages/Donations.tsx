@@ -71,7 +71,7 @@ export default function Doacoes() {
       setProgresso(80);
 
       // 3. Chamada para o Backend Python
-      const responseFunc = await fetch("https://seu-link-da-vercel.vercel.app/validar-pix", {
+      const responseFunc = await fetch("https://familiaschurch-api.vercel.app/validar-pix", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
