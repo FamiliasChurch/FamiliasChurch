@@ -10,29 +10,33 @@ const redesSociais = [
 export default function Footer() {
   return (
     <footer className="bg-gray-50 border-t border-slate-100 pt-12 pb-8">
-      <div className="container mx-auto px-6">
-
-        {/* PARTE SUPERIOR: CONTEÚDO PRINCIPAL */}
-        <div className="flex flex-col lg:flex-row items-center lg:items-start justify-between gap-10 mb-12">
-
-          {/* 1. IDENTIDADE + REDES */}
-          <div className="text-center lg:text-left space-y-4 max-w-sm">
-            <div className="flex items-center justify-center lg:justify-start gap-2 text-slate-800">
-              <Church size={24} className="text-blue-600" />
-              <span className="font-display text-xl font-bold uppercase tracking-tight">Famílias Church</span>
+      {/* Container com largura máxima definida para evitar dispersão em telas ultra-wide */}
+      <div className="max-w-6xl mx-auto px-6">
+        
+        {/* GRID PRINCIPAL: 2 Colunas no desktop */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 mb-16">
+          
+          {/* LADO ESQUERDO: Identidade */}
+          <div className="flex flex-col items-center lg:items-start text-center lg:text-left space-y-5">
+            <div className="flex items-center gap-3 text-slate-800">
+              <Church size={28} className="text-blue-600" />
+              <span className="font-display text-2xl font-bold uppercase tracking-tighter">
+                Famílias Church
+              </span>
             </div>
-            <p className="text-slate-500 text-xs leading-relaxed italic">
+            
+            <p className="text-slate-500 text-sm leading-relaxed italic max-w-sm">
               "Uma família para você pertencer. Restaurando vidas em Fazenda Rio Grande e Tijucas através do amor de Cristo."
             </p>
-            <div className="flex justify-center lg:justify-start gap-3 pt-2">
+
+            <div className="flex gap-3 pt-2">
               {redesSociais.map((rede) => (
                 <a
                   key={rede.name}
                   href={rede.url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-slate-400 hover:text-blue-600 hover:bg-blue-50 transition-all p-2.5 bg-white rounded-xl border border-slate-100 shadow-sm"
-                  title={rede.name}
+                  className="text-slate-400 hover:text-blue-600 hover:bg-blue-50 transition-all p-3 bg-white rounded-xl border border-slate-100 shadow-sm"
                 >
                   {rede.icon}
                 </a>
@@ -40,65 +44,61 @@ export default function Footer() {
             </div>
           </div>
 
-          {/* 2. LINKS RÁPIDOS E CONTATO */}
-          <div className="flex flex-col md:flex-row gap-10 text-center lg:text-left">
-            <div className="space-y-3">
-              <h3 className="font-black text-blue-600 uppercase tracking-widest text-[10px]">Contato</h3>
-              <div className="flex flex-col gap-3 text-slate-600 text-xs font-medium">
-                <div className="flex items-center justify-center lg:justify-start gap-2">
-                  <span>Rua Cassuarina, 219 | Eucaliptos</span>
-                </div>
-                <div className="flex items-center justify-center lg:justify-start gap-2">
-                  <span>Fazenda Rio Grande, PR</span>
+          {/* LADO DIREITO: Contato (Alinhado à direita no desktop) */}
+          <div className="flex flex-col items-center lg:items-end justify-start">
+            <div className="space-y-4 w-full lg:w-auto">
+              <h3 className="font-black text-blue-600 uppercase tracking-[0.2em] text-[11px] text-center lg:text-right">
+                Contato
+              </h3>
+              
+              <div className="flex flex-col gap-4 text-slate-600 text-sm font-medium">
+                <div className="flex items-center justify-center lg:justify-end gap-3">
+                  <span className="text-center lg:text-right">Rua Cassuarina, 219 • Eucaliptos<br/>Fazenda Rio Grande, PR</span>
                 </div>
 
-                {/* Link para ligação */}
                 <a
-                  href="tel:+55 41 9 9999-9999"
-                  className="flex items-center justify-center lg:justify-start gap-2 hover:text-blue-600 transition-colors cursor-pointer"
+                  href="tel:+5541987481002"
+                  className="flex items-center justify-center lg:justify-end gap-3 hover:text-blue-600 transition-colors"
                 >
-                  <Phone size={14} className="text-blue-400" />
                   <span>(41) 9 8748-1002</span>
+                  <Phone size={16} className="text-blue-400" />
                 </a>
+
                 <a
-                  href="mailto:adfamiliaigreja@gmail.com?subject=Dúvida%20do%20Site"
-                  className="flex items-center justify-center lg:justify-start gap-2 hover:text-blue-600 transition-colors cursor-pointer"
+                  href="mailto:adfamiliaigreja@gmail.com"
+                  className="flex items-center justify-center lg:justify-end gap-3 hover:text-blue-600 transition-colors"
                 >
-                  <Mail size={14} className="text-blue-400" />
                   <span>adfamiliaigreja@gmail.com</span>
+                  <Mail size={16} className="text-blue-400" />
                 </a>
               </div>
             </div>
           </div>
         </div>
-        {/* PARTE INFERIOR: DOCUMENTAÇÃO E COPYRIGHT */}
-        <div className="border-t border-slate-200 pt-8 flex flex-col md:flex-row items-center justify-between gap-4">
 
-          <p className="text-[10px] text-slate-400 uppercase tracking-[0.2em] font-bold">
+        {/* RODAPÉ INFERIOR: Copyright e Links Legais */}
+        <div className="border-t border-slate-200 pt-8 flex flex-col md:flex-row items-center justify-between gap-6">
+          <p className="text-[10px] text-slate-400 uppercase tracking-[0.2em] font-bold order-2 md:order-1">
             © 2025 Famílias Church
           </p>
 
-          {/* ÁREA DE DOCUMENTAÇÃO LEGAL */}
-          <div className="flex items-center gap-6">
+          <div className="flex items-center gap-8 order-1 md:order-2">
             <Link
               to="/politica"
-              target="_blank"
-              className="flex items-center gap-2 text-[10px] font-bold text-slate-400 uppercase tracking-widest hover:text-emerald-600 transition-colors"
+              className="flex items-center gap-2 text-[10px] font-bold text-slate-400 uppercase tracking-widest hover:text-blue-600 transition-colors"
             >
-              <Shield size={12} /> Privacidade
+              <Shield size={14} /> Privacidade
             </Link>
 
             <Link
               to="/termos"
-              target="_blank"
               className="flex items-center gap-2 text-[10px] font-bold text-slate-400 uppercase tracking-widest hover:text-blue-600 transition-colors"
-              title="Termos de Uso"
             >
-              <FileText size={12} /> Termos de Uso
+              <FileText size={14} /> Termos de Uso
             </Link>
           </div>
-
         </div>
+
       </div>
     </footer>
   );

@@ -25,3 +25,6 @@ dist-ssr
 
 # Local Netlify folder
 .netlify
+backend/.venv/
+backend/__pycache__/
+backend/chave-firebase.json

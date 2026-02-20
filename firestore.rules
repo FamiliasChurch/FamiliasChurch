@@ -1,0 +1,126 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // --- 🛠️ FUNÇÕES AUXILIARES SEGURAS ---
+    // Só tenta ler o banco se o usuário estiver autenticado
+    function getUserData() {
+      return get(/databases/$(database)/documents/contas_acesso/$(request.auth.token.email)).data;
+    }
+    
+    function isDev() {
+      return request.auth != null && (
+        (getUserData().permissao == "Dev") || 
+        (getUserData().cargo == "Dev")
+      );
+    }
+
+    function isAdmin() {
+       return request.auth != null && (
+         getUserData().permissao in ["Dev", "Admin", "Gerenciador", "Moderador", "Publicador", "Midia", "Staff", "Líder"] ||
+         getUserData().cargo in ["Dev", "Admin", "Gerenciador", "Moderador", "Publicador", "Midia", "Staff", "Líder"]
+       );
+    }
+
+    function isEncontroStaff() {
+       return request.auth != null && 
+              getUserData().keys().hasAny(['permissaoEncontro']) && 
+              getUserData().permissaoEncontro.size() > 0;
+    }
+
+    // --- 🤖 SISTEMA DE OCR AUTOMÁTICO (CORRIGIDO) ---
+    // Esta regra deve vir ANTES da regra geral de Dev para garantir acesso público
+    match /registros_financeiros_validados/{docId} {
+      // 🔓 Permite criação PÚBLICA (sem checar isAdmin/Dev para evitar crash se auth=null)
+      allow create: if true; 
+      
+      // Leitura apenas para Admin ou o próprio dono (se logado)
+      allow read: if (request.auth != null && (isAdmin() || resource.data.userId == request.auth.uid));
+      
+      // Update permitido apenas para o sistema (Admin/Dev) ou Cloud Functions (que tem acesso root)
+      allow update: if request.auth != null && isAdmin();
+      
+      allow delete: if false; // Auditoria Imutável
+    }
+
+    // --- 🛡️ REGRAS GERAIS E DESENVOLVIMENTO ---
+    // Cuidado: Isso libera TUDO para o Dev. Mantenha no final ou use com cautela.
+    match /{document=**} {
+      allow read, write: if isDev();
+    }
+
+    // --- 🔐 CONFIGURAÇÕES DE SEGURANÇA ---
+    match /configuracoes/seguranca {
+      allow read, write: if request.auth != null && (
+        getUserData().permissao in ["Dev", "Admin"] || 
+        getUserData().cargo in ["Dev", "Admin"]
+      );
+    }
+
+    // --- 👥 CONTAS E ACESSOS ---
+    match /contas_acesso/{email} {
+      allow read: if request.auth != null;
+      allow create: if request.auth != null;
+      allow update: if request.auth != null && (isAdmin() || request.auth.token.email == email);
+      allow delete: if isAdmin();
+    }
+
+    // --- 📉 OUTRAS COLEÇÕES (MANTIDAS IGUAIS) ---
+    match /backup_metadata/{doc} {
+      allow read, create: if isAdmin();
+      allow update, delete: if false; 
+    }
+
+    match /ministerios_info/{doc} { 
+        allow read: if request.auth != null; 
+        allow write: if isAdmin(); 
+    }
+    
+    match /escalas_servos/{doc} { 
+        allow read: if true;
+        allow update: if request.auth != null && (isAdmin() || request.auth.token.email in resource.data.servosEmails);
+        allow create, delete: if isAdmin(); 
+    }
+    
+    match /agenda_eventos/{document=**} { allow read: if true; allow write: if isAdmin(); }
+    match /estudos_biblicos/{document=**} { allow read: if true; allow write: if isAdmin(); }
+    
+    match /pedidos_oracao/{doc} { 
+      allow create, read: if true; 
+      allow update: if request.auth != null; 
+      allow delete: if isAdmin();
+    }
+
+    match /registros_dizimos/{doc} {
+      allow create, read: if request.auth != null;
+      allow update, delete: if isAdmin();
+    }
+
+    match /solicitacoes_carteirinha/{docId} {
+      allow create: if request.auth != null;
+      allow read: if request.auth != null && (resource.data.email == request.auth.token.email || isAdmin());
+      allow update, delete: if isAdmin();
+    }
+
+    match /notificacoes_inscritos/{doc} { allow read, write: if true; }
+    match /logs_notificacoes/{doc} { allow create: if request.auth != null; allow read: if isAdmin(); }
+
+    // --- 🏕️ MÓDULO ENCONTRO ---
+    match /configuracoes/encontro_geral {
+      allow read: if true;
+      allow write: if isEncontroStaff();
+    }
+
+    match /encontro_inscritos/{doc} {
+      allow create, read: if true; 
+      allow update: if request.auth != null;
+      allow delete: if isAdmin();
+    }
+
+    match /encontro_servos/{doc} {
+      allow create, read: if true;
+      allow update: if request.auth != null;
+      allow delete: if isAdmin();
+    }
+  }
+}

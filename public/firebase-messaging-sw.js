@@ -1,4 +1,4 @@
-// public/firebase-messaging-sw.js
+// Service Worker para o sistema Famílias Church
 importScripts('https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js');
 importScripts('https://www.gstatic.com/firebasejs/9.23.0/firebase-messaging-compat.js');
 
@@ -11,15 +11,43 @@ firebase.initializeApp({
 
 const messaging = firebase.messaging();
 
+// 1. Lógica para processar mensagens recebidas com o app fechado
 messaging.onBackgroundMessage((payload) => {
-  console.log('Mensagem recebida em segundo plano: ', payload);
+  console.log('[SW] Mensagem recebida em segundo plano:', payload);
   
-  const notificationTitle = payload.notification.title;
+  const notificationTitle = payload.notification?.title || "Famílias Church - Alerta";
   const notificationOptions = {
-    body: payload.notification.body,
-    icon: '/pwa-192x192.png', // Use the PNG icon for better compatibility
-    badge: '/pwa-192x192.png'
+    body: payload.notification?.body || "Você tem uma nova atualização no sistema.",
+    icon: '/pwa-192x192.png',
+    badge: '/pwa-192x192.png', // Ícone da barra de status
+    tag: 'encontro-notificacao', // Agrupa notificações similares
+    renotify: true, // Faz o celular vibrar novamente para novos alertas de medicação
+    data: {
+      url: payload.data?.url || '/' // Direciona para o dashboard ou estudo específico
+    }
   };
 
-  self.registration.showNotification(notificationTitle, notificationOptions);
+  return self.registration.showNotification(notificationTitle, notificationOptions);
+});
+
+// 2. Lógica para quando o usuário CLICA na notificação
+self.addEventListener('notificationclick', (event) => {
+  event.notification.close(); // Fecha a notificação
+  
+  const targetUrl = event.notification.data.url;
+
+  event.waitUntil(
+    clients.matchAll({ type: 'window', includeUncontrolled: true }).then((windowClients) => {
+      // Se já houver uma aba aberta, foca nela
+      for (let client of windowClients) {
+        if (client.url === targetUrl && 'focus' in client) {
+          return client.focus();
+        }
+      }
+      // Se não houver aba aberta, abre uma nova
+      if (clients.openWindow) {
+        return clients.openWindow(targetUrl);
+      }
+    })
+  );
 });

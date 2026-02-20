@@ -1,15 +1,20 @@
 {
   "compilerOptions": {
-    "target": "es2022",
     "module": "commonjs",
-    "lib": ["es2022"],
-    "skipLibCheck": true,         // ESSENCIAL: Ignora erros em pastas node_modules
-    "rootDir": "src",
+    "noImplicitReturns": true,
+    "noUnusedLocals": true,
     "outDir": "lib",
-    "isolatedModules": true,
+    "sourceMap": true,
     "strict": true,
-    "esModuleInterop": true
+    "target": "es2017",
+    "skipLibCheck": true, 
+    "types": [] 
   },
-  "include": ["src/**/*.ts"],    // Garante que apenas a pasta src das functions é compilada
-  "exclude": ["node_modules", "../node_modules"] // Exclui explicitamente o node_modules do frontend
+  "compileOnSave": true,
+  "include": [
+    "src"
+  ],
+  "exclude": [
+    "node_modules"
+  ]
 }
