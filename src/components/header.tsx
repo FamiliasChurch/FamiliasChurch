@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { createPortal } from "react-dom"; // <--- IMPORTANTE: Import para o Portal
+import { createPortal } from "react-dom";
 import { Link, useNavigate } from "react-router-dom";
 import { HashLink } from 'react-router-hash-link';
 import { db, auth } from "../lib/firebase";
@@ -14,12 +14,14 @@ const NAV_LINKS = [
   { name: "Quem Somos", href: "/#sobre" },
   { name: "Cultos", href: "/#cultos" },
   { name: "Devocionais", href: "/devocionais" },
+  // { name: "Encontros", href: "/encontro" }, // <--- ADICIONADO E COMENTADO AQUI
   { name: "Eventos", href: "/eventos" },
   { name: "Doações", href: "/doacoes" },
 ];
 
 const SYSTEM_ACCESS_ROLES = ["Dev", "Admin", "Gerenciador", "Moderador", "Publicador", "Midia", "Mídia"];
 
+// Verificação do Painel Geral (Site da Igreja)
 const hasPanelAccess = (permissao?: string, cargo?: string) => {
     const p = (permissao || "").toLowerCase();
     const c = (cargo || "").toLowerCase();
@@ -28,11 +30,9 @@ const hasPanelAccess = (permissao?: string, cargo?: string) => {
     return hasSystemRole || isSupremeLeader;
 };
 
-// --- MODAL DE MINHAS ESCALAS (COM PORTAL) ---
+// --- MODAL DE MINHAS ESCALAS ---
 const MyScalesModal = ({ isOpen, onClose, escalas }: { isOpen: boolean, onClose: () => void, escalas: any[] }) => {
     if (!isOpen) return null;
-
-    // createPortal joga esse HTML direto no <body>, fugindo do header
     return createPortal(
         <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200" onClick={onClose}>
             <div className="bg-white rounded-2xl w-full max-w-sm overflow-hidden shadow-2xl animate-in zoom-in-95" onClick={e => e.stopPropagation()}>
@@ -71,16 +71,15 @@ const MyScalesModal = ({ isOpen, onClose, escalas }: { isOpen: boolean, onClose:
                 </div>
             </div>
         </div>,
-        document.body // Alvo do Portal
+        document.body
     );
 }
 
-// --- 1. MENU DESKTOP ---
-const DesktopNav = ({ user, userData, onLogout, minhasEscalas }: any) => {
+// --- MENU DESKTOP ---
+const DesktopNav = ({ user, userData, onLogout, minhasEscalas, sessaoEncontro, showEncontroLink }: any) => {
   const [menuAberto, setMenuAberto] = useState(false);
   const [showScalesModal, setShowScalesModal] = useState(false);
   const displayPhoto = userData.foto || "https://www.w3schools.com/howto/img_avatar.png";
-  const deveMostrarMinisterio = userData.cargo !== "Dev" && userData.ministerio;
   const showAdminButton = hasPanelAccess(userData.permissao, userData.cargo);
 
   return (
@@ -95,39 +94,38 @@ const DesktopNav = ({ user, userData, onLogout, minhasEscalas }: any) => {
               </HashLink>
             </li>
           ))}
+          
+          {/* LINK DO ENCONTRO (CORRIGIDO) 
+          {showEncontroLink ? (
+            <li>
+              <Link to="/encontro/gerenciamento" className="text-blue-600 font-black hover:text-blue-800 transition-colors py-2 whitespace-nowrap border-b-2 border-blue-600/20">
+                Gerenciar Encontro
+              </Link>
+            </li>
+          ) : sessaoEncontro ? (
+            <li>
+              <Link to="/encontro/dashboard" className="text-blue-600 font-black hover:text-blue-800 transition-colors py-2 whitespace-nowrap border-b-2 border-blue-600/20 animate-pulse">
+                Meu Encontro
+              </Link>
+            </li>
+          ) : null}*/}<br></br>
         </ul>
       </nav>
 
       <div className="flex items-center gap-4 ml-auto">
-        
-        {/* BOTÃO ESCALAS - FORA DO DROPDOWN (VISÍVEL SE TIVER ESCALAS) */}
         {user && minhasEscalas.length > 0 && (
-            <button 
-                onClick={() => setShowScalesModal(true)} 
-                className="flex items-center gap-2 px-3 py-2 bg-indigo-50 text-indigo-600 rounded-xl hover:bg-indigo-100 transition-colors text-[10px] font-bold uppercase tracking-wider border border-indigo-100"
-                title="Minhas Escalas"
-            >
+            <button onClick={() => setShowScalesModal(true)} className="flex items-center gap-2 px-3 py-2 bg-indigo-50 text-indigo-600 rounded-xl hover:bg-indigo-100 transition-colors text-[10px] font-bold uppercase tracking-wider border border-indigo-100 shadow-sm">
                 <Calendar size={16} /> 
-                <span>Minhas Escalas ({minhasEscalas.length})</span>
+                <span>Escalas ({minhasEscalas.length})</span>
             </button>
         )}
-
-        <div className="relative">
-            {user && <NotificationBell />}
-        </div>
-
+        <div className="relative">{user && <NotificationBell />}</div>
         <div className="relative pl-4 border-l border-slate-200">
-          <button
-            onClick={(e) => { e.stopPropagation(); setMenuAberto(!menuAberto); }}
-            className="border-2 border-blue-500 rounded-full p-0.5 w-10 h-10 overflow-hidden hover:shadow-lg transition-all active:scale-95"
-          >
+          <button onClick={(e) => { e.stopPropagation(); setMenuAberto(!menuAberto); }} className="border-2 border-blue-500 rounded-full p-0.5 w-10 h-10 overflow-hidden hover:shadow-lg transition-all active:scale-95">
             <img src={displayPhoto} className="w-full h-full object-cover rounded-full" alt="Perfil" />
           </button>
-
           {menuAberto && (
-            <div className="absolute right-0 top-full mt-4 w-72 bg-white p-6 rounded-[2.5rem] border border-slate-100 shadow-2xl z-[60] animate-in fade-in zoom-in duration-200"
-                 onClick={(e) => e.stopPropagation()}> 
-              
+            <div className="absolute right-0 top-full mt-4 w-72 bg-white p-6 rounded-[2.5rem] border border-slate-100 shadow-2xl z-[60] animate-in fade-in zoom-in duration-200" onClick={(e) => e.stopPropagation()}> 
               {!user ? (
                 <Link to="/login" onClick={() => setMenuAberto(false)} className="w-full bg-blue-600 text-white py-4 rounded-full font-bold text-[10px] uppercase tracking-widest hover:bg-blue-700 transition-all flex items-center justify-center gap-2 shadow-lg">
                   <UserPlus size={14} /> Entrar / Cadastrar
@@ -139,21 +137,18 @@ const DesktopNav = ({ user, userData, onLogout, minhasEscalas }: any) => {
                     <div className="flex-1 min-w-0">
                       <p className="text-[10px] uppercase font-black text-blue-500 tracking-widest mb-0.5">{userData.cargo}</p>
                       <p className="font-display text-lg leading-tight truncate text-slate-800">{userData.nome}</p>
-                      {deveMostrarMinisterio && <p className="text-[9px] font-black bg-blue-50 text-blue-600 px-2 py-0.5 rounded mt-1 inline-block uppercase">Min. {userData.ministerio}</p>}
+                      {userData.ministerio && <p className="text-[9px] font-black bg-blue-50 text-blue-600 px-2 py-0.5 rounded mt-1 inline-block uppercase">Min. {userData.ministerio}</p>}
                     </div>
                   </div>
-
                   <div className="space-y-2 border-t border-slate-100 pt-4">
                     <Link to="/perfil" onClick={() => setMenuAberto(false)} className="flex items-center gap-3 p-3 rounded-xl text-[10px] font-black uppercase text-slate-600 hover:bg-slate-50 transition-all group">
                       <div className="p-1.5 bg-slate-100 rounded-lg group-hover:bg-white transition-colors"><User size={14} /></div> Meu Perfil
                     </Link>
-                    
                     {showAdminButton && (
                       <Link to="/admin" onClick={() => setMenuAberto(false)} className="flex items-center gap-3 p-3 rounded-xl text-[10px] font-black uppercase text-slate-600 hover:bg-slate-50 transition-all group">
                         <div className="p-1.5 bg-slate-100 rounded-lg group-hover:bg-white transition-colors"><Shield size={14} /></div> Painel Admin
                       </Link>
                     )}
-
                     <button onClick={onLogout} className="flex items-center gap-3 p-3 rounded-xl text-[10px] font-black uppercase text-red-500 hover:bg-red-50 transition-all w-full text-left mt-2 group">
                       <div className="p-1.5 bg-red-50 rounded-lg group-hover:bg-white transition-colors"><LogOut size={14} /></div> Sair
                     </button>
@@ -166,22 +161,19 @@ const DesktopNav = ({ user, userData, onLogout, minhasEscalas }: any) => {
         </div>
       </div>
     </div>
-    
     <MyScalesModal isOpen={showScalesModal} onClose={() => setShowScalesModal(false)} escalas={minhasEscalas} />
     </>
   );
 };
 
-// --- 2. MENU MOBILE ---
-const MobileMenu = ({ isOpen, setIsOpen, user, userData, onLogout, minhasEscalas }: any) => {
+// --- MENU MOBILE ---
+const MobileMenu = ({ isOpen, setIsOpen, user, userData, onLogout, minhasEscalas, sessaoEncontro, showEncontroLink }: any) => {
   const [showScalesModal, setShowScalesModal] = useState(false);
   const displayPhoto = userData.foto || "https://www.w3schools.com/howto/img_avatar.png";
-  const deveMostrarMinisterio = userData.cargo !== "Dev" && userData.ministerio;
   const showAdminButton = hasPanelAccess(userData.permissao, userData.cargo);
 
   useEffect(() => {
     if (isOpen) { document.body.style.overflow = 'hidden'; } else { document.body.style.overflow = 'unset'; }
-    return () => { document.body.style.overflow = 'unset'; };
   }, [isOpen]);
 
   return (
@@ -189,81 +181,66 @@ const MobileMenu = ({ isOpen, setIsOpen, user, userData, onLogout, minhasEscalas
     <div className="lg:hidden">
       <div className="flex items-center gap-2 relative z-[60]">
         <div className={`flex items-center gap-2 transition-opacity duration-200 ${isOpen ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}>
-            
-            {/* BOTÃOZINHO DE ESCALAS MOBILE (SÓ ÍCONE) */}
             {user && minhasEscalas.length > 0 && (
-                <button 
-                    onClick={() => setShowScalesModal(true)} 
-                    className="p-2 text-indigo-600 bg-indigo-50 hover:bg-indigo-100 rounded-xl transition-colors"
-                >
+                <button onClick={() => setShowScalesModal(true)} className="p-2 text-indigo-600 bg-indigo-50 hover:bg-indigo-100 rounded-xl transition-colors">
                     <Calendar size={22} />
                 </button>
             )}
-
             {user && <NotificationBell />}
         </div>
         <button className={`p-2 transition-colors ${isOpen ? 'text-white' : 'text-blue-600'}`} onClick={() => setIsOpen(!isOpen)}>
             {isOpen ? <X size={28} /> : <Menu size={28} />}
         </button>
       </div>
-
       {isOpen && (
-        <div 
-            className="fixed inset-0 z-50 animate-in fade-in duration-300 flex flex-col h-[100dvh] w-full bg-black/60 backdrop-blur-xl"
-            onClick={() => setIsOpen(false)}
-        >
-          <div 
-            className="flex-1 flex flex-col pt-24 pb-safe relative overflow-y-auto"
-            onClick={(e) => e.stopPropagation()} 
-          >
+        <div className="fixed inset-0 z-50 animate-in fade-in duration-300 flex flex-col h-[100dvh] w-full bg-black/60 backdrop-blur-xl" onClick={() => setIsOpen(false)}>
+          <div className="flex-1 flex flex-col pt-24 pb-safe relative overflow-y-auto" onClick={(e) => e.stopPropagation()}>
             <div className="px-8 mb-6"><InstallPWA /></div>
-
             <div className="flex flex-col items-center gap-6 px-8">
               {NAV_LINKS.map((link) => (
-                <HashLink smooth key={link.name} to={link.href} onClick={() => setIsOpen(false)} 
-                  className="inline-block py-2 px-6 text-center text-sm font-black uppercase tracking-[0.2em] text-white hover:text-blue-400 transition-colors drop-shadow-md">
+                <HashLink smooth key={link.name} to={link.href} onClick={() => setIsOpen(false)} className="inline-block py-2 px-6 text-center text-sm font-black uppercase tracking-[0.2em] text-white hover:text-blue-400 transition-colors drop-shadow-md">
                   {link.name}
                 </HashLink>
               ))}
+              
+              {/* LÓGICA MOBILE DO ENCONTRO */}
+              {showEncontroLink ? (
+                <Link to="/encontro/gerenciamento" onClick={() => setIsOpen(false)} className="inline-block py-2 px-6 text-center text-sm font-black uppercase tracking-[0.2em] text-blue-400 border border-blue-400/30 rounded-full">
+                  Gerenciar Encontro
+                </Link>
+              ) : sessaoEncontro ? (
+                <Link to="/encontro/dashboard" onClick={() => setIsOpen(false)} className="inline-block py-2 px-6 text-center text-sm font-black uppercase tracking-[0.2em] text-blue-400 border border-blue-400/30 rounded-full animate-pulse">
+                  Meu Encontro
+                </Link>
+              ) : null}
             </div>
-
+            
             <div className="mt-auto w-full p-6 bg-black/40 backdrop-blur-md border-t border-white/10">
               {!user ? (
-                <Link to="/login" onClick={() => setIsOpen(false)} className="w-full flex items-center justify-center bg-blue-600 text-white px-6 py-4 rounded-2xl text-xs font-black uppercase tracking-widest shadow-lg gap-2 border border-blue-400/30">
+                <Link to="/login" onClick={() => setIsOpen(false)} className="w-full flex items-center justify-center bg-blue-600 text-white px-6 py-4 rounded-2xl text-xs font-black uppercase tracking-widest gap-2 shadow-lg">
                   <UserPlus size={16}/> Entrar na Conta
                 </Link>
               ) : (
                 <div className="flex flex-col gap-6">
                   <div className="flex items-center gap-4">
-                      <img src={displayPhoto} className="w-12 h-12 rounded-full border-2 border-white/20 shadow-lg object-cover" />
+                      <img src={displayPhoto} className="w-12 h-12 rounded-full border-2 border-white/20 object-cover shadow-lg" />
                       <div className="flex-1 min-w-0">
                           <p className="font-bold text-white text-lg truncate drop-shadow-md">{userData.nome}</p>
-                          <p className="text-[10px] font-black uppercase tracking-wider text-blue-400 truncate mt-0.5">
-                            {userData.cargo}
-                            {deveMostrarMinisterio && <span className="text-gray-400"> • {userData.ministerio}</span>}
-                          </p>
+                          <p className="text-[10px] font-black uppercase tracking-wider text-blue-400 truncate mt-0.5">{userData.cargo}</p>
                       </div>
                   </div>
                   <div className="grid grid-cols-2 gap-3">
-                      <Link to="/perfil" onClick={() => setIsOpen(false)} className="flex items-center justify-center gap-2 bg-white/5 border border-white/10 text-white py-3 rounded-xl text-[10px] font-black uppercase tracking-wide hover:bg-white/20 transition-all">
+                      <Link to="/perfil" onClick={() => setIsOpen(false)} className="flex items-center justify-center gap-2 bg-white/5 border border-white/10 text-white py-3 rounded-xl text-[10px] font-black uppercase tracking-wide">
                           <User size={14} /> Perfil
                       </Link>
-                      <button onClick={() => { onLogout(); setIsOpen(false); }} className="flex items-center justify-center gap-2 bg-white/5 border border-white/10 text-red-400 py-3 rounded-xl text-[10px] font-black uppercase tracking-wide hover:bg-red-900/30 transition-all">
+                      <button onClick={() => { onLogout(); setIsOpen(false); }} className="flex items-center justify-center gap-2 bg-white/5 border border-white/10 text-red-400 py-3 rounded-xl text-[10px] font-black uppercase tracking-wide">
                           <LogOut size={14} /> Sair
                       </button>
                   </div>
-                  
-                  {/* Mantivemos o botão grande também dentro do menu, pois é boa UX ter ambos */}
-                  {minhasEscalas.length > 0 && (
-                      <button onClick={() => { setIsOpen(false); setShowScalesModal(true); }} className="w-full flex items-center justify-center gap-2 bg-indigo-600/40 border border-indigo-500/30 text-white py-3 rounded-xl text-[10px] font-black uppercase tracking-wide shadow-md hover:bg-indigo-600">
-                          <Calendar size={14} /> Minhas Escalas ({minhasEscalas.length})
-                      </button>
-                  )}
-
                   {showAdminButton && (
-                      <Link to="/admin" onClick={() => setIsOpen(false)} className="w-full flex items-center justify-center gap-2 bg-blue-600/40 border border-blue-500/30 text-white py-3 rounded-xl text-[10px] font-black uppercase tracking-wide shadow-md hover:bg-blue-600">
-                          <Shield size={14} /> Painel Admin
-                      </Link>
+                    <Link to="/admin" onClick={() => setIsOpen(false)} className="w-full flex items-center justify-center gap-2 bg-blue-600 text-white py-3 rounded-xl text-[10px] font-black uppercase tracking-wide shadow-md">
+                      <Shield size={14} /> Painel Admin
+                    </Link>
                   )}
                 </div>
               )}
@@ -272,42 +249,42 @@ const MobileMenu = ({ isOpen, setIsOpen, user, userData, onLogout, minhasEscalas
         </div>
       )}
     </div>
-    
     <MyScalesModal isOpen={showScalesModal} onClose={() => setShowScalesModal(false)} escalas={minhasEscalas} />
     </>
   );
 };
 
-// --- 3. HEADER PRINCIPAL ---
+// --- HEADER PRINCIPAL ---
 export default function Header({ userRole, userName }: { userRole: string, userName: string }) {
   const [currentUser, setCurrentUser] = useState<any>(null);
+  const [sessaoEncontro, setSessaoEncontro] = useState<any>(null);
   const [userData, setUserData] = useState({
     nome: userName,
     cargo: userRole,
     permissao: "",
     foto: "",
     ministerio: null as string | null,
-    idade: null as number | null
+    permissaoEncontro: [] // Agora incluímos o array específico do encontro
   });
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [minhasEscalas, setMinhasEscalas] = useState<any[]>([]);
   const navigate = useNavigate();
 
-  const calculateAge = (birthDateString: string) => {
-    if (!birthDateString) return null;
-    const birthDate = new Date(birthDateString);
-    const today = new Date();
-    let age = today.getFullYear() - birthDate.getFullYear();
-    const m = today.getMonth() - birthDate.getMonth();
-    if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) age--;
-    return age;
-  };
+  useEffect(() => {
+    const checkSessao = () => {
+      const salva = localStorage.getItem("sessao_encontro");
+      if (salva) setSessaoEncontro(JSON.parse(salva));
+    };
+    checkSessao();
+    window.addEventListener('storage', checkSessao);
+    return () => window.removeEventListener('storage', checkSessao);
+  }, []);
 
   useEffect(() => {
     const unsubAuth = auth.onAuthStateChanged((user) => {
       setCurrentUser(user);
       if (user && user.email) {
-        const unsubDoc = onSnapshot(doc(db, "contas_acesso", user.email), (docSnap) => {
+        onSnapshot(doc(db, "contas_acesso", user.email), (docSnap) => {
           if (docSnap.exists()) {
             const data = docSnap.data();
             setUserData(prev => ({
@@ -316,29 +293,25 @@ export default function Header({ userRole, userName }: { userRole: string, userN
               cargo: data.cargo || "Membro",
               permissao: data.permissao || "",
               foto: data.foto || "",
-              idade: calculateAge(data.nascimento)
+              // Captura as permissões do encontro corretamente
+              permissaoEncontro: data.permissaoEncontro || [] 
             }));
           }
         });
 
-        // Buscar ministério
-        const unsubMin = onSnapshot(collection(db, "ministerios_info"), (snap) => {
+        // (Lógica de ministérios e escalas mantida...)
+        onSnapshot(collection(db, "ministerios_info"), (snap) => {
           let minEncontrado: string | null = null; 
           snap.docs.forEach(docMin => {
             const equipe = docMin.data().equipe || [];
-            if (equipe.some((membro: any) => membro.id === user.email)) {
-              minEncontrado = docMin.data().titulo;
-            }
+            if (equipe.some((membro: any) => membro.id === user.email)) minEncontrado = docMin.data().titulo;
           });
           setUserData(prev => ({ ...prev, ministerio: minEncontrado }));
         });
 
-        // BUSCAR ESCALAS DO USUÁRIO
         const qEscalas = query(collection(db, "escalas_servos"), orderBy("dataCulto", "asc"));
-        const unsubEscalas = onSnapshot(qEscalas, (snap) => {
-            const hoje = new Date();
-            hoje.setHours(0,0,0,0);
-
+        onSnapshot(qEscalas, (snap) => {
+            const hoje = new Date(); hoje.setHours(0,0,0,0);
             const minhas = snap.docs
                 .map(d => ({ id: d.id, ...d.data() }))
                 .filter((escala: any) => {
@@ -348,44 +321,43 @@ export default function Header({ userRole, userName }: { userRole: string, userN
                 });
             setMinhasEscalas(minhas);
         });
-
-        return () => { unsubDoc(); unsubMin(); unsubEscalas(); };
       } else {
-        setUserData({ nome: "Convidado", cargo: "Visitante", permissao: "", foto: "", ministerio: null, idade: null });
+        setUserData({ nome: "Convidado", cargo: "Visitante", permissao: "", foto: "", ministerio: null, permissaoEncontro: [] });
         setMinhasEscalas([]);
       }
     });
-    return () => unsubAuth();
   }, []);
 
   const handleLogout = async () => {
-    try {
-      await signOut(auth);
-      setMobileMenuOpen(false);
-      navigate("/");
+    try { 
+      await signOut(auth); 
+      localStorage.removeItem("sessao_encontro");
+      setSessaoEncontro(null);
+      setMobileMenuOpen(false); 
+      navigate("/"); 
     } catch (error) { console.error(error); }
   };
 
+  // --- NOVA LÓGICA DE VISIBILIDADE DO BOTÃO ---
+  // Verifica se tem algum cargo na lista OU se é o Dev Master
+  const permissoesEncontro = Array.isArray(userData.permissaoEncontro) 
+    ? userData.permissaoEncontro 
+    : [userData.permissaoEncontro].filter(Boolean);
+
+  const isDevMaster = currentUser?.email === "gab.alves0531@gmail.com";
+  
+  // Se tiver QUALQUER permissão de encontro (saude, financeiro, coord, recepcao) ou for Dev
+  const showEncontroLink = isDevMaster || permissoesEncontro.length > 0;
+
   return (
-    <header className="fixed top-0 w-full z-50 bg-white/95 backdrop-blur-md h-20 flex items-center border-b border-n-borda shadow-sm transition-all duration-300">
+    <header className="fixed top-0 w-full z-50 bg-white/95 backdrop-blur-md h-20 flex items-center border-b border-slate-100 shadow-sm transition-all duration-300">
       <div className="w-full max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 flex justify-between items-center relative z-50">
-        
         <Link to="/" className="flex items-center gap-3 shrink-0 relative z-[60]">
           <img src="/logo.webp" className="w-10 h-10 rounded-full border-2 border-blue-600 object-cover" alt="Logo" />
-          <span className="font-display text-xl md:text-2xl font-bold text-n-texto uppercase tracking-tighter hidden sm:block">FAMÍLIAS CHURCH</span>
+          <span className="font-display text-xl md:text-2xl font-bold text-slate-800 uppercase tracking-tighter hidden sm:block">FAMÍLIAS CHURCH</span>
         </Link>
-
-        <DesktopNav user={currentUser} userData={userData} onLogout={handleLogout} minhasEscalas={minhasEscalas} />
-        
-        <MobileMenu 
-            isOpen={mobileMenuOpen} 
-            setIsOpen={setMobileMenuOpen} 
-            user={currentUser} 
-            userData={userData} 
-            onLogout={handleLogout}
-            minhasEscalas={minhasEscalas}
-        />
-
+        <DesktopNav user={currentUser} userData={userData} onLogout={handleLogout} minhasEscalas={minhasEscalas} sessaoEncontro={sessaoEncontro} showEncontroLink={showEncontroLink} />
+        <MobileMenu isOpen={mobileMenuOpen} setIsOpen={setMobileMenuOpen} user={currentUser} userData={userData} onLogout={handleLogout} minhasEscalas={minhasEscalas} sessaoEncontro={sessaoEncontro} showEncontroLink={showEncontroLink} />
       </div>
     </header>
   );
